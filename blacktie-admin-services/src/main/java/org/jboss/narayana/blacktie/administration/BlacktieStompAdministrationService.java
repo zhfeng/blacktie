@@ -48,7 +48,6 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.TPSVCINFO;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.mdb.MDBBlacktieService;
-import org.jboss.ejb3.annotation.ResourceAdapter;
 import org.jboss.narayana.blacktie.administration.core.AdministrationProxy;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -60,7 +59,6 @@ import org.xml.sax.InputSource;
 		@ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_BTStompAdmin") })
 // @Depends("org.hornetq:module=JMS,name=\"BTR_BTStompAdmin\",type=Queue")
 @javax.ejb.TransactionAttribute(javax.ejb.TransactionAttributeType.NOT_SUPPORTED)
-@ResourceAdapter("hornetq-ra.rar")
 public class BlacktieStompAdministrationService extends MDBBlacktieService
 		implements javax.jms.MessageListener {
 	private static final Logger log = LogManager
@@ -74,8 +72,7 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService
 	public BlacktieStompAdministrationService() throws IOException,
 			ConfigurationException {
 		XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
-		beanServerConnection = org.jboss.mx.util.MBeanServerLocator
-				.locateJBoss();
+		beanServerConnection = java.lang.management.ManagementFactory.getPlatformMBeanServer();
 	}
 
 	static boolean isDeployQueue(MBeanServerConnection beanServerConnection, Properties prop, String serviceName) throws Exception {

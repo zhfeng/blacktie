@@ -39,7 +39,6 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.TPSVCINFO;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.mdb.MDBBlacktieService;
-import org.jboss.ejb3.annotation.ResourceAdapter;
 import org.jboss.narayana.blacktie.administration.core.AdministrationProxy;
 import org.w3c.dom.Element;
 
@@ -48,7 +47,6 @@ import org.w3c.dom.Element;
 		@ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_BTDomainAdmin") }, messageListenerInterface = javax.jms.MessageListener.class)
 // @Depends("org.hornetq:module=JMS,name=\"BTR_BTDomainAdmin\",type=Queue")
 @javax.ejb.TransactionAttribute(javax.ejb.TransactionAttributeType.NOT_SUPPORTED)
-@ResourceAdapter("hornetq-ra.rar")
 /**
  * This is the administration service proxy to allow administration of the servers from XATMI clients.
  */

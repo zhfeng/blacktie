@@ -69,8 +69,7 @@ public class AdministrationProxy {
 		ConnectionFactory cf = ConnectionFactory.getConnectionFactory();
 		connection = cf.getConnection();
 
-		beanServerConnection = org.jboss.mx.util.MBeanServerLocator
-				.locateJBoss();
+		beanServerConnection = java.lang.management.ManagementFactory.getPlatformMBeanServer();
 		log.debug("Created Administration Proxy");
 	}
 

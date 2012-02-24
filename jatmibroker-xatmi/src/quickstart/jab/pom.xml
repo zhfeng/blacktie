@@ -60,7 +60,7 @@
   <dependencies>
     <dependency>
       <groupId>org.jboss.narayana.blacktie</groupId>
-      <artifactId>jatmibroker-xatmi-client</artifactId>
+      <artifactId>jatmibroker-xatmi</artifactId>
       <version>5.0.0.M2-SNAPSHOT</version>
     </dependency>
     <!-- Override the logkit implementation required to work around missing artifact     -->

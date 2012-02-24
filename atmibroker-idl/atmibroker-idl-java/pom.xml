@@ -101,11 +101,4 @@
       </plugin>
     </plugins>
   </build>
-  <dependencies>
-    <dependency>
-      <groupId>org.jboss.integration</groupId>
-      <artifactId>jboss-corba-ots-spi</artifactId>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
 </project>

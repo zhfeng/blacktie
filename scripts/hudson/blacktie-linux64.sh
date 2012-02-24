@@ -54,7 +54,7 @@ if [ "$?" != "0" ]; then
 	exit -1
 fi
 export JBOSS_HOME=$WORKSPACE/jboss-5.1.0.GA
-./build.sh install -Dbpa=centos54x64 -Duse.valgrind=false
+./build.sh install -Duse.valgrind=false
 if [ "$?" != "0" ]; then
 	ps -f
 	for i in `ps -eaf | grep java | grep "run.sh" | grep -v grep | cut -c10-15`; do kill -9 $i; done

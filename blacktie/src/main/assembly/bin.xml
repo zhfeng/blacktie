@@ -68,15 +68,6 @@
 		</dependencySet>
 		<dependencySet>
 			<includes>
-				<include>org.jboss.narayana.blacktie:jatmibroker-xatmi-client</include>
-			</includes>
-			<useProjectArtifact>false</useProjectArtifact>
-			<unpack>false</unpack>
-			<outputDirectory>lib/java</outputDirectory>
-			<useTransitiveDependencies>true</useTransitiveDependencies>
-		</dependencySet>
-		<dependencySet>
-			<includes>
 				<include>org.jboss.narayana.blacktie:blacktie-rhq-plugin</include>
 			</includes>
 			<useProjectArtifact>false</useProjectArtifact>
@@ -107,7 +98,6 @@
 			<excludes>
 				<exclude>org.jboss.narayana.blacktie:btadmin</exclude>
 				<exclude>org.jboss.narayana.blacktie:codeGeneration</exclude>
-				<exclude>org.jboss.narayana.blacktie:jatmibroker-xatmi-client</exclude>
 				<exclude>org.jboss.narayana.blacktie:blacktie-rhq-plugin</exclude>
 				<exclude>org.jboss.narayana.blacktie:blacktie-admin-services-ear</exclude>
 				<exclude>org.jboss.narayana.blacktie:stompconnectservice-ear</exclude>

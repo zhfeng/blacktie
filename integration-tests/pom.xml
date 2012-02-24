@@ -159,7 +159,7 @@
     </dependency>
     <dependency>
       <groupId>org.jboss.narayana.blacktie</groupId>
-      <artifactId>jatmibroker-xatmi-client</artifactId>
+      <artifactId>jatmibroker-xatmi</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

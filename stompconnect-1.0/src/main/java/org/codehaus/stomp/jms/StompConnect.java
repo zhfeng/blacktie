@@ -183,11 +183,6 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
     // Implementation methods
     //-------------------------------------------------------------------------
     protected void doStart() throws Exception {
-        XAConnectionFactory factory = getConnectionFactory();
-        if (factory == null) {
-            throw new IllegalArgumentException("No ConnectionFactory has been configured!");
-        }
-
         getTcpServer().start();
     }
 

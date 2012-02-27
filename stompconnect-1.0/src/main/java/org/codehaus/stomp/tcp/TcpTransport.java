@@ -89,6 +89,7 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
             this.socket = socketFactory.createSocket();
         }
         catch (SocketException e) {
+            e.printStackTrace();
             this.socket = null;
         }
         this.remoteLocation = remoteLocation;
@@ -137,6 +138,7 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
             catch (InterruptedIOException e) {
             }
             catch (Exception e) {
+                log.debug("Caught an exception: " + e.getMessage());
                 try {
                     stop();
                 }

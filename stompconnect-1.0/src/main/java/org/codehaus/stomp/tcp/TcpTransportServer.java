@@ -95,6 +95,7 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
             }
             catch (Exception e) {
                 if (!isStopping() && !isStopped()) {
+                    e.printStackTrace();
                     onAcceptError(e);
                 }
             }

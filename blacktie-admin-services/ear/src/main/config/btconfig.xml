@@ -166,7 +166,7 @@
 	</SERVERS>
 	<ORB OPT="-ORBInitRef NameService=corbaloc::${jboss.bind.address}:3528/NameService"
 		TRANS_FACTORY_ID="TransactionManagerService.OTS" />
-	<MQ HOST="${jboss.bind.address}" PORT="61613" USER="guest" PASSWORD="guest"
+	<MQ HOST="${jboss.bind.address}" PORT="61613" USER="guest" PASSWORD="password"
 		RECEIVE_TIMEOUT="10" TIME_TO_LIVE="10" NAMING_URL="jnp://${jboss.bind.address}:1099" />
 	<JMX url="service:jmx:rmi:///jndi/rmi://${jboss.bind.address}:1090/jmxconnector" />
 	<ENV_VARIABLES>

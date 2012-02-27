@@ -118,17 +118,19 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.jboss.bom</groupId>
-                <artifactId>jboss-javaee-6.0-with-tools</artifactId>
-                <version>1.0.0.M1</version>
+                <groupId>org.jboss.as</groupId>
+                <artifactId>jboss-as-parent</artifactId>
+                <version>7.1.0.Final</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!--
             <dependency>
                 <groupId>org.jboss.jbossts</groupId>
                 <artifactId>jbossjts</artifactId>
                 <version>4.16.2.Final</version>
             </dependency>
+-->
             <dependency>
                 <groupId>org.jboss.narayana.blacktie</groupId>
                 <artifactId>cpp-tools</artifactId>
@@ -165,6 +167,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.codehaus.stomp</groupId>
+                <artifactId>stompconnect</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.jboss.narayana.blacktie</groupId>
                 <artifactId>jatmibroker-xatmi</artifactId>
                 <version>${project.version}</version>
@@ -178,11 +185,6 @@
             <dependency>
                 <groupId>org.jboss.narayana.blacktie</groupId>
                 <artifactId>blacktie-admin-services</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.narayana.blacktie</groupId>
-                <artifactId>stompconnectservice</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -271,18 +273,6 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.jboss.narayana.blacktie</groupId>
-                <artifactId>blacktie-admin-services-ear</artifactId>
-                <version>${project.version}</version>
-                <type>ear</type>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.narayana.blacktie</groupId>
-                <artifactId>stompconnectservice-ear</artifactId>
-                <version>${project.version}</version>
-                <type>ear</type>
-            </dependency>
-            <dependency>
                 <groupId>apache-avalon-logkit</groupId>
                 <artifactId>logkit</artifactId>
                 <version>1.2-brew</version>
@@ -305,8 +295,6 @@
         <module>atmibroker-idl</module>
         <module>hornetq-rest</module>
         <module>stompconnect-1.0</module>
-        <module>stompconnectservice</module>
-        <module>stompconnectservice/ear</module>
         <module>jatmibroker-xatmi</module>
         <module>blacktie-admin-services</module>
         <module>blacktie-admin-services/ear</module>

@@ -17,27 +17,27 @@
  */
 package org.codehaus.stomp.jms;
 
+import java.util.Map;
+
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.Session;
+import javax.jms.Topic;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.stomp.ProtocolException;
 import org.codehaus.stomp.Stomp;
 import org.codehaus.stomp.StompFrame;
 
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
-import javax.jms.Session;
-import javax.jms.Topic;
-import java.util.Map;
-
 /**
  * Represents an individual Stomp subscription
- *
+ * 
  * @version $Revision: 50 $
  */
-public class StompSubscription implements MessageListener {
+public class StompSubscription implements Runnable {
     public static final String AUTO_ACK = Stomp.Headers.Subscribe.AckModeValues.AUTO;
     public static final String CLIENT_ACK = Stomp.Headers.Subscribe.AckModeValues.CLIENT;
     private static final transient Log log = LogFactory.getLog(StompSubscription.class);
@@ -46,58 +46,39 @@ public class StompSubscription implements MessageListener {
     private Destination destination;
     private MessageConsumer consumer;
     private String destinationName;
+    private boolean closed;
+    private Thread thread;
+    private Map<String, Object> headers;
 
-    public StompSubscription(StompSession session, String subscriptionId, StompFrame frame) throws JMSException, ProtocolException {
+    public StompSubscription(StompSession session, String subscriptionId, StompFrame frame) throws JMSException,
+            ProtocolException {
         this.subscriptionId = subscriptionId;
         this.session = session;
+        this.headers = frame.getHeaders();
 
-        Map headers = frame.getHeaders();
-        String selector = (String) headers.remove(Stomp.Headers.Subscribe.SELECTOR);
-        destinationName = (String) headers.get(Stomp.Headers.Subscribe.DESTINATION);
-        destination = session.convertDestination(destinationName, true);
-        Session jmsSession = session.getSession();
-        boolean noLocal = false;
-
-        if (destination instanceof Topic) {
-            String value = (String) headers.get(Stomp.Headers.Subscribe.NO_LOCAL);
-            if (value != null && "true".equalsIgnoreCase(value)) {
-                noLocal = true;
-            }
-
-            String subscriberName = (String) headers.get(Stomp.Headers.Subscribe.DURABLE_SUBSCRIPTION_NAME);
-            if (subscriberName != null) {
-                consumer = jmsSession.createDurableSubscriber((Topic) destination, subscriberName, selector, noLocal);
-            }
-            else {
-                consumer = jmsSession.createConsumer(destination, selector, noLocal);
-            }
-        }
-        else {
-            consumer = jmsSession.createConsumer(destination, selector);
-        }
-        consumer.setMessageListener(this);
+        thread = new Thread(this);
+        thread.start();
     }
 
     public void close() throws JMSException {
+        closed = true;
         consumer.close();
     }
 
     public void onMessage(Message message) {
-    	log.debug("onMessage:" + destinationName);
+        log.debug("onMessage:" + destinationName);
         try {
             int ackMode = session.getSession().getAcknowledgeMode();
-			if (ackMode == Session.CLIENT_ACKNOWLEDGE) {
-				synchronized (consumer) {
-					boolean closing = session.getProtocolConverter()
-							.addMessageToAck(message, consumer);
-					if (!closing) {
-						session.sendToStomp(message, this);
-						consumer.wait();
-					}
-				}
-			}
-        }
-        catch (Exception e) {
+            if (ackMode == Session.CLIENT_ACKNOWLEDGE) {
+                synchronized (consumer) {
+                    boolean closing = session.getProtocolConverter().addMessageToAck(message, consumer);
+                    if (!closing) {
+                        session.sendToStomp(message, this);
+                        consumer.wait();
+                    }
+                }
+            }
+        } catch (Exception e) {
             log.error("Failed to process message due to: " + e + ". Message: " + message, e);
         }
     }
@@ -108,5 +89,39 @@ public class StompSubscription implements MessageListener {
 
     public Destination getDestination() {
         return destination;
+    }
+
+    public void run() {
+        try {
+            String selector = (String) headers.remove(Stomp.Headers.Subscribe.SELECTOR);
+            destinationName = (String) headers.get(Stomp.Headers.Subscribe.DESTINATION);
+            destination = session.convertDestination(destinationName, true);
+            Session jmsSession = session.getSession();
+            if (destination instanceof Topic) {
+                boolean noLocal = false;
+                String value = (String) headers.get(Stomp.Headers.Subscribe.NO_LOCAL);
+                if (value != null && "true".equalsIgnoreCase(value)) {
+                    noLocal = true;
+                }
+
+                String subscriberName = (String) headers.get(Stomp.Headers.Subscribe.DURABLE_SUBSCRIPTION_NAME);
+                if (subscriberName != null) {
+                    consumer = jmsSession.createDurableSubscriber((Topic) destination, subscriberName, selector, noLocal);
+                } else {
+                    consumer = jmsSession.createConsumer(destination, selector, noLocal);
+                }
+            } else {
+                consumer = jmsSession.createConsumer(destination, selector);
+            }
+            while (!closed) {
+                Message receive = consumer.receive();
+                onMessage(receive);
+            }
+        } catch (JMSException e) {
+            log.debug("Caught a JMS exception: " + e.getMessage());
+        } catch (ProtocolException e) {
+            log.debug("Caught a Protocol exception: " + e.getMessage());
+        }
+
     }
 }

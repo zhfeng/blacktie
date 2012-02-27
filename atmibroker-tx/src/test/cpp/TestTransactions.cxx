@@ -200,8 +200,8 @@ void TestTransactions::test_info()
 // test for transaction timeout behaviour
 void TestTransactions::test_timeout()
 {
-	long timeout = 4;
-	long delay = 8;
+	long timeout = 16;
+	long delay = 32;
 	btlogger_debug("TestTransactions::test_timeout begin");
 	// cause RMs to sleep during 2PC
 	fault_t fault1 = {0, 102, O_XA_COMMIT, XA_OK, F_DELAY, (void*)&delay};
@@ -227,10 +227,14 @@ void TestTransactions::test_timeout()
 	// cause the RM to delay for delay seconds during commit processing
 	(void) dummy_rm_add_fault(fault1);
 	(void) dummy_rm_add_fault(fault2);
+
+
 	btlogger_debug("TestTransactions::test_timeout injecting delay after phase 1");
 	BT_ASSERT_EQUAL(TX_OK, tx_begin());
 	// once the transaction has started 2PC any further delays (beyond the timeout period) should have no effect
 	btlogger_debug("TestTransactions::test_timeout validating that the delay was ignored");
+
+
 	BT_ASSERT_EQUAL(TX_OK, tx_commit());
 
 	/* cleanup */

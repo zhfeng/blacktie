@@ -187,6 +187,7 @@ public class ProtocolConverter implements StompHandler {
                     session.close();
                 }
                 catch (JMSException e) {
+                    e.printStackTrace();
                     if (firstException == null) {                                           
                         firstException = e;
                     }
@@ -262,6 +263,7 @@ public class ProtocolConverter implements StompHandler {
             }
         }
         catch (Exception e) {
+            e.printStackTrace();
 
             // Let the stomp client know about any protocol errors.
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -372,14 +374,10 @@ public class ProtocolConverter implements StompHandler {
 			XAResource xaRes = ((XASession)session.getSession()).getXAResource();
 			Transaction transaction = txMgr.getTransaction();
 			log.trace("Got transaction: " + transaction);
-			transaction.enlistResource(xaRes);
-			log.trace("Enlisted resource");
-			
+
+			// BLACKTIE-308 we no longer need to enlist the JMS resource as JCA does this for us
 			session.sendToJms(command);
 			
-			transaction.delistResource(xaRes, XAResource.TMSUCCESS);
-			
-			log.trace("Delisted resource");
 			tm.suspend();
 			log.trace("Suspended transaction");
 		} else {
@@ -431,8 +429,11 @@ public class ProtocolConverter implements StompHandler {
 
 			// make sure the message is transactionally consumed:
 			Transaction transaction = txMgr.getTransaction();
-			transaction.enlistResource(xaRes);
-			msg = (ttl > 0 ? consumer.receive(ttl) : consumer.receive());
+
+            if (!transaction.enlistResource(xaRes)) {
+			    throw new ProtocolException("Could not enlist resource");
+			}
+            msg = (ttl > 0 ? consumer.receive(ttl) : consumer.receive());
 			transaction.delistResource(xaRes, XAResource.TMSUSPEND);
 			tm.suspend();
 		} else {

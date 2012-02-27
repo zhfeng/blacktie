@@ -22,31 +22,38 @@ import org.apache.log4j.Logger;
 import org.codehaus.stomp.jms.StompConnect;
 
 public class StompConnectService implements StompConnectServiceMBean {
-	private static final Logger log = LogManager
-			.getLogger(StompConnectService.class);
-	protected StompConnect connect = new StompConnect();
-	private String uri;
-	private String connectionFactoryName;
+    private static final Logger log = LogManager.getLogger(StompConnectService.class);
+    private StompConnect connect;
+    private String hostname = "localhost";
+    private int port = 61613;
+    private String connectionFactoryName = "java:/JmsXA";
 
-	public void start() throws Exception {
-		log.info("Starting StompConnectMBeanImpl: " + uri);
-		connect.setJndiName(connectionFactoryName);
-		connect.setUri(uri);
-		connect.start();
-		log.info("Started StompConnectMBeanImpl: " + uri);
-	}
+    public void start() throws Exception {
+        log.info("Starting StompConnectMBeanImpl");
+        connect = new StompConnect();
+        connect.setUri("tcp://" + hostname + ":" + port);
+        connect.setJndiName(connectionFactoryName);
+        connect.start();
+        log.info("Started StompConnectMBeanImpl: " + connect.getUri());
+    }
 
-	public void stop() throws Exception {
-		log.info("Stopping StompConnectMBeanImpl: " + uri);
-		connect.stop();
-		log.info("Stopped StompConnectMBeanImpl: " + uri);
-	}
+    public void stop() throws Exception {
+        connect.stop();
+    }
 
-	public void setConnectionFactoryName(String connectionFactoryName) {
-		this.connectionFactoryName = connectionFactoryName;
-	}
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
 
-	public void setUri(String uri) {
-		this.uri = uri;
-	}
+    public void setPort(String port) {
+        if (port != null) {
+            this.port = Integer.parseInt(port);
+        } else {
+            this.port = 0;
+        }
+    }
+
+    public void setConnectionFactoryName(String connectionFactoryName) {
+        this.connectionFactoryName = connectionFactoryName;
+    }
 }

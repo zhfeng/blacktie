@@ -32,10 +32,15 @@ echo 'JAVA_OPTS="$JAVA_OPTS -DOrbPortabilityEnvironmentBean.resolveService=NAME_
 sed -i 's?"spec"?"on"?g' $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml
 sed -i 's?<coordinator-environment default-timeout="300"/>?<coordinator-environment default-timeout="300"/>\
 	    <jts/>?g' $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml
+
+sed -n '1h;1!H;${;g;s?<logger category="com.arjuna">\n                <level name="WARN"/>?<logger category="com.arjuna">\n                <level name="ALL"/>?g;p;}' $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml > foo
+mv foo $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml
+
 sed -i 's?            <root-logger>?            <logger category="org.jboss.narayana.blacktie">\
                 <level name="ALL"/>\
             </logger>\
             <root-logger>?g' $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml
+
 sed -i 's?                </jms-destinations>?                    <jms-queue name="BTR_TestOne">\
                         <entry name="queue/BTR_TestOne"/>\
                         <entry name="java:jboss/exported/jms/queue/BTR_TestOne"/>\

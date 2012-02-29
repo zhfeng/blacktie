@@ -30,6 +30,7 @@ import javax.ejb.MessageDriven;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.management.MBeanServerConnection;
+import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -59,7 +60,6 @@ import org.xml.sax.InputSource;
 @MessageDriven(activationConfig = {
 		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
 		@ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_BTStompAdmin") })
-// @Depends("org.hornetq:module=JMS,name=\"BTR_BTStompAdmin\",type=Queue")
 public class BlacktieStompAdministrationService extends MDBBlacktieService
 		implements javax.jms.MessageListener {
 	private static final Logger log = LogManager
@@ -78,18 +78,14 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService
 	}
 
 	static boolean isDeployQueue(MBeanServerConnection beanServerConnection, Properties prop, String serviceName) throws Exception {
-		ObjectName objName = new ObjectName(
-				"org.hornetq:module=JMS,type=Server");
-		String[] queues = (String[]) beanServerConnection.getAttribute(objName,
-				"QueueNames");
-		String[] topics = (String[]) beanServerConnection.getAttribute(objName,
-				"TopicNames");
-
-		log.trace("Checking if queue is deployed: " + serviceName);
+            
 		boolean conversational = false;
+		String type = "queue";
 		if (!serviceName.startsWith(".")) {
 			conversational = (Boolean) prop.get("blacktie." + serviceName
 					+ ".conversational");
+            type = (String) prop.getProperty("blacktie." + serviceName
+                    + ".type");
 		}
 		String prefix = null;
 		if (conversational) {
@@ -97,23 +93,29 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService
 		} else {
 			prefix = "BTR_";
 		}
-		for (int i = 0; i < queues.length; i++) {
-			String qname = queues[i];
-			log.trace("queue is " + qname);
-			if (qname.equals(prefix + serviceName)) {
-				log.debug("find serviceName " + serviceName + " in Queues");
-				return true;
-			}
-		}
-		
-		for (int i = 0; i < topics.length; i++) {
-			String tname = topics[i];
-			log.trace("topic is " + tname);
-			if (tname.equals(prefix + serviceName)) {
-				log.debug("find serviceName " + serviceName + " in Topics");
-				return true;
-			}
-		}
+        if (type.equals("queue")) {
+            ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=*");
+            ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
+            for (int i = 0; i < dests.length; i++) {
+                String qname = dests[i].getObjectName().getCanonicalName();
+                log.trace("dests is " + qname);
+                if (qname.equals("jboss.as:hornetq-server=default,jms-queue=" + prefix + serviceName + ",subsystem=messaging")) {
+                    log.debug("find serviceName " + serviceName + " in Queues");
+                    return true;
+                }
+            }
+        } else {
+            ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-topic=*");
+            ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
+            for (int i = 0; i < dests.length; i++) {
+                String qname = dests[i].getObjectName().getCanonicalName();
+                log.trace("dests is " + qname);
+                if (qname.equals("jboss.as:hornetq-server=default,jms-topic=" + prefix + serviceName + ",subsystem=messaging")) {
+                    log.debug("find serviceName " + serviceName + " in Queues");
+                    return true;
+                }
+            }
+        }
 		
 		log.trace("did not find serviceName " + serviceName);
 		return false;
@@ -136,16 +138,17 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService
 		} else {
 			prefix = "BTR_";
 		}
-		type = type.substring(0,1).toUpperCase() + type.substring(1);
 		
-		ObjectName objName = new ObjectName("org.hornetq:module=JMS,name=\""
-				+ prefix + serviceName + "\",type=" + type);
-		
-		String attribute = "ConsumerCount";
-		if(type.equals("Topic")) {
-			attribute = "SubscriptionCount";
+		Integer count = null;		
+		if(type.toLowerCase().equals("queue")) {
+		    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue="
+	                + prefix + serviceName);
+		    count = (Integer) beanServerConnection.getAttribute(objName, "consumerCount");
+		} else {
+            ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-topic="
+                    + prefix + serviceName);
+            count = (Integer) beanServerConnection.getAttribute(objName, "subscriptionCount");
 		}
-		Integer count = (Integer) beanServerConnection.getAttribute(objName, attribute);
 		log.debug("consCount" + serviceName + " " + count.intValue());
 		return count.intValue();
 	}
@@ -221,7 +224,6 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService
     	  log.debug("Locked for deployQueue: " + serviceName);
 			  queue = isDeployQueue(beanServerConnection, prop, serviceName);
 			  log.debug("Queue " + serviceName + " was deployed?: " + queue);
-			  boolean created = queue;
 			  if (queue == false) {
     			log.debug("Creating " + serviceName);
 					log.trace("Lock acquired");
@@ -243,19 +245,20 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService
 							System.currentTimeMillis());
 					log.trace(serviceName);
 					ObjectName objName = new ObjectName(
-							"org.hornetq:module=JMS,type=Server");
+							"jboss.as:subsystem=messaging,hornetq-server=default");
 					
-					String op = "createQueue";
-					if(type.equals("topic")) {
-						op = "createTopic";
-					}
-					log.debug("Invoking the beanServerConnection for deploy queue");
-					created = (Boolean) beanServerConnection.invoke(objName,
-							op, new Object[] { prefix + serviceName,
-									"/" + type + "/" + prefix + serviceName },
-							new String[] { "java.lang.String",
-									"java.lang.String" });
-					log.debug("Invoked the beanServerConnection for deploy queue: " + created);
+                    log.debug("Invoking the beanServerConnection for deploy queue");
+                    if (type.equals("queue")) {
+                        beanServerConnection.invoke(objName, "addJmsQueue", new Object[] { prefix + serviceName,
+                                new String[] { "jms.queue." + prefix + serviceName }, null, false }, new String[] {
+                                "java.lang.String", "java.lang.String[]", "java.lang.String", "java.lang.Boolean" });
+                    } else {
+                        beanServerConnection.invoke(objName, "addJmsTopic", new Object[] { prefix + serviceName,
+                                new String[] { "jms.topic." + prefix + serviceName } }, new String[] { "java.lang.String",
+                                "java.lang.String[]" });
+                    }
+					
+					log.debug("Invoked the beanServerConnection for deploy queue");
 				}
 				log.debug("Created: "+ serviceName);
 			// QUEUE_CREATION_TIMES.put(serviceName, currentTime);
@@ -266,7 +269,7 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService
 					log.info("Domain is pause");
 					result = 3;
 				}
-			} else if (serviceName.contains(".") && created && consumerCount(serviceName) > 0) {
+			} else if (serviceName.contains(".") && queue && consumerCount(serviceName) > 0) {
 				log.warn("can not advertise ADMIN with same id: " + serviceName);
 				result = 2;
 			} else if (AdministrationProxy.isDomainPause) {
@@ -304,16 +307,19 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService
 					prefix = "BTR_";
 				}
 				
-				String op = "destroyQueue";
-				if(type.equals("topic")) {
-					op = "destroyTopic";
+				if(type.equals("queue")) {
+				    ObjectName objName = new ObjectName(
+	                        "jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=" + prefix + serviceName);
+	                beanServerConnection.invoke(objName, "remove",
+	                        new Object[] {},  
+	                        new String[] {});
+				} else {
+                    ObjectName objName = new ObjectName(
+                            "jboss.as:subsystem=messaging,hornetq-server=default,jms-topic=" + prefix + serviceName);
+                    beanServerConnection.invoke(objName, "remove",
+                            new Object[] {},  
+                            new String[] {});
 				}
-				
-				ObjectName objName = new ObjectName(
-						"org.hornetq:module=JMS,type=Server");
-				beanServerConnection.invoke(objName, op,
-						new Object[] { prefix + serviceName },
-						new String[] { "java.lang.String" });
 			}
 			result = 1;
 		} catch (Throwable t) {

@@ -24,6 +24,7 @@ import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
 import javax.management.MalformedObjectNameException;
+import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
@@ -95,15 +96,14 @@ public class QueueReaper implements Runnable {
 	public void run() {
 		while (this.run) {
 			try {
-				ObjectName objName = new ObjectName(
-						"org.hornetq:module=JMS,type=Server");
-				String[] dests = (String[]) administrationProxy
-						.getBeanServerConnection().getAttribute(objName,
-								"QueueNames");
+			    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=*");
+	            ObjectInstance[] dests = administrationProxy.getBeanServerConnection().queryMBeans(objName, null).toArray(new ObjectInstance[] {});
+
 				for (int i = 0; i < dests.length; i++) {
-					String serviceName = dests[i];
+					String serviceName = dests[i].getObjectName().getCanonicalName();
 					serviceName = serviceName.substring(serviceName
-							.indexOf('_') + 1);
+							.indexOf('_') + 1, serviceName
+                            .indexOf(",subsystem=messaging"));
 					String server = (String) prop.get("blacktie." + serviceName
 							+ ".server");
 					log.trace("Checking for: "
@@ -186,9 +186,12 @@ public class QueueReaper implements Runnable {
 			MBeanException {
 		log.trace(serviceName);
 		boolean conversational = false;
+		String type = "queue";
 		if (!serviceName.startsWith(".")) {
 			conversational = (Boolean) prop.get("blacktie." + serviceName
 					+ ".conversational");
+            type = (String) prop.get("blacktie." + serviceName
+                    + ".type");
 		}
 		String prefix = null;
 		if (conversational) {
@@ -197,13 +200,20 @@ public class QueueReaper implements Runnable {
 			prefix = "BTR_";
 		}
 
-		ObjectName objName = new ObjectName("org.hornetq:module=JMS,name=\""
-				+ prefix + serviceName + "\",type=Queue");
-		try {
-			Integer count = (Integer) administrationProxy
-					.getBeanServerConnection().getAttribute(objName,
-							"ConsumerCount");
-			return count.intValue();
+		ObjectName objName = null;
+        try {
+            Integer count = null;
+            if (type.equals("queue")) {
+                objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=" + prefix
+                        + serviceName);
+                count = (Integer) administrationProxy.getBeanServerConnection().getAttribute(objName, "consumerCount");
+            } else {
+                objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-topic=" + prefix
+                        + serviceName);
+                count = (Integer) administrationProxy.getBeanServerConnection().getAttribute(objName,
+                        "subscriptionCount");
+            }
+            return count.intValue();
 		} catch (javax.management.InstanceNotFoundException e) {
 			log.debug("Instance not found: " + objName);
 			return -1;

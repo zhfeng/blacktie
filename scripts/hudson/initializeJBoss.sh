@@ -26,6 +26,8 @@ fi
 echo 'A
 ' | unzip jbossesb-4.9.zip
 
+echo 'JAVA_OPTS="-Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n ${JAVA_OPTS}"' >> $WORKSPACE/jboss-as-7.1.0.Final/bin/standalone.conf
+
 # INSTALL TRANSACTIONS
 # com.arjuna.orbportability.OrbPortabilityEnvironmentBean.bindMechanism
 echo 'JAVA_OPTS="$JAVA_OPTS -DOrbPortabilityEnvironmentBean.resolveService=NAME_SERVICE"' >> $WORKSPACE/jboss-as-7.1.0.Final/bin/standalone.conf

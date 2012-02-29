@@ -24,8 +24,10 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.management.MBeanServerConnection;
+import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -232,16 +234,14 @@ public class AdministrationProxy {
 		List<String> runningServerList = new ArrayList<String>();
 
 		try {
-			ObjectName objName = new ObjectName(
-					"org.hornetq:module=JMS,type=Server");
-			String[] dests = (String[]) beanServerConnection.getAttribute(
-					objName, "QueueNames");
-			for (int i = 0; i < dests.length; i++) {
-				String qname = dests[i];
-				log.trace(qname);
-				if (qname.startsWith("BTR_.")) {
-					String sname = qname.substring("BTR_.".length());
-					sname = sname.replaceAll("[0-9]", "");
+		    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=*");
+            ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
+            for (int i = 0; i < dests.length; i++) {
+				String qname = dests[i].getObjectName().getCanonicalName();
+				log.info(qname);
+				if (qname.startsWith("jboss.as:hornetq-server=default,jms-queue=BTR_.")) {
+					String sname = qname.substring("jboss.as:hornetq-server=default,jms-queue=BTR_.".length());
+					sname = sname.replaceAll("[0-9,=]", "");
 					log.trace("contains?: " + sname);
 					if (servers.contains(sname)
 							&& !runningServerList.contains(sname)) {
@@ -262,19 +262,17 @@ public class AdministrationProxy {
 		ArrayList<Integer> ids = new ArrayList<Integer>();
 
 		try {
-			ObjectName objName = new ObjectName(
-					"org.hornetq:module=JMS,type=Server");
-			String[] dests = (String[]) beanServerConnection.getAttribute(
-					objName, "QueueNames");
-			for (int i = 0; i < dests.length; i++) {
-				String qname = dests[i];
-				log.trace(qname);
-				if (qname.startsWith("BTR_.")) {
-					String server = qname.substring("BTR_.".length());
+		    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=*");
+            ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
+            for (int i = 0; i < dests.length; i++) {
+				String qname = dests[i].getObjectName().getCanonicalName();
+				log.info(qname);
+				if (qname.startsWith("jboss.as:hornetq-server=default,jms-queue=BTR_.")) {
+					String server = qname.substring("jboss.as:hornetq-server=default,jms-queue=BTR_.".length());
 					server = server.replaceAll("[0-9]", "");
 					if (server.equals(serverName)) {
-						qname = qname.substring("BTR_.".length());
-						qname = qname.replaceAll("[A-Za-z]", "");
+						qname = qname.substring("jboss.as:hornetq-server=default,jms-queue=BTR_.".length());
+						qname = qname.replaceAll("[A-Za-z,=]", "");
 						ids.add(new Integer(qname));
 					}
 				}
@@ -659,9 +657,12 @@ public class AdministrationProxy {
 		try {
 			log.trace(serviceName);
 			boolean conversational = false;
+	        String type = "queue";
 			if (!serviceName.startsWith(".")) {
 				conversational = (Boolean) prop.get("blacktie." + serviceName
 						+ ".conversational");
+	            type = (String) prop.getProperty("blacktie." + serviceName
+	                    + ".type");
 			}
 			String prefix = null;
 			if (conversational) {
@@ -669,11 +670,17 @@ public class AdministrationProxy {
 			} else {
 				prefix = "BTR_";
 			}
+			if(type.toLowerCase().equals("queue")) {
 			ObjectName objName = new ObjectName(
-					"org.hornetq:module=JMS,name=\"" + prefix + serviceName
-							+ "\",type=Queue");
+			        "jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=" + prefix + serviceName);
 			depth = (Integer) getBeanServerConnection().getAttribute(objName,
-					"MessageCount");
+					"messageCount");
+			} else {
+	            ObjectName objName = new ObjectName(
+	                    "jboss.as:subsystem=messaging,hornetq-server=default,jms-topic=" + prefix + serviceName);
+	            depth = (Integer) getBeanServerConnection().getAttribute(objName,
+	                    "messageCount");
+			}
 		} catch (Exception e) {
 			log.error("getQueueDepth failed with " + e);
 			return -1;

@@ -45,8 +45,6 @@ import org.w3c.dom.Element;
 @MessageDriven(activationConfig = {
 		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
 		@ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_BTDomainAdmin") }, messageListenerInterface = javax.jms.MessageListener.class)
-// @Depends("org.hornetq:module=JMS,name=\"BTR_BTDomainAdmin\",type=Queue")
-@javax.ejb.TransactionAttribute(javax.ejb.TransactionAttributeType.NOT_SUPPORTED)
 /**
  * This is the administration service proxy to allow administration of the servers from XATMI clients.
  */

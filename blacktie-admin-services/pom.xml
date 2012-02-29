@@ -121,7 +121,8 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
@@ -167,6 +168,10 @@
 		<dependency>
 			<groupId>org.jboss.narayana.blacktie</groupId>
 			<artifactId>jatmibroker-xatmi</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.as</groupId>
+			<artifactId>jboss-as-controller-client</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>

@@ -23,6 +23,7 @@ import java.util.Properties;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
+import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
@@ -30,9 +31,9 @@ import javax.management.ReflectionException;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.administration.core.AdministrationProxy;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.XMLParser;
-import org.jboss.narayana.blacktie.administration.core.AdministrationProxy;
 
 public class QueueReaper implements Runnable {
 	/** logger */
@@ -49,14 +50,14 @@ public class QueueReaper implements Runnable {
 
 	private Properties prop;
 
-	private AdministrationProxy administrationProxy;
+    private MBeanServer beanServerConnection;
 
 	public QueueReaper(AdministrationProxy administrationProxy)
 			throws ConfigurationException {
 		this.thread = new Thread(this);
 		this.thread.setDaemon(true);
 		this.thread.setPriority(Thread.MIN_PRIORITY);
-		this.administrationProxy = administrationProxy;
+        beanServerConnection = java.lang.management.ManagementFactory.getPlatformMBeanServer();
 
 		prop = new Properties();
 		XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
@@ -96,8 +97,8 @@ public class QueueReaper implements Runnable {
 	public void run() {
 		while (this.run) {
 			try {
-			    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=*");
-	            ObjectInstance[] dests = administrationProxy.getBeanServerConnection().queryMBeans(objName, null).toArray(new ObjectInstance[] {});
+			    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,queue=*");
+	            ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
 
 				for (int i = 0; i < dests.length; i++) {
 					String serviceName = dests[i].getObjectName().getCanonicalName();
@@ -114,28 +115,6 @@ public class QueueReaper implements Runnable {
 							+ prop.get("blacktie." + serviceName
 									+ ".externally-managed-destination"));
 					
-//					boolean third = false;
-//					if (serviceName.startsWith(".")) {
-//						log.debug("first condition true");
-//						third = true;
-//					}
-//					if (((server != null && !(Boolean) prop
-//							.get("blacktie." + serviceName
-//									+ ".externally-managed-destination")))) {
-//						log.debug("second condition true");
-//						third = true;
-//					}
-//					
-//					if ((serviceName.startsWith(".") || ((server != null && !(Boolean) prop
-//							.get("blacktie." + serviceName
-//									+ ".externally-managed-destination"))))) {
-//						log.debug("double condition true");
-//						third = true;
-//					}
-//					
-//					if (third && consumerCount(serviceName) == 0) {
-//						log.debug("third condition true");
-//					}
 					if ((serviceName.startsWith(".") || ((server != null && !(Boolean) prop
 							.get("blacktie." + serviceName
 									+ ".externally-managed-destination"))))
@@ -149,8 +128,7 @@ public class QueueReaper implements Runnable {
 						// double check consumer is 0
 						if (BlacktieStompAdministrationService.isOlderThanReapCheck(serviceName, queueReapCheck)
 								&& consumerCount(serviceName) == 0) {
-							BlacktieStompAdministrationService.undeployQueue(administrationProxy
-						.getBeanServerConnection(), prop, serviceName);
+							BlacktieStompAdministrationService.undeployQueue(serviceName);
 							log.warn("undeploy service " + serviceName
 									+ " for consumer is 0");
 						} else {
@@ -200,23 +178,19 @@ public class QueueReaper implements Runnable {
 			prefix = "BTR_";
 		}
 
-		ObjectName objName = null;
+        ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default," + type.toLowerCase() + "="
+                + prefix + serviceName);
         try {
             Integer count = null;
             if (type.equals("queue")) {
-                objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=" + prefix
-                        + serviceName);
-                count = (Integer) administrationProxy.getBeanServerConnection().getAttribute(objName, "consumerCount");
+                count = (Integer) beanServerConnection.getAttribute(objName, "consumerCount");
             } else {
-                objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-topic=" + prefix
-                        + serviceName);
-                count = (Integer) administrationProxy.getBeanServerConnection().getAttribute(objName,
-                        "subscriptionCount");
+                count = (Integer) beanServerConnection.getAttribute(objName, "subscriptionCount");
             }
             return count.intValue();
-		} catch (javax.management.InstanceNotFoundException e) {
-			log.debug("Instance not found: " + objName);
-			return -1;
-		}
+        } catch (javax.management.InstanceNotFoundException e) {
+            log.debug("Instance not found: " + objName);
+            return -1;
+        }
 	}
 }

@@ -24,7 +24,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
@@ -64,7 +63,7 @@ public class AdministrationProxy {
 
 	public static Boolean isDomainPause = false;
 
-	public AdministrationProxy() throws IOException, ConfigurationException {
+	public AdministrationProxy() throws ConfigurationException {
 		log.debug("Administration Proxy");
 		XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
 		servers = (List<String>) prop.get("blacktie.domain.servers");
@@ -234,13 +233,13 @@ public class AdministrationProxy {
 		List<String> runningServerList = new ArrayList<String>();
 
 		try {
-		    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=*");
+		    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,queue=*");
             ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
             for (int i = 0; i < dests.length; i++) {
 				String qname = dests[i].getObjectName().getCanonicalName();
 				log.info(qname);
-				if (qname.startsWith("jboss.as:hornetq-server=default,jms-queue=BTR_.")) {
-					String sname = qname.substring("jboss.as:hornetq-server=default,jms-queue=BTR_.".length());
+				if (qname.startsWith("jboss.as:hornetq-server=default,queue=BTR_.")) {
+					String sname = qname.substring("jboss.as:hornetq-server=default,queue=BTR_.".length());
 					sname = sname.replaceAll("[0-9,=]", "");
 					log.trace("contains?: " + sname);
 					if (servers.contains(sname)
@@ -262,16 +261,16 @@ public class AdministrationProxy {
 		ArrayList<Integer> ids = new ArrayList<Integer>();
 
 		try {
-		    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=*");
+		    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,queue=*");
             ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
             for (int i = 0; i < dests.length; i++) {
 				String qname = dests[i].getObjectName().getCanonicalName();
 				log.info(qname);
-				if (qname.startsWith("jboss.as:hornetq-server=default,jms-queue=BTR_.")) {
-					String server = qname.substring("jboss.as:hornetq-server=default,jms-queue=BTR_.".length());
+				if (qname.startsWith("jboss.as:hornetq-server=default,queue=BTR_.")) {
+					String server = qname.substring("jboss.as:hornetq-server=default,queue=BTR_.".length());
 					server = server.replaceAll("[0-9]", "");
 					if (server.equals(serverName)) {
-						qname = qname.substring("jboss.as:hornetq-server=default,jms-queue=BTR_.".length());
+						qname = qname.substring("jboss.as:hornetq-server=default,queue=BTR_.".length());
 						qname = qname.replaceAll("[A-Za-z,=]", "");
 						ids.add(new Integer(qname));
 					}
@@ -641,11 +640,6 @@ public class AdministrationProxy {
 		return null;
 	}
 
-	public MBeanServerConnection getBeanServerConnection() {
-		log.trace("getBeanServerConnection");
-		return beanServerConnection;
-	}
-
 	public void close() throws ConnectionException, IOException {
 		log.info("Closed Administration Proxy");
 		connection.close();
@@ -670,17 +664,13 @@ public class AdministrationProxy {
 			} else {
 				prefix = "BTR_";
 			}
-			if(type.toLowerCase().equals("queue")) {
-			ObjectName objName = new ObjectName(
-			        "jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=" + prefix + serviceName);
-			depth = (Integer) getBeanServerConnection().getAttribute(objName,
-					"messageCount");
-			} else {
-	            ObjectName objName = new ObjectName(
-	                    "jboss.as:subsystem=messaging,hornetq-server=default,jms-topic=" + prefix + serviceName);
-	            depth = (Integer) getBeanServerConnection().getAttribute(objName,
-	                    "messageCount");
-			}
+            ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default," + type.toLowerCase()
+                    + "=" + prefix + serviceName);
+            if (type.toLowerCase().equals("queue")) {
+                depth = (Integer) beanServerConnection.getAttribute(objName, "messageCount");
+            } else {
+                depth = (Integer) beanServerConnection.getAttribute(objName, "messageCount");
+            }
 		} catch (Exception e) {
 			log.error("getQueueDepth failed with " + e);
 			return -1;

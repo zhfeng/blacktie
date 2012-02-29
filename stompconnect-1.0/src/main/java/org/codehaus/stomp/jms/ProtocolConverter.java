@@ -105,19 +105,7 @@ public class ProtocolConverter implements StompHandler {
         return outputHandler;
     }
 
-    private static class JtsTransactionImple extends TransactionImple {
 
-	/**
-	 * Construct a transaction based on an OTS control
-	 * 
-	 * @param wrapper
-	 *            the wrapped OTS control
-	 */
-	public JtsTransactionImple(ControlWrapper wrapper) {
-		super(new AtomicTransaction(wrapper));
-        putTransaction(this);
-	}
-    }
 
 	/**
 	 * Convert an IOR representing an OTS transaction into a JTA transaction
@@ -389,7 +377,7 @@ public class ProtocolConverter implements StompHandler {
 			if (stompTx != null) {
 				session = getExistingTransactedSession(stompTx);
 			} else {
-				session = getDefaultSession();
+				session = getClientAckSession();
 			}
 
 			session.sendToJms(command);
@@ -726,4 +714,17 @@ public class ProtocolConverter implements StompHandler {
 		public Session session;
 		public MessageConsumer consumer;
 	}
+	
+    private static class JtsTransactionImple extends TransactionImple {
+
+        /**
+         * Construct a transaction based on an OTS control
+         * 
+         * @param wrapper the wrapped OTS control
+         */
+        public JtsTransactionImple(ControlWrapper wrapper) {
+            super(new AtomicTransaction(wrapper));
+            putTransaction(this);
+        }
+    }
 }

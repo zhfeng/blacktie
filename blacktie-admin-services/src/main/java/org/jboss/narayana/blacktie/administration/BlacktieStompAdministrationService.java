@@ -27,6 +27,8 @@ import java.util.StringTokenizer;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.xml.parsers.DocumentBuilder;
@@ -40,6 +42,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.administration.core.AdministrationProxy;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.XMLParser;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
@@ -48,7 +51,6 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.TPSVCINFO;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.mdb.MDBBlacktieService;
-import org.jboss.narayana.blacktie.administration.core.AdministrationProxy;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -58,7 +60,6 @@ import org.xml.sax.InputSource;
 		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
 		@ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_BTStompAdmin") })
 // @Depends("org.hornetq:module=JMS,name=\"BTR_BTStompAdmin\",type=Queue")
-@javax.ejb.TransactionAttribute(javax.ejb.TransactionAttributeType.NOT_SUPPORTED)
 public class BlacktieStompAdministrationService extends MDBBlacktieService
 		implements javax.jms.MessageListener {
 	private static final Logger log = LogManager
@@ -71,6 +72,7 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService
 
 	public BlacktieStompAdministrationService() throws IOException,
 			ConfigurationException {
+	    super("BlacktieStompAdministrationService");
 		XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
 		beanServerConnection = java.lang.management.ManagementFactory.getPlatformMBeanServer();
 	}

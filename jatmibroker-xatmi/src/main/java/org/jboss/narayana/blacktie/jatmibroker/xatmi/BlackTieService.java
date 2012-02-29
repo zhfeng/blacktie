@@ -43,9 +43,16 @@ public abstract class BlackTieService implements Service {
 
 	private ConnectionFactory connectionFactory;
 
-	protected BlackTieService() throws ConfigurationException {
+    private String name;
+
+    protected BlackTieService(String name) throws ConfigurationException {
 		connectionFactory = ConnectionFactory.getConnectionFactory();
+		this.name = name;
 	}
+
+    public String getName() {
+        return name;
+    }
 
 	/**
 	 * Entry points should pass control to this method as soon as reasonably

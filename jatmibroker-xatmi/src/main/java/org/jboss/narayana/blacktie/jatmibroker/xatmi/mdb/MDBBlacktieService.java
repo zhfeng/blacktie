@@ -1,5 +1,7 @@
 package org.jboss.narayana.blacktie.jatmibroker.xatmi.mdb;
 
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.jms.BytesMessage;
 import javax.jms.Destination;
 import javax.jms.JMSException;
@@ -31,11 +33,12 @@ public abstract class MDBBlacktieService extends BlackTieService implements
 
 	/**
 	 * This will allow the connection factory to be failed
+	 * @param name 
 	 * 
 	 * @throws ConfigurationException
 	 */
-	protected MDBBlacktieService() throws ConfigurationException {
-		super();
+	protected MDBBlacktieService(String name) throws ConfigurationException {
+		super(name);
 	}
 
 	/**
@@ -45,6 +48,7 @@ public abstract class MDBBlacktieService extends BlackTieService implements
 	 * @param message
 	 *            The message received wrapping an XATMI invocation
 	 */
+	@TransactionAttribute(TransactionAttributeType.NEVER)
 	public void onMessage(Message message) {
 		try {
 			String serviceName = null;
@@ -56,14 +60,14 @@ public abstract class MDBBlacktieService extends BlackTieService implements
 			}
 			serviceName = serviceName.substring(serviceName.indexOf('_') + 1);
 			log.trace(serviceName);
+            if (JtsTransactionImple.hasTransaction()) {
+                throw new ConnectionException(Connection.TPEPROTO,
+                        "Blacktie services must not be called with a transactional context: " + getName() + ":" + serviceName);
+            }
 			BytesMessage bytesMessage = ((BytesMessage) message);
 			org.jboss.narayana.blacktie.jatmibroker.core.transport.Message toProcess = convertFromBytesMessage(bytesMessage);
 			log.debug("SERVER onMessage: transaction control ior: "
 					+ toProcess.control);
-			if (JtsTransactionImple.hasTransaction()) {
-				throw new ConnectionException(Connection.TPEPROTO,
-						"Blacktie MDBs must not be called with a transactional context");
-			}
 			processMessage(serviceName, toProcess);
 			log.debug("Processed message");
 		} catch (Throwable t) {

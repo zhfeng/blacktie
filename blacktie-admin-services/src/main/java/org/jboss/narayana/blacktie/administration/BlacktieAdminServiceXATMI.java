@@ -69,6 +69,7 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements
 	 */
 	public BlacktieAdminServiceXATMI() throws IOException,
 			ConfigurationException {
+	    super("BlacktieAdminServiceXATMI");
 		administrationProxy = new AdministrationProxy();
 	}
 

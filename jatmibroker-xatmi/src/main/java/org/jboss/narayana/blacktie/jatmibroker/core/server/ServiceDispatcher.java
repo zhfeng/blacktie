@@ -120,9 +120,9 @@ public class ServiceDispatcher extends BlackTieService implements Runnable {
 	public void close() throws ConnectionException {
 		log.trace("closing");
 
-		log.trace("Interrupting");
-		thread.interrupt();
-		log.trace("Interrupted");
+		log.trace("Closing receiver");
+		receiver.close();
+        log.trace("Closing receiver");
 
 		try {
 			log.trace("Joining");

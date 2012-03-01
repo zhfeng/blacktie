@@ -72,7 +72,7 @@ public class TestTPSend extends TestCase {
 		}
 	}
 
-	public void test_tpsend_tpsendonly() throws ConnectionException {
+	public void test_tpsend_tpsendonly() throws ConnectionException, ConfigurationException {
 		log.info("test_tpsend_tpsendonly");
 		server.tpadvertiseTestTPSendTPSendOnly();
 
@@ -99,7 +99,7 @@ public class TestTPSend extends TestCase {
 		cd.tpsend(sendbuf, 0);
 	}
 
-	public void test_tpsend_non_TPCONV_session() throws ConnectionException {
+	public void test_tpsend_non_TPCONV_session() throws ConnectionException, ConfigurationException {
 		server.tpadvertiseTestTPSendNonTPCONVService();
 
 		try {

@@ -42,7 +42,6 @@ public class Message {
 	public String subtype;
 
 	private String messageId;
-	private StompManagement management;
 	private OutputStream outputStream;
 
 	public void ack() throws IOException {
@@ -52,16 +51,12 @@ public class Message {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put("message-id", messageId);
 		ack.setHeaders(headers);
-		management.send(ack, outputStream);
+		StompManagement.send(ack, outputStream);
 		log.debug("Acked message: " + messageId);
 	}
 
 	public void setMessageId(String messageId) {
 		this.messageId = messageId;
-	}
-
-	public void setManagement(StompManagement management) {
-		this.management = management;
 	}
 
 	public void setOutputStream(OutputStream outputStream) {

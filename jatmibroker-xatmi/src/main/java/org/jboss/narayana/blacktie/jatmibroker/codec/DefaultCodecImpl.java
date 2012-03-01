@@ -17,6 +17,7 @@
  */
 package org.jboss.narayana.blacktie.jatmibroker.codec;
 
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.core.transport.Codec;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Buffer;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
@@ -30,7 +31,7 @@ public class DefaultCodecImpl implements Codec {
 	}
 	
 	public Buffer decode(String type, String subtype, byte[] data, int len) 
-		throws ConnectionException {
+		throws ConnectionException, ConfigurationException {
 		Buffer buffer = connection.tpalloc(type, subtype, len);
 		buffer.deserialize(data);
 		return buffer;

@@ -97,7 +97,7 @@ public class AdministrationProxy {
 	}
 
 	private Response callAdminService(String serverName, int id, String command)
-			throws ConnectionException {
+			throws ConnectionException, ConfigurationException {
 		log.trace("callAdminService");
 		int sendlen = command.length() + 1;
 		X_OCTET sendbuf = (X_OCTET) connection
@@ -121,7 +121,10 @@ public class AdministrationProxy {
 		} catch (ConnectionException e) {
 			log.error("call server " + serverName + " id " + id + " command "
 					+ command + " failed with " + e.getTperrno());
-		}
+		} catch (ConfigurationException e) {
+            log.error("call server " + serverName + " id " + id + " command "
+                    + command + " failed with configuration exception");
+        }
 		return false;
 	}
 
@@ -415,7 +418,11 @@ public class AdministrationProxy {
                             } else {
                                 toRethrow = e;
                             }
-            			}
+            			} catch (ConfigurationException e) {
+                            log.error("call server " + serverName + " id " + id
+                                    + " failed with configuration exception", e);
+                                toRethrow = new ConnectionException(Connection.TPEOS, "Configuration issue: " + e.getMessage(), e);
+                        }
 					}
                     if (toRethrow != null) {
                         throw toRethrow;
@@ -451,7 +458,11 @@ public class AdministrationProxy {
 			} catch (RuntimeException e) {
 				log.error("Could not shutdown server: " + e.getMessage(), e);
 				throw e;
-			}
+			} catch (ConfigurationException e) {
+                log.error("call server " + serverName + " id " + id
+                        + " failed with configuration exception", e);
+                return false;
+            }
 		} else {
 			log.error("Server not configured: " + serverName);
 			return false;
@@ -480,7 +491,10 @@ public class AdministrationProxy {
 					"Could not get response time from server: "
 							+ e.getMessage(), e);
 			throw e;
-		}
+		} catch (ConfigurationException e) {
+            log.error("call server " + serverName + " id " + id
+                    + " failed with configuration exception", e);
+        }
 		return null;
 	}
 
@@ -538,7 +552,10 @@ public class AdministrationProxy {
 		} catch (ConnectionException e) {
 			log.error("call server " + serverName + " id " + id
 					+ " failed with " + e.getTperrno());
-		}
+		} catch (ConfigurationException e) {
+            log.error("call server " + serverName + " id " + id
+                    + " failed with configuration exception", e);
+        }
 
 		return counter;
 	}
@@ -572,7 +589,10 @@ public class AdministrationProxy {
 		} catch (ConnectionException e) {
 			log.error("call server " + serverName + " id " + id
 					+ " failed with " + e.getTperrno());
-		}
+		} catch (ConfigurationException e) {
+		    log.error("call server " + serverName + " id " + id
+                    + " failed with configuration exception", e);
+        }
 
 		return counter;
 	}
@@ -701,7 +721,10 @@ public class AdministrationProxy {
 		} catch (ConnectionException e) {
 			log.error("call server " + serverName + " id " + id
 					+ " failed with " + e.getTperrno(), e);
-		}
+		} catch (ConfigurationException e) {
+		    log.error("call server " + serverName + " id " + id
+                    + " failed with configuration exception", e);
+        }
 		return version;
 	}
 }

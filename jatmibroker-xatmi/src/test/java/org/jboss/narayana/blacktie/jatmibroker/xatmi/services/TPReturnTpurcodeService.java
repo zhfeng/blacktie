@@ -2,6 +2,7 @@ package org.jboss.narayana.blacktie.jatmibroker.xatmi.services;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.TestTPConversation;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Buffer;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
@@ -15,7 +16,7 @@ public class TPReturnTpurcodeService implements Service {
 	private static final Logger log = LogManager
 			.getLogger(TPReturnTpurcodeService.class);
 
-	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException {
+	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
 		log.info("testtpreturn_service_tpurcode");
 		int len = 1;
 		Buffer toReturn = (X_OCTET) svcinfo.getConnection().tpalloc("X_OCTET",

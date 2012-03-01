@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
+
 /**
  * The X_C_TYPE buffer supports the broadest set of parameter types.
  */
@@ -60,9 +62,10 @@ public class X_C_TYPE extends Buffer {
 	 *            The properties to read
 	 * @throws ConnectionException
 	 *             In case the buffer does not exist
+	 * @throws ConfigurationException 
 	 * @see {@link Connection#tpalloc(String, String)}
 	 */
-	X_C_TYPE(String subtype, Properties properties) throws ConnectionException {
+	X_C_TYPE(String subtype, Properties properties) throws ConnectionException, ConfigurationException {
 		super("X_C_TYPE", subtype, true, types, properties, 0);
 	}
 

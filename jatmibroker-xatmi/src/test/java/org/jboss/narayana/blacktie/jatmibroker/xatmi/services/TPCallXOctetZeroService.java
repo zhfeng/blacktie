@@ -2,6 +2,7 @@ package org.jboss.narayana.blacktie.jatmibroker.xatmi.services;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Service;
@@ -12,7 +13,7 @@ public class TPCallXOctetZeroService implements Service {
 	private static final Logger log = LogManager
 			.getLogger(TPCallXOctetZeroService.class);
 
-	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException {
+	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
 		byte[] recv = ((X_OCTET) svcinfo.getBuffer()).getByteArray();
 		byte[] toSend = new byte[recv.length];
 		int j = recv.length;

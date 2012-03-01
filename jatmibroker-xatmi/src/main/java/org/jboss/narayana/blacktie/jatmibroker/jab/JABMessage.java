@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Buffer;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
@@ -74,7 +75,9 @@ public class JABMessage implements Message {
 			}
 		} catch (ConnectionException e) {
 			throw new JABException("Could not create a buffer", e);
-		}
+		} catch (ConfigurationException e) {
+            throw new JABException("Could not create a buffer", e);
+        }
 	}
 
 	/**
@@ -343,7 +346,10 @@ public class JABMessage implements Message {
 					} catch (ConnectionException e) {
 						throw new JABException(
 								"Could not allocate the X_OCTET buffer");
-					}
+					} catch (ConfigurationException e) {
+                        throw new JABException(
+                                "Could not allocate the X_OCTET buffer");
+                    }
 				}
 				xOctet.setByteArray(data);
 			} else {

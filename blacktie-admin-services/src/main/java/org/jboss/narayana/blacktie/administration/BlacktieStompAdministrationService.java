@@ -48,6 +48,7 @@ import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.OperationBuilder;
 import org.jboss.dmr.ModelNode;
 import org.jboss.narayana.blacktie.administration.core.AdministrationProxy;
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.XMLParser;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
@@ -381,6 +382,8 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
             log.debug("Responding");
             return new Response(Connection.TPSUCCESS, 0, buffer, 0);
         } catch (ConnectionException e) {
+            return new Response(Connection.TPFAIL, 0, null, 0);
+        } catch (ConfigurationException e) {
             return new Response(Connection.TPFAIL, 0, null, 0);
         }
     }

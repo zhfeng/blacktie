@@ -37,7 +37,6 @@ public class StompReceiverImpl implements Receiver {
 			.getLogger(StompReceiverImpl.class);
 	private int timeout = 0;
 	private boolean closed;
-	private StompManagement management;
 	private String destinationName;
 	private Socket socket;
 	private OutputStream outputStream;
@@ -45,10 +44,9 @@ public class StompReceiverImpl implements Receiver {
 	private org.jboss.narayana.blacktie.jatmibroker.core.transport.hybrid.stomp.Message pendingMessage;
 	private boolean ignoreSingleReceipt;
 
-	public StompReceiverImpl(StompManagement management, String serviceName,
+	public StompReceiverImpl(String serviceName,
 			boolean conversational, String type, Properties properties)
 			throws ConnectionException, IOException {
-		this.management = management;
 		String qtype = "/queue/";
 		if (type != null) {
 			 qtype = "/" + type + "/";
@@ -60,7 +58,12 @@ public class StompReceiverImpl implements Receiver {
 			this.destinationName = qtype + "BTR_" + serviceName;
 		}
 
-		this.socket = management.connect();
+        String host = (String) properties.get("StompConnectHost");
+        int port = Integer.parseInt((String) properties.get("StompConnectPort"));
+        String username = (String) properties.get("StompConnectUsr");
+        String password = (String) properties.get("StompConnectPwd");
+        
+		this.socket = StompManagement.connect(host, port, username, password);
 		this.outputStream = socket.getOutputStream();
 		this.inputStream = socket.getInputStream();
 
@@ -73,8 +76,8 @@ public class StompReceiverImpl implements Receiver {
 		headers.put("ack", "client");
 		message.setHeaders(headers);
 
-		management.send(message, outputStream);
-		org.jboss.narayana.blacktie.jatmibroker.core.transport.hybrid.stomp.Message receive = management
+		StompManagement.send(message, outputStream);
+		org.jboss.narayana.blacktie.jatmibroker.core.transport.hybrid.stomp.Message receive = StompManagement
 				.receive(inputStream);
 		if (receive.getCommand().equals("ERROR")) {
 			log.error(new String(receive.getBody()));
@@ -100,12 +103,12 @@ public class StompReceiverImpl implements Receiver {
 		pendingMessage = null;
 		try {
 			if (receive == null) {
-				receive = management.receive(inputStream);
+				receive = StompManagement.receive(inputStream);
 				// TODO remove when moving to HQStomp
 				if (receive.getCommand().equals("RECEIPT")
 						&& ignoreSingleReceipt) {
 					ignoreSingleReceipt = false;
-					receive = management.receive(inputStream);
+					receive = StompManagement.receive(inputStream);
 				}
 				log.debug("Received from: " + destinationName);
 			}
@@ -114,7 +117,6 @@ public class StompReceiverImpl implements Receiver {
 						"Internal error, received unexpected receipt");
 			}
 			Message convertFromBytesMessage = convertFromBytesMessage(receive);
-			convertFromBytesMessage.setManagement(management);
 			convertFromBytesMessage.setOutputStream(outputStream);
 			convertFromBytesMessage.setMessageId(receive.getHeaders().get(
 					"message-id"));
@@ -136,7 +138,8 @@ public class StompReceiverImpl implements Receiver {
 					"Sender already closed");
 		}
 		try {
-			log.debug("closing socket: " + socket);
+            log.debug("closing socket: " + socket);
+            StompManagement.close(outputStream);
 			socket.close();
 			log.debug("closed socket: " + socket);
 			closed = true;

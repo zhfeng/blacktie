@@ -65,24 +65,6 @@ public class StompSubscription implements Runnable {
         consumer.close();
     }
 
-    public void onMessage(Message message) {
-        log.debug("onMessage:" + destinationName);
-        try {
-            int ackMode = session.getSession().getAcknowledgeMode();
-            if (ackMode == Session.CLIENT_ACKNOWLEDGE) {
-                synchronized (consumer) {
-                    boolean closing = session.getProtocolConverter().addMessageToAck(message, consumer);
-                    if (!closing) {
-                        session.sendToStomp(message, this);
-                        consumer.wait();
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("Failed to process message due to: " + e + ". Message: " + message, e);
-        }
-    }
-
     public String getSubscriptionId() {
         return subscriptionId;
     }
@@ -114,8 +96,16 @@ public class StompSubscription implements Runnable {
                 consumer = jmsSession.createConsumer(destination, selector);
             }
             while (!closed) {
-                Message receive = consumer.receive();
-                onMessage(receive);
+                Message message = consumer.receive();
+                log.debug("received:" + destinationName);
+                if (message != null) {
+                    try {
+                        session.getProtocolConverter().stopConnection(message, session.getConnection());
+                        session.sendToStomp(message, this);
+                    } catch (Exception e) {
+                        log.error("Failed to process message due to: " + e + ". Message: " + message, e);
+                    }
+                }
             }
         } catch (JMSException e) {
             log.debug("Caught a JMS exception: " + e.getMessage());

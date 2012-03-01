@@ -19,6 +19,7 @@ package org.jboss.narayana.blacktie.jatmibroker.xatmi;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.core.transport.EventListener;
 import org.jboss.narayana.blacktie.jatmibroker.core.transport.Message;
 import org.jboss.narayana.blacktie.jatmibroker.core.transport.Receiver;
@@ -296,8 +297,9 @@ public class Session {
 	 * @return The next response
 	 * @throws ConnectionException
 	 *             If the message cannot be received or the flags are incorrect
+	 * @throws ConfigurationException 
 	 */
-	public Buffer tprecv(int flags) throws ConnectionException {
+	public Buffer tprecv(int flags) throws ConnectionException, ConfigurationException {
 		log.debug("Receiving: " + cd);
 		if (closed) {
 			throw new ConnectionException(Connection.TPEPROTO,

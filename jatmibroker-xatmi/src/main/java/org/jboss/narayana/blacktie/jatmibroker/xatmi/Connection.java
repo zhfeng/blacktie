@@ -169,9 +169,10 @@ public class Connection {
 	 * @return The new buffer
 	 * @throws ConnectionException
 	 *             If the buffer was unknown or invalid.
+	 * @throws ConfigurationException 
 	 */
 	public Buffer tpalloc(String type, String subtype, int len)
-			throws ConnectionException {
+			throws ConnectionException, ConfigurationException {
 		if (type == null) {
 			throw new ConnectionException(Connection.TPEINVAL,
 					"No type provided");
@@ -207,9 +208,10 @@ public class Connection {
 	 * @return The returned buffer
 	 * @throws ConnectionException
 	 *             If the service cannot be contacted.
+	 * @throws ConfigurationException 
 	 */
 	public Response tpcall(String svc, Buffer buffer, int flags)
-			throws ConnectionException {
+			throws ConnectionException, ConfigurationException {
 		log.debug("tpcall");
 		int tpacallFlags = flags;
 		tpacallFlags &= ~TPNOCHANGE;
@@ -339,8 +341,9 @@ public class Connection {
 	 * @return The response from the server
 	 * @throws ConnectionException
 	 *             If the service cannot be contacted.
+	 * @throws ConfigurationException 
 	 */
-	public Response tpgetrply(int cd, int flags) throws ConnectionException {
+	public Response tpgetrply(int cd, int flags) throws ConnectionException, ConfigurationException {
 		log.debug("tpgetrply: " + cd);
 		int toCheck = flags
 				& ~(TPGETANY | TPNOCHANGE | TPNOBLOCK | TPNOTIME | TPSIGRSTRT);
@@ -460,7 +463,10 @@ public class Connection {
 		} catch (ConnectionException e) {
 			session.close();
 			throw new ConnectionException(e.getTperrno(), "Could not connect");
-		}
+		} catch (ConfigurationException e) {
+            session.close();
+            throw new ConnectionException(Connection.TPEOS, "Configuration exception: " + e.getMessage(), e);
+        }
 		byte[] ack = new byte[4];
 		byte[] bytes = "ACK".getBytes();
 		System.arraycopy(bytes, 0, ack, 0, 3);
@@ -551,8 +557,9 @@ public class Connection {
 	 * @return The response
 	 * @throws ConnectionException
 	 *             If the response cannot be retrieved.
+	 * @throws ConfigurationException 
 	 */
-	private Response receive(int cd, int flags) throws ConnectionException {
+	private Response receive(int cd, int flags) throws ConnectionException, ConfigurationException {
 		log.debug("receive: " + cd);
 		Receiver endpoint = temporaryQueues.get(cd);
 		if (endpoint == null) {

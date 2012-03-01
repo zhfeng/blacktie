@@ -36,8 +36,16 @@ sed -i 's?"spec"?"on"?g' $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuratio
 sed -i 's?<coordinator-environment default-timeout="300"/>?<coordinator-environment default-timeout="300"/>\
 	    <jts/>?g' $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml
 
-sed -n '1h;1!H;${;g;s?<logger category="com.arjuna">\n                <level name="WARN"/>?<logger category="com.arjuna">\n                <level name="ALL"/>?g;p;}' $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml > foo
-mv foo $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml
+sed -n '1h;1!H;${;g;s?<logger category="com.arjuna">\n                <level name="WARN"/>?<logger category="com.arjuna">\n                <level name="ALL"/>?g;p;}' $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml > .standalone-full.xml.bak
+mv .standalone-full.xml.bak $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml
+
+sed -i 's?            <root-logger>?            <logger category="org.hornetq">\
+                <level name="WARN"/>\
+            </logger>\
+           <logger category="org.jboss.as.messaging">\
+                <level name="WARN"/>\
+            </logger>\
+            <root-logger>?g' $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml
 
 sed -i 's?            <root-logger>?            <logger category="org.jboss.narayana.blacktie">\
                 <level name="ALL"/>\

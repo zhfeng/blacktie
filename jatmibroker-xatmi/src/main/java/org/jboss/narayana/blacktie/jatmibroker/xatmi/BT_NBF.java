@@ -19,6 +19,8 @@ package org.jboss.narayana.blacktie.jatmibroker.xatmi;
 
 import java.io.File;
 
+import javax.naming.ConfigurationException;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.jboss.narayana.blacktie.jatmibroker.nbf.NestedBufferParser;
@@ -33,14 +35,14 @@ public class BT_NBF extends Buffer {
 	private NestedBufferParser parser;
 	private String rootElement;
 
-	BT_NBF(String subtype) throws ConnectionException {
+	BT_NBF(String subtype) throws org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException, ConnectionException {
 		super("BT_NBF", subtype, false, null, null, 0);
 
 		rootElement = "</" + subtype + ">";
 		String xsd = "buffers/" + subtype + ".xsd";
 		File file = new File(xsd);
 		if(!file.exists()) {
-			throw new ConnectionException(Connection.TPEOS, "can not find " + xsd);
+			throw new org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException("can not find " + xsd);
 		}
 
 		StringBuffer buffer = new StringBuffer();
@@ -110,8 +112,6 @@ public class BT_NBF extends Buffer {
 					}
 				}
 			}
-		} catch (ConnectionException e) {
-			log.error("btaddattribute failed with " + e.getMessage());
 		} catch (ClassCastException e) {
 			rc = false;
 			log.warn("type is " + parser.getType() + 
@@ -173,9 +173,11 @@ public class BT_NBF extends Buffer {
 					}
 				}
 			}
+		} catch (org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException e) {
+			log.error("ConfigurationException: btgetattribute failed with " + e.getMessage());
 		} catch (ConnectionException e) {
-			log.error("btgetattribute failed with " + e.getMessage());
-		}
+            log.error("ConnectionException: btgetattribute failed with " + e.getMessage());
+        }
 
 		return toReturn;
 	}
@@ -207,7 +209,7 @@ public class BT_NBF extends Buffer {
 					}
 				}
 			}
-		}catch (ConnectionException e) {
+		}catch (org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException e) {
 			log.error("btdelattribute failed with " + e.getMessage());
 		}
 		return toReturn;
@@ -271,7 +273,7 @@ public class BT_NBF extends Buffer {
 					setRawData(buf.getBytes());
 				}
 			}
-		} catch (ConnectionException e) {
+		} catch (org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException e) {
 			log.error("btsetattribute failed with " + e.getMessage());
 			rc = false;
 		} catch (ClassCastException e) {

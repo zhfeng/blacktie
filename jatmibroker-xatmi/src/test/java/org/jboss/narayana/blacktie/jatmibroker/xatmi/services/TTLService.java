@@ -2,6 +2,7 @@ package org.jboss.narayana.blacktie.jatmibroker.xatmi.services;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
@@ -13,10 +14,10 @@ public class TTLService implements Service {
 	private static final Logger log = LogManager.getLogger(TTLService.class);
 	private static int n = 0;
 
-	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException {
+	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
 		log.info("test_ttl_service");
 
-		int timeout = 45;
+		int timeout = 30;
 		X_OCTET dptr = (X_OCTET) svcinfo.getBuffer();
 		String data = new String(dptr.getByteArray());
 		log.info("test_ttl_service get data: " + data);
@@ -31,7 +32,6 @@ public class TTLService implements Service {
 			toReturn.setByteArray(counter.getBytes());
 			len = counter.length();
 		} else {
-			n++;
 			try {
 				log.info("test_ttl_service sleep for " + timeout + " seconds");
 				Thread.sleep(timeout * 1000);
@@ -40,6 +40,7 @@ public class TTLService implements Service {
 			} catch (Exception e) {
 				log.error("sleep failed with " + e);
 			}
+            n++;
 		}
 		return new Response(Connection.TPSUCCESS, 22, toReturn, 0);
 	}

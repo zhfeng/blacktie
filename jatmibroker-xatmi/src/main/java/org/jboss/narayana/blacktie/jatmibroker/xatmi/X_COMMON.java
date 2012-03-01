@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
+
 /**
  * The X_COMMON buffer type supports a subset of the types provided by the
  * X_C_TYPE buffer in order to support more language portable data exchange.
@@ -60,9 +62,10 @@ public class X_COMMON extends Buffer {
 	 *            The properties to use
 	 * @throws ConnectionException
 	 *             In case the buffer cannot be created.
+	 * @throws ConfigurationException 
 	 * @see {@link Connection#tpalloc(String, String)}
 	 */
-	X_COMMON(String subtype, Properties properties) throws ConnectionException {
+	X_COMMON(String subtype, Properties properties) throws ConnectionException, ConfigurationException {
 		super("X_COMMON", subtype, true, types, properties, 0);
 	}
 

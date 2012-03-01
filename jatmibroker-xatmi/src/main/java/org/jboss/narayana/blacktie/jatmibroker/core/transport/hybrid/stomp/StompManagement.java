@@ -21,30 +21,16 @@ public class StompManagement {
 	private static final Logger log = LogManager
 			.getLogger(StompManagement.class);
 
-	private String username;
-
-	private String password;
-
-	private String host;
-
-	private int port;
-
-	public StompManagement(Properties properties) throws NumberFormatException {
-		log.debug("Creating JMSManagement: " + this);
-
-		username = (String) properties.get("StompConnectUsr");
-		password = (String) properties.get("StompConnectPwd");
-		host = (String) properties.get("StompConnectHost");
-		port = Integer.parseInt((String) properties.get("StompConnectPort"));
-
-		log.debug("Created JMSManagement: " + this);
-	}
-
-	public void close() {
+	public static void close(OutputStream outputStream ) throws IOException {
 		log.debug("close");
+		Message message = new Message();
+        message.setCommand("DISCONNECT");
+        message.setHeaders(new HashMap<String, String>());
+        send(message, outputStream);
+        log.debug("Sent disconnect");
 	}
 
-	public Socket connect() throws IOException, ConnectionException {
+	public static Socket connect(String host, int port, String username, String password) throws IOException, ConnectionException {
 		Socket socket = new Socket(host, port);
 		InputStream inputStream = socket.getInputStream();
 		OutputStream outputStream = socket.getOutputStream();
@@ -67,7 +53,7 @@ public class StompManagement {
 		return socket;
 	}
 
-	public void send(Message message, OutputStream outputStream)
+	public static void send(Message message, OutputStream outputStream)
 			throws IOException {
 		log.trace("Writing on: " + outputStream);
 		StringBuffer toSend = new StringBuffer(message.getCommand().toString());
@@ -93,7 +79,7 @@ public class StompManagement {
 		log.trace("Wrote on: " + outputStream);
 	}
 
-	public Message receive(InputStream inputStream) throws IOException {
+	public static Message receive(InputStream inputStream) throws IOException {
 		log.trace("Reading from: " + inputStream);
 		Message message = new Message();
 		message.setCommand(readLine(inputStream));
@@ -136,7 +122,7 @@ public class StompManagement {
 		return message;
 	}
 
-	private String readLine(InputStream inputStream) throws IOException {
+	private static String readLine(InputStream inputStream) throws IOException {
 		String toReturn = null;
 		char[] read = new char[0];
 		char c = (char) inputStream.read();

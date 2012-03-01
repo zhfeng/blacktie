@@ -29,11 +29,11 @@ import javax.xml.validation.SchemaFactory;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.apache.xerces.xs.PSVIProvider;
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
 import org.xml.sax.SAXException;
-
-import org.apache.xerces.xs.PSVIProvider;
 
 public class NestedBufferParser {
 	private NestedBufferHandlers handler;
@@ -42,7 +42,7 @@ public class NestedBufferParser {
 
 	private static final Logger log = LogManager.getLogger(NestedBufferParser.class);
 	
-	public NestedBufferParser(String xsdFilename) throws ConnectionException {
+	public NestedBufferParser(String xsdFilename) throws ConfigurationException {
 		try {
 			// Obtain a new instance of a SAXParserFactory.
 			SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -57,8 +57,7 @@ public class NestedBufferParser {
 			if (file.exists()) {
 				schema = schemaFactory.newSchema(file);
 			} else {
-				throw new ConnectionException(Connection.TPEOS, 
-							"Could not find " + xsdFilename);
+				throw new ConfigurationException("Could not find " + xsdFilename);
 			}
 			
 			factory.setSchema(schema);
@@ -69,16 +68,13 @@ public class NestedBufferParser {
 
 		}catch (SAXException e) {
 			log.error("Could not create a SAXParser: " + e.getMessage(), e);
-			throw new ConnectionException(Connection.TPEOS, 
-						"Could not create a SAXParser: " + e.getMessage());
+			throw new ConfigurationException("Could not create a SAXParser: " + e.getMessage());
 		} catch (ParserConfigurationException e) {
 			log.error("Could not create a SAXParser: " + e.getMessage(), e);
-			throw new ConnectionException(Connection.TPEOS, 
-						"Could not create a SAXParser: " + e.getMessage());
+			throw new ConfigurationException("Could not create a SAXParser: " + e.getMessage());
 		} catch (Throwable e) {
 			log.error("Could not create a SAXParser: " + e.getMessage(), e);
-			throw new ConnectionException(Connection.TPEOS, 
-						"Could not create a SAXParser: " + e.getMessage());
+			throw new ConfigurationException("Could not create a SAXParser: " + e.getMessage());
 		}
 	}
 	
@@ -98,7 +94,7 @@ public class NestedBufferParser {
 		return handler.getValue();
 	}
 	
-	public boolean parse(byte[] buffer) throws ConnectionException {
+	public boolean parse(byte[] buffer) throws ConfigurationException {
 		boolean result = false;
 		
 		try {	
@@ -108,8 +104,7 @@ public class NestedBufferParser {
 			result = true;
 		} catch (Throwable e) {
 			log.error("Parser buffer failed with " + e.getMessage(), e);
-			throw new ConnectionException(Connection.TPEOS, 
-					"Parser buffer failed with " + e.getMessage());
+			throw new ConfigurationException("Parser buffer failed with " + e.getMessage());
 		}
 		
 		return result;

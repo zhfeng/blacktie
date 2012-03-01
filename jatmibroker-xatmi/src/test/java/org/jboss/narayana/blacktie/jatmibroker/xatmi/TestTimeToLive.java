@@ -48,7 +48,7 @@ public class TestTimeToLive extends TestCase {
 		server.serverdone();
 	}
 
-	public void test_call_ttl() throws ConnectionException {
+	public void test_call_ttl() throws ConnectionException, ConfigurationException {
 		log.info("test_call_ttl");
 
 		server.tpadvertiseTTL();
@@ -91,13 +91,13 @@ public class TestTimeToLive extends TestCase {
 			}
 		}
 
-		try {
-			log.info("wait 30 second for first message process");
-			Thread.sleep(30 * 1000);
-			log.info("wait done");
-		} catch (Exception e) {
-			log.warn("sleep exception " + e);
-		}
+//		try {
+//			log.info("wait 30 second for first message process");
+//			Thread.sleep(30 * 1000);
+//			log.info("wait done");
+//		} catch (Exception e) {
+//			log.warn("sleep exception " + e);
+//		}
 
 		String toSend = "counter";
 		int sendlen = toSend.length() + 1;

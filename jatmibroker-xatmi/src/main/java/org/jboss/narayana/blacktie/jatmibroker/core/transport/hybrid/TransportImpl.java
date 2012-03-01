@@ -42,7 +42,6 @@ public class TransportImpl implements Transport {
 
 	private static final Logger log = LogManager.getLogger(TransportImpl.class);
 	private OrbManagement orbManagement;
-	private StompManagement momManagement;
 	private Properties properties;
 	private TransportFactory transportFactoryImpl;
 	private boolean closed;
@@ -51,11 +50,10 @@ public class TransportImpl implements Transport {
 	private Map<Boolean, Map<String, Receiver>> receivers = new HashMap<Boolean, Map<String, Receiver>>();
 
 	public TransportImpl(OrbManagement orbManagement,
-			StompManagement momManagement, Properties properties,
+			Properties properties,
 			TransportFactory transportFactoryImpl) {
 		log.debug("Creating transport");
 		this.orbManagement = orbManagement;
-		this.momManagement = momManagement;
 		this.properties = properties;
 		this.transportFactoryImpl = transportFactoryImpl;
 		log.debug("Created transport");
@@ -112,8 +110,8 @@ public class TransportImpl implements Transport {
 			try {
 				String type = (String) properties.get(
 						"blacktie." + serviceName + ".type");
-				toReturn = new StompSenderImpl(momManagement, serviceName,
-						conversational, type, conversationalMap);
+				toReturn = new StompSenderImpl(serviceName,
+						conversational, type, conversationalMap, properties);
 				conversationalMap.put(serviceName, toReturn);
 			} catch (ConnectionException e) {
 				throw e;
@@ -161,7 +159,7 @@ public class TransportImpl implements Transport {
 				log.debug("Resolved destination");
 				String type = (String) properties.get(
 						"blacktie." + serviceName + ".type");
-				return new StompReceiverImpl(momManagement, serviceName,
+				return new StompReceiverImpl(serviceName,
 						conversational, type, properties);
 			} catch (ConnectionException e) {
 				throw e;

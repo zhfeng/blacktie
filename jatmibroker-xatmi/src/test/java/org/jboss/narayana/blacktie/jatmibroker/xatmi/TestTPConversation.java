@@ -58,7 +58,7 @@ public class TestTPConversation extends TestCase {
 		connection.close();
 	}
 
-	public void test_conversation() throws ConnectionException {
+	public void test_conversation() throws ConnectionException, ConfigurationException {
 		log.info("test_conversation");
 		server.tpadvertiseTestTPConversation();
 
@@ -98,7 +98,7 @@ public class TestTPConversation extends TestCase {
 		}
 	}
 
-	public void test_short_conversation() throws ConnectionException {
+	public void test_short_conversation() throws ConnectionException, ConfigurationException {
 		server.tpadvertiseTestTPConversa2();
 
 		log.info("test_short_conversation");

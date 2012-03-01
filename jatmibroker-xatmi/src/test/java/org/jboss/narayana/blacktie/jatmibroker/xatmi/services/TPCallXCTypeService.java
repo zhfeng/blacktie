@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
@@ -16,7 +17,7 @@ public class TPCallXCTypeService implements Service {
 	private static final Logger log = LogManager
 			.getLogger(TPCallXCTypeService.class);
 
-	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException {
+	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
 		log.info("test_tpcall_x_c_type_service");
 		boolean ok = false;
 		X_C_TYPE aptr = (X_C_TYPE) svcinfo.getBuffer();

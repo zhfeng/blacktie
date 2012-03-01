@@ -48,7 +48,7 @@ public class TestTPCancel extends TestCase {
 		server.serverdone();
 	}
 
-	public void test_tpcancel() throws ConnectionException {
+	public void test_tpcancel() throws ConnectionException, ConfigurationException {
 		log.info("test_tpcancel");
 		byte[] message = "cancel".getBytes();
 		int sendlen = message.length + 1;
@@ -75,7 +75,7 @@ public class TestTPCancel extends TestCase {
 		}
 	}
 
-	public void test_tpcancel_noreply() throws ConnectionException {
+	public void test_tpcancel_noreply() throws ConnectionException, ConfigurationException {
 		log.info("test_tpcancel_noreply");
 		byte[] message = "cancel".getBytes();
 		int sendlen = message.length + 1;

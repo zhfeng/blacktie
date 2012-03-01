@@ -24,6 +24,7 @@ import org.codehaus.stomp.Stomp;
 import org.codehaus.stomp.StompFrame;
 
 import javax.jms.*;
+
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -43,11 +44,13 @@ public class StompSession {
     private MessageProducer producer;
     private static Map<String, Destination> temporaryDestinations = new HashMap<String, Destination>();
     private List<String> created = new ArrayList<String>();
+    private Connection connection;
     private static final Log log = LogFactory.getLog(StompSession.class);
 
-    public StompSession(ProtocolConverter protocolConverter, Session session) {
+    public StompSession(ProtocolConverter protocolConverter, Session session, Connection connection) {
         this.protocolConverter = protocolConverter;
         this.session = session;
+        this.connection = connection;
     }
 
     public ProtocolConverter getProtocolConverter() {
@@ -56,6 +59,10 @@ public class StompSession {
 
     public Session getSession() {
         return session;
+    }
+
+    public Connection getConnection() {
+        return connection;
     }
 
     public MessageProducer getProducer() throws JMSException {

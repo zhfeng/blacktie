@@ -34,7 +34,6 @@ public class TransportFactory {
 			.getLogger(TransportFactory.class);
 	private Properties properties;
 	private OrbManagement orbManagement;
-	private StompManagement momManagement;
 	private List<Transport> transports = new ArrayList<Transport>();
 
 	private boolean closed;
@@ -43,13 +42,6 @@ public class TransportFactory {
 			throws ConfigurationException {
 		log.debug("Creating Transportfactory: " + this);
 		this.properties = properties;
-
-		try {
-			momManagement = new StompManagement(properties);
-		} catch (Throwable t) {
-			throw new ConfigurationException(
-					"Could not create the required connection", t);
-		}
 
 		try {
 			orbManagement = OrbManagement.getInstance(properties);
@@ -64,7 +56,7 @@ public class TransportFactory {
 	public synchronized Transport createTransport() {
 		log.debug("Creating transport from factory: " + this);
 		TransportImpl instance = new TransportImpl(orbManagement,
-				momManagement, properties, this);
+				properties, this);
 		transports.add(instance);
 		log.debug("Created transport from factory: " + this + " transport: "
 				+ instance);
@@ -99,7 +91,6 @@ public class TransportFactory {
 				}
 			}
 			transports.clear();
-			momManagement.close();
 			closed = true;
 		}
 		log.debug("Closed factory: " + getClass().getName());

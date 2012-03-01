@@ -33,6 +33,7 @@ import java.util.Properties;
 
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.AttributeStructure;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.BufferStructure;
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.jab.JABException;
 import org.jboss.narayana.blacktie.jatmibroker.jab.JABTransaction;
 
@@ -169,6 +170,7 @@ public abstract class Buffer implements Serializable {
 	 *            for more details
 	 * @param properties
 	 *            The properties to use.
+	 * @throws ConfigurationException 
 	 * @throws ConnectionException
 	 *             If the buffer is not supported.
 	 * @see {@link X_OCTET}
@@ -176,8 +178,7 @@ public abstract class Buffer implements Serializable {
 	 * @see {@link X_COMMON}
 	 */
 	Buffer(String type, String subtype, boolean requiresSerialization,
-			List<Class> supportedTypes, Properties properties, int len)
-			throws ConnectionException {
+			List<Class> supportedTypes, Properties properties, int len) throws ConfigurationException, ConnectionException {
 		this.type = type;
 		this.subtype = subtype;
 		this.requiresSerialization = requiresSerialization;
@@ -188,8 +189,7 @@ public abstract class Buffer implements Serializable {
 					.get("blacktie.domain.buffers");
 			BufferStructure buffer = buffers.get(subtype);
 			if (buffer == null) {
-				throw new ConnectionException(Connection.TPEOS,
-						"Subtype was not registered: " + subtype);
+				throw new ConfigurationException("Subtype was not registered: " + subtype);
 			}
 			this.len = buffer.wireSize;
 			String[] ids = new String[buffer.attributes.size()];
@@ -204,8 +204,7 @@ public abstract class Buffer implements Serializable {
 				ids[i] = attribute.id;
 				types[i] = attribute.type;
 				if (!supportedTypes.contains(types[i])) {
-					throw new ConnectionException(Connection.TPEOS,
-							"Cannot use type configured in buffer " + types[i]);
+					throw new ConfigurationException("Cannot use type configured in buffer " + types[i]);
 				}
 				length[i] = attribute.length;
 				count[i] = attribute.count;
@@ -213,6 +212,9 @@ public abstract class Buffer implements Serializable {
 			}
 			format(ids, types, length, count);
 		} else {
+		    if (len < 0) {
+		        throw new ConnectionException(Connection.TPEINVAL, "Tried to create a negative length buffer");
+		    }
 			this.len = len;
 			format.put("X_OCTET", byte[].class);
 		}

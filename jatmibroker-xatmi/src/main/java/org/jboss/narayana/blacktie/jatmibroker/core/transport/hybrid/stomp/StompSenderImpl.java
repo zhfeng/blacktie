@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -36,7 +37,6 @@ public class StompSenderImpl implements Sender {
 	private static final Logger log = LogManager
 			.getLogger(StompSenderImpl.class);
 	private boolean closed;
-	private StompManagement management;
 	private String destinationName;
 	private Socket socket;
 	private OutputStream outputStream;
@@ -44,11 +44,9 @@ public class StompSenderImpl implements Sender {
 	private Map<String, Sender> conversationalMap;
 	private String serviceName;
 
-	public StompSenderImpl(StompManagement management, String serviceName,
-			boolean conversational, String type, Map<String, Sender> conversationalMap)
+	public StompSenderImpl(String serviceName,
+			boolean conversational, String type, Map<String, Sender> conversationalMap, Properties properties)
 			throws ConnectionException, IOException {
-		this.management = management;
-		
 		String qtype = "/queue/";
 		if (type != null) {
 			 qtype = "/" + type + "/";
@@ -59,9 +57,13 @@ public class StompSenderImpl implements Sender {
 		} else {
 			this.destinationName = qtype + "BTR_" + serviceName;
 		}
+        String host = (String) properties.get("StompConnectHost");
+        int port = Integer.parseInt((String) properties.get("StompConnectPort"));
+        String username = (String) properties.get("StompConnectUsr");
+        String password = (String) properties.get("StompConnectPwd");
+        this.socket = StompManagement.connect(host, port, username, password);
 
 		this.serviceName = serviceName;
-		this.socket = management.connect();
 		this.outputStream = socket.getOutputStream();
 		this.inputStream = socket.getInputStream();
 		this.conversationalMap = conversationalMap;
@@ -133,8 +135,8 @@ public class StompSenderImpl implements Sender {
 
 		Message ack;
 		try {
-			management.send(message, this.outputStream);
-			ack = management.receive(this.inputStream);
+			StompManagement.send(message, this.outputStream);
+			ack = StompManagement.receive(this.inputStream);
 		} catch (IOException e) {
 			throw new ConnectionException(Connection.TPEOS, e.getMessage());
 		}
@@ -155,6 +157,7 @@ public class StompSenderImpl implements Sender {
 		closed = true;
 		try {
 			log.debug("closing socket: " + socket);
+			StompManagement.close(outputStream);
 			socket.close();
 			log.debug("closed socket: " + socket);
 			conversationalMap.remove(serviceName);

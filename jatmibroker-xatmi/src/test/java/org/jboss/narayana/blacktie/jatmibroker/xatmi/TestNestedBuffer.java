@@ -43,7 +43,7 @@ public class TestNestedBuffer extends TestCase {
 		connection.close();
 	}
 	
-	public void test() throws ConnectionException {
+	public void test() throws ConnectionException, ConfigurationException {
 		log.info("TestNestedBuffer::test");
 		BT_NBF buffer = (BT_NBF) connection.tpalloc("BT_NBF", "employee", 0);
 		assertFalse(buffer.btaddattribute("id", new Integer(1001)));
@@ -76,7 +76,7 @@ public class TestNestedBuffer extends TestCase {
 		assertTrue(id.longValue() == 1001);
 	}
 	
-	public void testDel() throws ConnectionException {
+	public void testDel() throws ConnectionException, ConfigurationException {
 		log.info("TestNestedBuffer::testDel");
 		BT_NBF buffer = (BT_NBF) connection.tpalloc("BT_NBF", "employee", 0);
 		buffer.btaddattribute("id", new Long(1234));
@@ -106,7 +106,7 @@ public class TestNestedBuffer extends TestCase {
 		assertFalse(buffer.btdelattribute("unknow", 0));
 	}
 	
-	public void testSet() throws ConnectionException {
+	public void testSet() throws ConnectionException, ConfigurationException {
 		log.info("TestNestedBuffer::testSet");
 		BT_NBF buffer = (BT_NBF) connection.tpalloc("BT_NBF", "employee", 0);
 		buffer.btaddattribute("id", new Long(1234));

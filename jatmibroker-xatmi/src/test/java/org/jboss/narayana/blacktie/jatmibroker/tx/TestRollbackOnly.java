@@ -57,7 +57,7 @@ public class TestRollbackOnly extends TestCase {
 		server.serverdone();
 	}
 
-	public void test_tpcall_TPETIME() throws ConnectionException {
+	public void test_tpcall_TPETIME() throws ConnectionException, ConfigurationException {
 		log.info("test_tpcall_TPETIME");
 		server.tpadvertiseTestRollbackOnlyTpcallTPETIMEService();
 		assertTrue(TX.tx_open() == TX.TX_OK);
@@ -78,7 +78,7 @@ public class TestRollbackOnly extends TestCase {
 		assertTrue(TX.tx_commit() == TX.TX_ROLLBACK);
 	}
 
-	public void x_test_tpcall_TPEOTYPE() throws ConnectionException {
+	public void x_test_tpcall_TPEOTYPE() throws ConnectionException, ConfigurationException {
 		log.info("test_tpcall_TPETIME");
 		server.tpadvertiseTestTpcallTPEOTYPEService();
 
@@ -100,7 +100,7 @@ public class TestRollbackOnly extends TestCase {
 		assertTrue(TX.tx_commit() == TX.TX_ROLLBACK);
 	}
 
-	public void test_tpcall_TPESVCFAIL() throws ConnectionException {
+	public void test_tpcall_TPESVCFAIL() throws ConnectionException, ConfigurationException {
 		log.info("test_tpcall_TPESVCFAIL");
 		server.tpadvertiseTestRollbackOnlyTpcallTPESVCFAILService();
 
@@ -145,7 +145,7 @@ public class TestRollbackOnly extends TestCase {
 		assertTrue(TX.tx_commit() == TX.TX_ROLLBACK);
 	}
 
-	public void test_tprecv_TPEV_SVCFAIL() throws ConnectionException {
+	public void test_tprecv_TPEV_SVCFAIL() throws ConnectionException, ConfigurationException {
 		log.info("test_tprecv_TPEV_SVCFAIL");
 		server.tpadvertiseTestRollbackOnlyTprecvTPEVSVCFAILService();
 
@@ -176,7 +176,7 @@ public class TestRollbackOnly extends TestCase {
 		assertTrue(TX.tx_commit() == TX.TX_ROLLBACK);
 	}
 
-	public void test_no_tpreturn() throws ConnectionException {
+	public void test_no_tpreturn() throws ConnectionException, ConfigurationException {
 		log.info("test_no_tpreturn");
 		server.tpadvertiseTestRollbackOnlyNoTpreturnService();
 

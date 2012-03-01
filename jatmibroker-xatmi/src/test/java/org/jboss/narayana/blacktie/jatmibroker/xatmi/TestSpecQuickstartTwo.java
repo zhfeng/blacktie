@@ -51,7 +51,7 @@ public class TestSpecQuickstartTwo extends TestCase {
 		server.serverdone();
 	}
 
-	public void test() throws ConnectionException {
+	public void test() throws ConnectionException, ConfigurationException {
 		log.info("TestSpecQuickstartTwo::test_specquickstarttwo");
 		long len = 0;
 		// TODO long event = 0; /* X_C_TYPE and subtype inq_buf. The structure

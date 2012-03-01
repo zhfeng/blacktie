@@ -20,6 +20,8 @@ package org.jboss.narayana.blacktie.jatmibroker.xatmi;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
+
 /**
  * The X_OCTET buffer is used to send byte arrays in an XATMI application
  */
@@ -53,8 +55,9 @@ public class X_OCTET extends Buffer {
 	 * @param len
 	 * 
 	 * @throws ConnectionException
+	 * @throws ConfigurationException 
 	 */
-	X_OCTET(int len) throws ConnectionException {
+	X_OCTET(int len) throws ConnectionException, ConfigurationException {
 		super("X_OCTET", "", false, types, null, len);
 	}
 

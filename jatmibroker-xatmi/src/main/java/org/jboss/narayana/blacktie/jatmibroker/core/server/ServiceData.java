@@ -34,8 +34,7 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.Service;
 public class ServiceData {
 
 	private static final Logger log = LogManager.getLogger(ServiceData.class);
-	private static final String DEFAULT_POOL_SIZE = "1";
-	private Receiver receiver;
+	private static final String DEFAULT_POOL_SIZE = "2";
 	private List<ServiceDispatcher> dispatchers = new ArrayList<ServiceDispatcher>();
 	private Transport connection;
 	private String serviceClassName;
@@ -56,12 +55,11 @@ public class ServiceData {
 		connection = transportFactory.createTransport();
 		Boolean conversational = (Boolean) properties.get("blacktie."
 				+ serviceName + ".conversational");
-		this.receiver = connection.getReceiver(serviceName, conversational);
 
 		Class callback = Class.forName(serviceClassName);
 		for (int i = 0; i < size; i++) {
 			dispatchers.add(new ServiceDispatcher(serviceName,
-					(Service) callback.newInstance(), receiver, i));
+					(Service) callback.newInstance(), connection.getReceiver(serviceName, conversational), i));
 		}
 	}
 
@@ -74,8 +72,6 @@ public class ServiceData {
 			iterator.next().startClose();
 		}
 
-		// Disconnect the receiver
-		receiver.close();
 		// Disconnect the transport
 		connection.close();
 		connection = null;

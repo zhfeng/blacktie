@@ -44,7 +44,7 @@ public class TestTopic extends TestCase {
 		server.serverdone();
 	}
 	
-	public void test_tpcall_topic() throws ConnectionException {
+	public void test_tpcall_topic() throws ConnectionException, ConfigurationException {
 		log.info("test_tpcall_topic");
 		server.tpadvertiseTestTopic();
 		
@@ -62,7 +62,7 @@ public class TestTopic extends TestCase {
 		}
 	}
 	
-	public void test_tpacall_topic() throws ConnectionException {
+	public void test_tpacall_topic() throws ConnectionException, ConfigurationException {
 		log.info("test_tpacall_topic");
 		server.tpadvertiseTestTopic();
 		

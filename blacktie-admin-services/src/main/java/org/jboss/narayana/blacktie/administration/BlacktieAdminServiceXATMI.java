@@ -193,7 +193,9 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements
 			return new Response(Connection.TPFAIL, 0, null, 0);
 		} catch (IOException e) {
 			return new Response(Connection.TPFAIL, 0, null, 0);
-		}
+		} catch (ConfigurationException e) {
+            return new Response(Connection.TPFAIL, 0, null, 0);
+        }
 	}
 
 	private byte[] convertListInt(List<Integer> response) {

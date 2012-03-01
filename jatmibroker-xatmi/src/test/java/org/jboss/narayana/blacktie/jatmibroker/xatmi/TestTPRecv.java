@@ -55,7 +55,7 @@ public class TestTPRecv extends TestCase {
 		server.serverdone();
 	}
 
-	public void test_tprecv_sendonly() throws ConnectionException {
+	public void test_tprecv_sendonly() throws ConnectionException, ConfigurationException {
 		log.info("test_tprecv_sendonly");
 		cd = connection.tpconnect(RunServer.getServiceNameTestTPRecv(),
 				sendbuf, Connection.TPSENDONLY);

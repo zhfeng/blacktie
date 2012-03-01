@@ -86,19 +86,6 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<forkMode>once</forkMode>
-					<workingDirectory>target/test-classes</workingDirectory>
-					<environmentVariables>
-						<!-- <BLACKTIE_SCHEMA_DIR>xsd</BLACKTIE_SCHEMA_DIR> -->
-						<JBOSSAS_IP_ADDR>${jbossas.ip.addr}</JBOSSAS_IP_ADDR>
-					</environmentVariables>
-					<skip>${test.skip}</skip>
-				</configuration>
-			</plugin>
-			<plugin>
 				<groupId>com.google.code.maven-replacer-plugin</groupId>
 				<artifactId>maven-replacer-plugin</artifactId>
 				<version>1.3.4</version>
@@ -188,6 +175,23 @@
 					<artifactId>jmxtools</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.jboss.arquillian.junit</groupId>
+			<artifactId>arquillian-junit-container</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.protocol</groupId>
+			<artifactId>arquillian-protocol-servlet</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.as</groupId>
+			<artifactId>jboss-as-arquillian-container-remote</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

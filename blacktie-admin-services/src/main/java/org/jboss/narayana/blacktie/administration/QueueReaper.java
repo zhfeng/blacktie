@@ -97,46 +97,46 @@ public class QueueReaper implements Runnable {
 	public void run() {
 		while (this.run) {
 			try {
-			    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,queue=*");
+			    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=*");
 	            ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
 
 				for (int i = 0; i < dests.length; i++) {
-					String serviceName = dests[i].getObjectName().getCanonicalName();
-					serviceName = serviceName.substring(serviceName
-							.indexOf('_') + 1, serviceName
-                            .indexOf(",subsystem=messaging"));
-					String server = (String) prop.get("blacktie." + serviceName
+                    String serviceComponentOfObjectName = dests[i].getObjectName().getCanonicalName();
+                    serviceComponentOfObjectName = serviceComponentOfObjectName.substring(serviceComponentOfObjectName.indexOf('_') + 1,
+                            serviceComponentOfObjectName.indexOf(",", serviceComponentOfObjectName.indexOf('_')));
+                    log.trace("Service name component of ObjectName is: " + serviceComponentOfObjectName);
+					String server = (String) prop.get("blacktie." + serviceComponentOfObjectName
 							+ ".server");
 					log.trace("Checking for: "
-							+ serviceName
+							+ serviceComponentOfObjectName
 							+ " "
 							+ server
 							+ " "
-							+ prop.get("blacktie." + serviceName
+							+ prop.get("blacktie." + serviceComponentOfObjectName
 									+ ".externally-managed-destination"));
 					
-					if ((serviceName.startsWith(".") || ((server != null && !(Boolean) prop
-							.get("blacktie." + serviceName
+					if ((serviceComponentOfObjectName.startsWith(".") || ((server != null && !(Boolean) prop
+							.get("blacktie." + serviceComponentOfObjectName
 									+ ".externally-managed-destination"))))
-							&& consumerCount(serviceName) == 0) {
+							&& consumerCount(serviceComponentOfObjectName) == 0) {
 						log.warn("undeploy service pending for "
-								+ serviceName
+								+ serviceComponentOfObjectName
 								+ " as consumer count is 0, will check again in 30 seconds");
 						long queueReapCheck = System.currentTimeMillis();
 						Thread.sleep(this.interval);
 
 						// double check consumer is 0
-						if (BlacktieStompAdministrationService.isOlderThanReapCheck(serviceName, queueReapCheck)
-								&& consumerCount(serviceName) == 0) {
-							BlacktieStompAdministrationService.undeployQueue(serviceName);
-							log.warn("undeploy service " + serviceName
+						if (BlacktieStompAdministrationService.isOlderThanReapCheck(serviceComponentOfObjectName, queueReapCheck)
+								&& consumerCount(serviceComponentOfObjectName) == 0) {
+							BlacktieStompAdministrationService.undeployQueue(serviceComponentOfObjectName);
+							log.warn("undeploy service " + serviceComponentOfObjectName
 									+ " for consumer is 0");
 						} else {
-							log.info("Undeploy not required for: "
-									+ serviceName + " at: " + server);
+							log.debug("Undeploy not required for: "
+									+ serviceComponentOfObjectName + " at: " + server + " as client connected");
 						}
 					} else {
-						log.debug("Undeploy not required for: " + serviceName
+						log.debug("Undeploy not required for: " + serviceComponentOfObjectName
 								+ " at: " + server);
 					}
 				}
@@ -178,8 +178,8 @@ public class QueueReaper implements Runnable {
 			prefix = "BTR_";
 		}
 
-        ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default," + type.toLowerCase() + "="
-                + prefix + serviceName);
+        ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-" + type + "=" + prefix
+                + serviceName);
         try {
             Integer count = null;
             if (type.equals("queue")) {

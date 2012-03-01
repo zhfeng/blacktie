@@ -233,21 +233,24 @@ public class AdministrationProxy {
 		List<String> runningServerList = new ArrayList<String>();
 
 		try {
-		    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,queue=*");
+		    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=BTR_*");
             ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
             for (int i = 0; i < dests.length; i++) {
-				String qname = dests[i].getObjectName().getCanonicalName();
-				log.info(qname);
-				if (qname.startsWith("jboss.as:hornetq-server=default,queue=BTR_.")) {
-					String sname = qname.substring("jboss.as:hornetq-server=default,queue=BTR_.".length());
-					sname = sname.replaceAll("[0-9,=]", "");
-					log.trace("contains?: " + sname);
-					if (servers.contains(sname)
-							&& !runningServerList.contains(sname)) {
-						log.trace("contains!: " + sname);
-						runningServerList.add(sname);
-					}
-				}
+                String serviceComponentOfObjectName = dests[i].getObjectName().getCanonicalName();
+                serviceComponentOfObjectName = serviceComponentOfObjectName.substring(
+                        serviceComponentOfObjectName.indexOf('_') + 1,
+                        serviceComponentOfObjectName.indexOf(",", serviceComponentOfObjectName.indexOf('_')));
+                log.debug("Service name component of ObjectName is: " + serviceComponentOfObjectName);
+                if (serviceComponentOfObjectName.startsWith(".")) {
+                    serviceComponentOfObjectName = serviceComponentOfObjectName.substring(1);
+                    serviceComponentOfObjectName = serviceComponentOfObjectName.replaceAll("[0-9]", "");
+                    log.trace("contains?: " + serviceComponentOfObjectName);
+                    if (servers.contains(serviceComponentOfObjectName)
+                            && !runningServerList.contains(serviceComponentOfObjectName)) {
+                        log.trace("contains!: " + serviceComponentOfObjectName);
+                        runningServerList.add(serviceComponentOfObjectName);
+                    }
+                }
 			}
 		} catch (Exception e) {
 			log.error("Caught an exception: " + e.getMessage(), e);
@@ -257,25 +260,29 @@ public class AdministrationProxy {
 
 	@SuppressWarnings("unchecked")
 	public List<Integer> listRunningInstanceIds(String serverName) {
-		log.trace("listRunningInstanceIds");
+		log.debug("listRunningInstanceIds: " + serverName);
 		ArrayList<Integer> ids = new ArrayList<Integer>();
 
 		try {
-		    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,queue=*");
+		    ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-queue=BTR_*");
             ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
             for (int i = 0; i < dests.length; i++) {
-				String qname = dests[i].getObjectName().getCanonicalName();
-				log.info(qname);
-				if (qname.startsWith("jboss.as:hornetq-server=default,queue=BTR_.")) {
-					String server = qname.substring("jboss.as:hornetq-server=default,queue=BTR_.".length());
-					server = server.replaceAll("[0-9]", "");
-					if (server.equals(serverName)) {
-						qname = qname.substring("jboss.as:hornetq-server=default,queue=BTR_.".length());
-						qname = qname.replaceAll("[A-Za-z,=]", "");
-						ids.add(new Integer(qname));
-					}
-				}
-			}
+                String serviceComponentOfObjectName = dests[i].getObjectName().getCanonicalName();
+                serviceComponentOfObjectName = serviceComponentOfObjectName.substring(
+                        serviceComponentOfObjectName.indexOf('_') + 1,
+                        serviceComponentOfObjectName.indexOf(",", serviceComponentOfObjectName.indexOf('_')));
+                log.debug("Service name component of ObjectName is: " + serviceComponentOfObjectName);
+
+                if (serviceComponentOfObjectName.startsWith(".")) {
+                    serviceComponentOfObjectName = serviceComponentOfObjectName.substring(1);
+                    String sname = serviceComponentOfObjectName.replaceAll("[0-9]", "");
+                    if (sname.equals(serverName)) {
+                        String id = serviceComponentOfObjectName.replaceAll("[A-Za-z]", "");
+                        log.debug(id);
+                        ids.add(new Integer(id));
+                    }
+                }
+            }
 		} catch (Exception e) {
 			log.error("Caught an exception: " + e.getMessage(), e);
 		}
@@ -627,7 +634,7 @@ public class AdministrationProxy {
 				byte[] received = ((X_OCTET) buf.getBuffer()).getByteArray();
 				if (received[0] == '1') {
 					status = new String(received, 1, received.length - 1);
-					log.info("status is " + status);
+					log.debug("status is " + status);
 					return stringToElement(status);
 				}
 			}
@@ -641,7 +648,7 @@ public class AdministrationProxy {
 	}
 
 	public void close() throws ConnectionException, IOException {
-		log.info("Closed Administration Proxy");
+		log.debug("Closed Administration Proxy");
 		connection.close();
 		// c.close();
 	}
@@ -651,12 +658,11 @@ public class AdministrationProxy {
 		try {
 			log.trace(serviceName);
 			boolean conversational = false;
-	        String type = "queue";
+			String type = "queue";
 			if (!serviceName.startsWith(".")) {
 				conversational = (Boolean) prop.get("blacktie." + serviceName
 						+ ".conversational");
-	            type = (String) prop.getProperty("blacktie." + serviceName
-	                    + ".type");
+	            type = (String) prop.getProperty("blacktie." + serviceName + ".type");
 			}
 			String prefix = null;
 			if (conversational) {
@@ -664,13 +670,8 @@ public class AdministrationProxy {
 			} else {
 				prefix = "BTR_";
 			}
-            ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default," + type.toLowerCase()
-                    + "=" + prefix + serviceName);
-            if (type.toLowerCase().equals("queue")) {
-                depth = (Integer) beanServerConnection.getAttribute(objName, "messageCount");
-            } else {
-                depth = (Integer) beanServerConnection.getAttribute(objName, "messageCount");
-            }
+			ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-" + type + "=" + prefix + serviceName);
+            depth = (Integer) beanServerConnection.getAttribute(objName, "messageCount");
 		} catch (Exception e) {
 			log.error("getQueueDepth failed with " + e);
 			return -1;

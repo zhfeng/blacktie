@@ -61,26 +61,24 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 @MessageDriven(activationConfig = {
-		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-		@ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_BTStompAdmin") })
-public class BlacktieStompAdministrationService extends MDBBlacktieService
-		implements javax.jms.MessageListener {
-	private static final Logger log = LogManager
-			.getLogger(BlacktieStompAdministrationService.class);
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_BTStompAdmin") })
+public class BlacktieStompAdministrationService extends MDBBlacktieService implements javax.jms.MessageListener {
+    private static final Logger log = LogManager.getLogger(BlacktieStompAdministrationService.class);
 
-	private static MBeanServerConnection beanServerConnection;
-	private static Properties prop = new Properties();
+    private static MBeanServerConnection beanServerConnection;
+    private static Properties prop = new Properties();
 
-	private static Hashtable<String, Long> QUEUE_CREATION_TIMES = new Hashtable<String, Long>();
+    private static Hashtable<String, Long> QUEUE_CREATION_TIMES = new Hashtable<String, Long>();
 
     private static ModelControllerClient client;
 
-	public BlacktieStompAdministrationService() throws Exception {
-	    super("BlacktieStompAdministrationService");
-		XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
-		beanServerConnection = java.lang.management.ManagementFactory.getPlatformMBeanServer();
+    public BlacktieStompAdministrationService() throws Exception {
+        super("BlacktieStompAdministrationService");
+        XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
+        beanServerConnection = java.lang.management.ManagementFactory.getPlatformMBeanServer();
         client = ModelControllerClient.Factory.create(InetAddress.getByName("localhost"), 9999, getCallbackHandler());
-	}
+    }
 
     static void applyUpdate(ModelNode update, final ModelControllerClient client) throws IOException {
         ModelNode result = client.execute(new OperationBuilder(update).build());
@@ -88,24 +86,20 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService
             if (result.hasDefined("result")) {
                 System.out.println(result.get("result"));
             }
-        }
-        else if (result.hasDefined("failure-description")){
+        } else if (result.hasDefined("failure-description")) {
             throw new RuntimeException(result.get("failure-description").toString());
-        }
-        else {
+        } else {
             throw new RuntimeException("Operation not successful; outcome = " + result.get("outcome"));
         }
     }
 
-	private static boolean isDeployQueue(String serviceName) throws Exception {
-            
+    private static boolean isDeployQueue(String serviceName) throws Exception {
+
         boolean conversational = false;
         String type = "queue";
         if (!serviceName.startsWith(".")) {
-            conversational = (Boolean) prop.get("blacktie." + serviceName
-                    + ".conversational");
-            type = (String) prop.getProperty("blacktie." + serviceName
-                    + ".type");
+            conversational = (Boolean) prop.get("blacktie." + serviceName + ".conversational");
+            type = (String) prop.getProperty("blacktie." + serviceName + ".type");
         }
         String prefix = null;
         if (conversational) {
@@ -113,314 +107,281 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService
         } else {
             prefix = "BTR_";
         }
-        ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default," + type.toLowerCase() + "=*");
-        
-        if (type.equals("queue")) {
-            ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
-            for (int i = 0; i < dests.length; i++) {
-                String qname = dests[i].getObjectName().getCanonicalName();
-                log.trace("dests is " + qname);
-                if (qname.equals("jboss.as:hornetq-server=default,queue=" + prefix + serviceName + ",subsystem=messaging")) {
-                    log.debug("find serviceName " + serviceName + " in Queues");
-                    return true;
-                }
-            }
-        } else {
-            ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
-            for (int i = 0; i < dests.length; i++) {
-                String qname = dests[i].getObjectName().getCanonicalName();
-                log.trace("dests is " + qname);
-                if (qname.equals("jboss.as:hornetq-server=default,topic=" + prefix + serviceName + ",subsystem=messaging")) {
-                    log.debug("find serviceName " + serviceName + " in Queues");
-                    return true;
-                }
+        ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-" + type + "=" + prefix + "*");
+        ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
+        for (int i = 0; i < dests.length; i++) {
+            String serviceComponentOfObjectName = dests[i].getObjectName().getCanonicalName();
+            serviceComponentOfObjectName = serviceComponentOfObjectName.substring(
+                    serviceComponentOfObjectName.indexOf('_') + 1,
+                    serviceComponentOfObjectName.indexOf(",", serviceComponentOfObjectName.indexOf('_')));
+            log.debug("Service name component of ObjectName is: " + serviceComponentOfObjectName);
+            if (serviceComponentOfObjectName.equals(serviceName)) {
+                log.debug("find serviceName " + serviceName + " in Queues");
+                return true;
             }
         }
-        
+
         log.trace("did not find serviceName " + serviceName);
         return false;
-	}
+    }
 
-	int consumerCount(String serviceName) throws Exception {
-		log.trace("consCount" + serviceName);
-		boolean conversational = false;
-		String type = "queue";
-		
-		if (!serviceName.startsWith(".")) {
-			conversational = (Boolean) prop.get("blacktie." + serviceName
-					+ ".conversational");
-			type = (String) prop.getProperty("blacktie." + serviceName
-					+ ".type");
-		}
-		String prefix = null;
-		if (conversational) {
-			prefix = "BTC_";
-		} else {
-			prefix = "BTR_";
-		}
-		
+    int consumerCount(String serviceName) throws Exception {
+        log.trace("consCount" + serviceName);
+        boolean conversational = false;
+        String type = "queue";
+
+        if (!serviceName.startsWith(".")) {
+            conversational = (Boolean) prop.get("blacktie." + serviceName + ".conversational");
+            type = (String) prop.getProperty("blacktie." + serviceName + ".type");
+        }
+        String prefix = null;
+        if (conversational) {
+            prefix = "BTC_";
+        } else {
+            prefix = "BTR_";
+        }
+
         Integer count = null;
-        ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default," + type.toLowerCase() + "="
-                + prefix + serviceName);
+        ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-" + type + "=" + prefix
+                + serviceName);
         if (type.toLowerCase().equals("queue")) {
             count = (Integer) beanServerConnection.getAttribute(objName, "consumerCount");
         } else {
             count = (Integer) beanServerConnection.getAttribute(objName, "subscriptionCount");
         }
-		log.debug("consCount" + serviceName + " " + count.intValue());
-		return count.intValue();
-	}
+        log.debug("consCount" + serviceName + " " + count.intValue());
+        return count.intValue();
+    }
 
-	Element stringToElement(String s) throws Exception {
-		StringReader sreader = new StringReader(s);
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder parser = factory.newDocumentBuilder();
-		Document doc = parser.parse(new InputSource(sreader));
-		return doc.getDocumentElement();
-	}
+    Element stringToElement(String s) throws Exception {
+        StringReader sreader = new StringReader(s);
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder parser = factory.newDocumentBuilder();
+        Document doc = parser.parse(new InputSource(sreader));
+        return doc.getDocumentElement();
+    }
 
-	String printNode(Node node) {
-		try {
-			// Set up the output transformer
-			TransformerFactory transfac = TransformerFactory.newInstance();
-			Transformer trans = transfac.newTransformer();
-			trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-			trans.setOutputProperty(OutputKeys.INDENT, "yes");
+    String printNode(Node node) {
+        try {
+            // Set up the output transformer
+            TransformerFactory transfac = TransformerFactory.newInstance();
+            Transformer trans = transfac.newTransformer();
+            trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            trans.setOutputProperty(OutputKeys.INDENT, "yes");
 
-			// Print the DOM node
+            // Print the DOM node
 
-			StringWriter sw = new StringWriter();
-			StreamResult result = new StreamResult(sw);
-			DOMSource source = new DOMSource(node);
-			trans.transform(source, result);
-			String xmlString = sw.toString();
+            StringWriter sw = new StringWriter();
+            StreamResult result = new StreamResult(sw);
+            DOMSource source = new DOMSource(node);
+            trans.transform(source, result);
+            String xmlString = sw.toString();
 
-			return xmlString;
-		} catch (TransformerException e) {
-			log.error(e);
-		}
-		return null;
-	}
-	
+            return xmlString;
+        } catch (TransformerException e) {
+            log.error(e);
+        }
+        return null;
+    }
 
-	public static boolean isOlderThanReapCheck(String serviceName, long queueReapCheck) {
-		// TODO THIS WILL NOT CLUSTER AS IT ASSUMES THE QUEUE WAS CREATED BY
-		// THIS SERVER
-		log.trace("Locking for isOlderThanReapCheck: " + serviceName);
-		synchronized (QUEUE_CREATION_TIMES) {
-		log.trace("Locked for isOlderThanReapCheck: " + serviceName);
-			boolean toReturn = true;
-			Long creationTime = QUEUE_CREATION_TIMES.get(serviceName);
-			if (creationTime != null) {
-				toReturn = creationTime < queueReapCheck;
-				if (!toReturn) {
-					log.warn("New queue will be ignored: " + serviceName);
-				}
-			}
-			return toReturn;
-		}
-	}
+    public static boolean isOlderThanReapCheck(String serviceName, long queueReapCheck) {
+        // TODO THIS WILL NOT CLUSTER AS IT ASSUMES THE QUEUE WAS CREATED BY
+        // THIS SERVER
+        log.trace("Locking for isOlderThanReapCheck: " + serviceName);
+        synchronized (QUEUE_CREATION_TIMES) {
+            log.trace("Locked for isOlderThanReapCheck: " + serviceName);
+            boolean toReturn = true;
+            Long creationTime = QUEUE_CREATION_TIMES.get(serviceName);
+            if (creationTime != null) {
+                toReturn = creationTime < queueReapCheck;
+                if (!toReturn) {
+                    log.debug("New queue will be ignored: " + serviceName);
+                }
+            }
+            return toReturn;
+        }
+    }
 
-	int deployQueue(String serviceName, String version) {
-		log.trace("deployQueue: " + serviceName + " version: " + version);
+    public int deployQueue(String serviceName, String version) {
+        log.trace("deployQueue: " + serviceName + " version: " + version);
 
-		if (version == null
-				|| !version.equals(prop.getProperty("blacktie.domain.version"))) {
-			log.warn("Blacktie Domain version "
-					+ prop.getProperty("blacktie.domain.version")
-					+ " not match server " + version);
-			return 4;
-		}
+        if (version == null || !version.equals(prop.getProperty("blacktie.domain.version"))) {
+            log.warn("Blacktie Domain version " + prop.getProperty("blacktie.domain.version") + " not match server " + version);
+            return 4;
+        }
 
-		int result = 0;
-		// Long currentTime = QUEUE_CREATION_TIMES.get(serviceName);
+        int result = 0;
+        // Long currentTime = QUEUE_CREATION_TIMES.get(serviceName);
 
-		try {
-			boolean queue = false;
-  	  log.debug("Locking for deployQueue: " + serviceName);
-      synchronized (QUEUE_CREATION_TIMES) {
-    	  log.debug("Locked for deployQueue: " + serviceName);
-			  queue = isDeployQueue(serviceName);
-			  log.debug("Queue " + serviceName + " was deployed?: " + queue);
-			  if (queue == false) {
-    			log.debug("Creating " + serviceName);
-					log.trace("Lock acquired");
-					boolean conversational = false;
-					String type = "queue";
-					if (!serviceName.startsWith(".")) {
-						conversational = (Boolean) prop.get("blacktie."
-								+ serviceName + ".conversational");
-						type = (String) prop.get("blacktie." 
-								+ serviceName + ".type");
-					}
-					String prefix = null;
-					if (conversational) {
-						prefix = "BTC_";
-					} else {
-						prefix = "BTR_";
-					}
-					QUEUE_CREATION_TIMES.put(serviceName,
-							System.currentTimeMillis());
-					log.trace(serviceName);
-					
+        try {
+            boolean queue = false;
+            log.debug("Locking for deployQueue: " + serviceName);
+            synchronized (QUEUE_CREATION_TIMES) {
+                log.debug("Locked for deployQueue: " + serviceName);
+                queue = isDeployQueue(serviceName);
+                log.debug("Queue " + serviceName + " was deployed?: " + queue);
+                if (queue == false) {
+                    log.debug("Creating " + serviceName);
+                    log.trace("Lock acquired");
+                    boolean conversational = false;
+                    String type = "queue";
+                    if (!serviceName.startsWith(".")) {
+                        conversational = (Boolean) prop.get("blacktie." + serviceName + ".conversational");
+                        type = (String) prop.get("blacktie." + serviceName + ".type");
+                    }
+                    String prefix = null;
+                    if (conversational) {
+                        prefix = "BTC_";
+                    } else {
+                        prefix = "BTR_";
+                    }
+                    QUEUE_CREATION_TIMES.put(serviceName, System.currentTimeMillis());
+                    log.trace(serviceName);
+
                     log.debug("Invoking hornetq to deploy queue");
                     ModelNode op = new ModelNode();
                     op.get("operation").set("add");
                     op.get("address").add("subsystem", "messaging");
                     op.get("address").add("hornetq-server", "default");
-                    if (type.equals("queue")) {
-                        op.get("address").add("queue", prefix + serviceName);
-                        op.get("queue-address").set(prefix + serviceName);
-                    } else {
-                        op.get("address").add("topic", prefix + serviceName);
-                        op.get("topic-address").set(prefix + serviceName);
-                    }
+                    op.get("address").add("jms-" + type, prefix + serviceName);
+                    op.get("entries").add("/" + type + "/" + prefix + serviceName);
+//                    op.get("jms-" + type + "-address").set("jms." + type + "." + prefix + serviceName);
                     applyUpdate(op, client);
-					log.debug("Invoked hornetq to deploy queue");
-				}
-				log.debug("Created: "+ serviceName);
-			// QUEUE_CREATION_TIMES.put(serviceName, currentTime);
-			if (!queue || !serviceName.contains(".")) {
-				result = 1;
-				if (AdministrationProxy.isDomainPause
-						&& serviceName.contains(".")) {
-					log.info("Domain is pause");
-					result = 3;
-				}
-			} else if (serviceName.contains(".") && queue && consumerCount(serviceName) > 0) {
-				log.warn("can not advertise ADMIN with same id: " + serviceName);
-				result = 2;
-			} else if (AdministrationProxy.isDomainPause) {
-				log.info("Domain is pause");
-				result = 3;
-			} else {
-				result = 1;
-			}
-			}
-		} catch (Throwable t) {
-			log.error("Could not deploy queue of " + serviceName, t);
-		}
+                    log.debug("Invoked hornetq to deploy queue");
+                }
+                log.debug("Created: " + serviceName);
+                // QUEUE_CREATION_TIMES.put(serviceName, currentTime);
+                if (!queue || !serviceName.contains(".")) {
+                    result = 1;
+                    if (AdministrationProxy.isDomainPause && serviceName.contains(".")) {
+                        log.debug("Domain is pause");
+                        result = 3;
+                    }
+                } else if (serviceName.contains(".") && queue && consumerCount(serviceName) > 0) {
+                    log.warn("can not advertise ADMIN with same id: " + serviceName);
+                    result = 2;
+                } else if (AdministrationProxy.isDomainPause) {
+                    log.debug("Domain is pause");
+                    result = 3;
+                } else {
+                    result = 1;
+                }
+            }
+        } catch (Throwable t) {
+            log.error("Could not deploy queue of " + serviceName, t);
+        }
 
-		return result;
-	}
+        return result;
+    }
 
-	static int undeployQueue(String serviceName) {
-		int result = 0;
+    static int undeployQueue(String serviceName) {
+        int result = 0;
 
-		try {
-			if (isDeployQueue(serviceName)) {
-				log.trace(serviceName);
-				boolean conversational = false;
-				String type = "queue";
-				if (!serviceName.startsWith(".")) {
-					conversational = (Boolean) prop.get("blacktie."
-							+ serviceName + ".conversational");
-					type = (String) prop.get("blacktie." + serviceName
-							+ ".type");
-				}
-				String prefix = null;
-				if (conversational) {
-					prefix = "BTC_";
-				} else {
-					prefix = "BTR_";
-				}
-				
-	            ModelNode op = new ModelNode();
-	            op.get("operation").set("remove");
-	            op.get("address").add("subsystem", "messaging");
-	            op.get("address").add("hornetq-server", "default");
-	            op.get("address").add(type, prefix + serviceName);
-	            applyUpdate(op, client);
-			}
-			result = 1;
-		} catch (Throwable t) {
-			log.error("Could not undeploy queue of " + serviceName, t);
-		}
+        try {
+            if (isDeployQueue(serviceName)) {
+                log.trace(serviceName);
+                boolean conversational = false;
+                String type = "queue";
+                if (!serviceName.startsWith(".")) {
+                    conversational = (Boolean) prop.get("blacktie." + serviceName + ".conversational");
+                    type = (String) prop.get("blacktie." + serviceName + ".type");
+                }
+                String prefix = null;
+                if (conversational) {
+                    prefix = "BTC_";
+                } else {
+                    prefix = "BTR_";
+                }
 
-		return result;
-	}
+                ModelNode op = new ModelNode();
+                op.get("operation").set("remove");
+                op.get("address").add("subsystem", "messaging");
+                op.get("address").add("hornetq-server", "default");
+                op.get("address").add("jms-" + type, prefix + serviceName);
+                applyUpdate(op, client);
+            }
+            result = 1;
+        } catch (Throwable t) {
+            log.error("Could not undeploy queue of " + serviceName, t);
+        }
 
-	int decrementConsumer(String serviceName) {
-		log.trace("decrement");
-		int consumerCounts;
-		int result = 0;
+        return result;
+    }
 
-		try {
-			consumerCounts = consumerCount(serviceName);
-			if (consumerCounts < 1) {
-				result = undeployQueue(serviceName);
-				log.debug(serviceName + " undeployed");
-			} else {
-				// THERE ARE OTHER SERVERS STILL ALIVE
-				result = 1;
-				log.debug(serviceName + " still has " + consumerCounts
-						+ " consumers");
-			}
-		} catch (Throwable t) {
-			log.error("Could not get consumer counts of " + serviceName, t);
-		}
-		return result;
-	}
+    public int decrementConsumer(String serviceName) {
+        log.trace("decrement");
+        int consumerCounts;
+        int result = 0;
 
-	public Response tpservice(TPSVCINFO svcinfo) {
-		log.debug("Message received");
-		X_OCTET recv = (X_OCTET) svcinfo.getBuffer();
-		String string = new String(recv.getByteArray());
-		StringTokenizer st = new StringTokenizer(string, ",", false);
-		String operation = st.nextToken();
-		String serverName = st.nextToken();
-		String serviceName = st.nextToken();
+        try {
+            consumerCounts = consumerCount(serviceName);
+            if (consumerCounts < 1) {
+                result = undeployQueue(serviceName);
+                log.debug(serviceName + " undeployed");
+            } else {
+                // THERE ARE OTHER SERVERS STILL ALIVE
+                result = 1;
+                log.debug(serviceName + " still has " + consumerCounts + " consumers");
+            }
+        } catch (Throwable t) {
+            log.error("Could not get consumer counts of " + serviceName, t);
+        }
+        return result;
+    }
 
-		byte[] success = new byte[1];
-		String server = null;
+    public Response tpservice(TPSVCINFO svcinfo) {
+        log.debug("Message received");
+        X_OCTET recv = (X_OCTET) svcinfo.getBuffer();
+        String string = new String(recv.getByteArray());
+        StringTokenizer st = new StringTokenizer(string, ",", false);
+        String operation = st.nextToken();
+        String serverName = st.nextToken();
+        String serviceName = st.nextToken();
 
-		try {
-			if (serviceName.indexOf(".") > -1) {
-				server = serviceName.substring(1);
-				server = server.replaceAll("[0-9]", "");
-				List<String> servers = (List<String>) prop
-						.get("blacktie.domain.servers");
-				if (servers.contains(server) == false) {
-					log.warn("Could not find the server to advertise for: "
-							+ server);
-					server = null;
-				} else {
-					log.trace("Located server: " + server);
-				}
-			} else {
-				server = (String) prop.get("blacktie." + serviceName
-						+ ".server");
-			}
+        byte[] success = new byte[1];
+        String server = null;
 
-			if (server != null && server.equals(serverName)) {
-				log.trace("Service " + serviceName + " exists for server: "
-						+ server);
-				if (operation.equals("tpadvertise")) {
-					log.trace("Advertising: " + serviceName);
-					String version = st.nextToken();
-					success[0] = (byte) deployQueue(serviceName, version);
-					log.trace("Advertised: " + serviceName);
-				} else if (operation.equals("decrementconsumer")) {
-					log.trace("Decrement consumer: " + serviceName);
-					success[0] = (byte) decrementConsumer(serviceName);
-					log.trace("Decremented consumer: " + serviceName);
-				} else {
-					log.error("Unknown operation " + operation);
-					success[0] = 0;
-				}
-			} else {
-				log.error("Service " + serviceName
-						+ " cannot be located for server");
-				success[0] = 0;
-			}
+        try {
+            if (serviceName.indexOf(".") > -1) {
+                server = serviceName.substring(1);
+                server = server.replaceAll("[0-9]", "");
+                List<String> servers = (List<String>) prop.get("blacktie.domain.servers");
+                if (servers.contains(server) == false) {
+                    log.warn("Could not find the server to advertise for: " + server);
+                    server = null;
+                } else {
+                    log.trace("Located server: " + server);
+                }
+            } else {
+                server = (String) prop.get("blacktie." + serviceName + ".server");
+            }
 
-			X_OCTET buffer = (X_OCTET) svcinfo.getConnection().tpalloc(
-					"X_OCTET", null, 1);
-			buffer.setByteArray(success);
-			log.debug("Responding");
-			return new Response(Connection.TPSUCCESS, 0, buffer, 0);
-		} catch (ConnectionException e) {
-			return new Response(Connection.TPFAIL, 0, null, 0);
-		}
-	}
+            if (server != null && server.equals(serverName)) {
+                log.trace("Service " + serviceName + " exists for server: " + server);
+                if (operation.equals("tpadvertise")) {
+                    log.trace("Advertising: " + serviceName);
+                    String version = st.nextToken();
+                    success[0] = (byte) deployQueue(serviceName, version);
+                    log.trace("Advertised: " + serviceName);
+                } else if (operation.equals("decrementconsumer")) {
+                    log.trace("Decrement consumer: " + serviceName);
+                    success[0] = (byte) decrementConsumer(serviceName);
+                    log.trace("Decremented consumer: " + serviceName);
+                } else {
+                    log.error("Unknown operation " + operation);
+                    success[0] = 0;
+                }
+            } else {
+                log.error("Service " + serviceName + " cannot be located for server");
+                success[0] = 0;
+            }
+
+            X_OCTET buffer = (X_OCTET) svcinfo.getConnection().tpalloc("X_OCTET", null, 1);
+            buffer.setByteArray(success);
+            log.debug("Responding");
+            return new Response(Connection.TPSUCCESS, 0, buffer, 0);
+        } catch (ConnectionException e) {
+            return new Response(Connection.TPFAIL, 0, null, 0);
+        }
+    }
 }

@@ -32,7 +32,7 @@
 namespace atmibroker {
 	namespace tx {
 
-log4cxx::LoggerPtr otsclogger(log4cxx::Logger::getLogger("TxOTSControl"));
+log4cxx::LoggerPtr otsclogger(log4cxx::Logger::getLogger("OTSControl"));
 
 OTSControl::OTSControl(CosTransactions::Control_ptr ctrl, long timeout, int tid) : TxControl(timeout, tid),
 	_ctrl(ctrl) {
@@ -284,7 +284,7 @@ bool OTSControl::get_xid(XID& xid)
 
 		if (bq == 0) {
 			// fingers crossed JBTM-577 has been fixed - do it the OTS way
-			LOG4CXX_WARN(otsclogger, (char*) "no JBOSS separator in otid - assuming JBTM-577 is fixed");
+			LOG4CXX_DEBUG(otsclogger, (char*) "no JBOSS separator in otid - assuming JBTM-577 is fixed");
 			xid.bqual_length = otid.bqual_length;
 			xid.gtrid_length = otidlen - otid.bqual_length;
 			memcpy(xid.data, tid, otidlen);

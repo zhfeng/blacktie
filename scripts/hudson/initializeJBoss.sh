@@ -7,9 +7,9 @@ fi
 if [ -d $WORKSPACE/jboss-as-7.1.0.Final ]; then
   rm -rf $WORKSPACE/jboss-as-7.1.0.Final
 fi
-if [ -d $WORKSPACE/jbossesb-4.9 ]; then
-  rm -rf $WORKSPACE/jbossesb-4.9
-fi
+#if [ -d $WORKSPACE/jbossesb-4.9 ]; then
+#  rm -rf $WORKSPACE/jbossesb-4.9
+#fi
 
 cd $WORKSPACE
 if [ -e $WORKSPACE/jboss-as-7.1.0.Final.zip ]; then
@@ -18,13 +18,14 @@ else
 	wget http://albany/userContent/jboss-as-7.1.0.Final.zip
 fi
 unzip jboss-as-7.1.0.Final.zip
-if [ -e $WORKSPACE/jbossesb-4.9.zip ]; then
-	echo "JBossESB already downloaded"
-else
-	wget http://albany/userContent/blacktie/jbossesb-4.9.zip
-fi
-echo 'A
-' | unzip jbossesb-4.9.zip
+#if [ -e $WORKSPACE/jbossesb-4.9.zip ]; then
+#	echo "JBossESB already downloaded"
+#else
+#	wget http://albany/userContent/blacktie/jbossesb-4.9.zip
+#fi
+#echo 'A
+#' | unzip jbossesb-4.9.zip
+#
 
 echo 'JAVA_OPTS="-Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n ${JAVA_OPTS}"' >> $WORKSPACE/jboss-as-7.1.0.Final/bin/standalone.conf
 

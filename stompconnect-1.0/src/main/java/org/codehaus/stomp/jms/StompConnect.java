@@ -20,7 +20,6 @@ package org.codehaus.stomp.jms;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Hashtable;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.XAConnectionFactory;
@@ -37,34 +36,35 @@ import org.codehaus.stomp.util.ServiceSupport;
 
 /**
  * This class represents a service which accepts STOMP socket connections and binds them to JMS operations
- *
+ * 
  * @version $Revision: 53 $
  */
 public class StompConnect extends ServiceSupport implements StompHandlerFactory {
     private static final transient Log log = LogFactory.getLog(StompConnect.class);
 
-    private XAConnectionFactory connectionFactory;
+    private ConnectionFactory connectionFactory;
+    private XAConnectionFactory xaConnectionFactory;
     private String uri = "tcp://localhost:61613";
     private URI location;
     private ServerSocketFactory serverSocketFactory;
     private TcpTransportServer tcpServer;
     private InitialContext initialContext;
-    private String jndiName = "ConnectionFactory";
-    private Hashtable jndiEnvironment = new Hashtable();
+    private String connectionFactoryName = "java:/ConnectionFactory";
+    private String xaConnectionFactoryName = "java:/JmsXA";
 
     public StompConnect() {
     }
 
-    public StompConnect(XAConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
-    }
-
     public StompHandler createStompHandler(StompHandler outputHandler) throws NamingException {
-        XAConnectionFactory factory = getConnectionFactory();
+        ConnectionFactory factory = getConnectionFactory();
         if (factory == null) {
             throw new IllegalArgumentException("No ConnectionFactory is configured!");
         }
-        return new ProtocolConverter(factory, outputHandler);
+        XAConnectionFactory xaFactory = getXAConnectionFactory();
+        if (xaFactory == null) {
+            throw new IllegalArgumentException("No XAConnectionFactory is configured!");
+        }
+        return new ProtocolConverter(factory, xaFactory, outputHandler);
     }
 
     /**
@@ -75,19 +75,28 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
     }
 
     // Properties
-    //-------------------------------------------------------------------------
-    public XAConnectionFactory getConnectionFactory() throws NamingException {
+    // -------------------------------------------------------------------------
+    public ConnectionFactory getConnectionFactory() throws NamingException {
         if (connectionFactory == null) {
             connectionFactory = createConnectionFactory();
         }
         return connectionFactory;
     }
 
+    // Properties
+    // -------------------------------------------------------------------------
+    public XAConnectionFactory getXAConnectionFactory() throws NamingException {
+        if (xaConnectionFactory == null) {
+            xaConnectionFactory = createXAConnectionFactory();
+        }
+        return xaConnectionFactory;
+    }
+
     /**
      * Sets the JMS connection factory to use to communicate with
      */
     public void setConnectionFactory(XAConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
+        this.xaConnectionFactory = connectionFactory;
     }
 
     public String getUri() {
@@ -142,46 +151,45 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
 
     public InitialContext getInitialContext() throws NamingException {
         if (initialContext == null) {
-            initialContext = new InitialContext(jndiEnvironment);
+            initialContext = new InitialContext();
         }
         return initialContext;
     }
 
     /**
-     * Allows an initial context to be configured which is used if no explicit {@link ConnectionFactory}
-     * is configured via the {@link #setConnectionFactory(ConnectionFactory)} method
+     * Allows an initial context to be configured which is used if no explicit {@link ConnectionFactory} is configured via the
+     * {@link #setConnectionFactory(ConnectionFactory)} method
      */
     public void setInitialContext(InitialContext initialContext) {
         this.initialContext = initialContext;
     }
 
-    public String getJndiName() {
-        return jndiName;
+    public String getXAConnectionFactoryName() {
+        return xaConnectionFactoryName;
     }
 
     /**
-     * Allows the JNDI name to be configured which is used to perform a JNDI lookup
-     * if no explicit {@link ConnectionFactory}
-     * is configured via the {@link #setConnectionFactory(ConnectionFactory)} method
+     * Allows the JNDI name to be configured which is used to perform a JNDI lookup if no explicit {@link ConnectionFactory} is
+     * configured via the {@link #setConnectionFactory(ConnectionFactory)} method
      */
-    public void setJndiName(String jndiName) {
-        this.jndiName = jndiName;
+    public void setXAConnectionFactoryName(String jndiName) {
+        this.xaConnectionFactoryName = jndiName;
     }
 
-    public Hashtable getJndiEnvironment() {
-        return jndiEnvironment;
+    public String getConnectionFactoryName() {
+        return connectionFactoryName;
     }
 
     /**
-     * Sets the JNDI environment used if an {@link InitialContext} is lazily created if no explicit {@link ConnectionFactory}
-     * is configured via the {@link #setConnectionFactory(ConnectionFactory)} method
+     * Allows the JNDI name to be configured which is used to perform a JNDI lookup if no explicit {@link ConnectionFactory} is
+     * configured via the {@link #setConnectionFactory(ConnectionFactory)} method
      */
-    public void setJndiEnvironment(Hashtable jndiEnvironment) {
-        this.jndiEnvironment = jndiEnvironment;
+    public void setConnectionFactoryName(String jndiName) {
+        this.connectionFactoryName = jndiName;
     }
 
     // Implementation methods
-    //-------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     protected void doStart() throws Exception {
         getTcpServer().start();
     }
@@ -195,11 +203,11 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
     }
 
     /**
-     * Factory method to lazily create a {@link ConnectionFactory} if one is not explicitly configured.
-     * By default lets try looking in JNDI
+     * Factory method to lazily create a {@link ConnectionFactory} if one is not explicitly configured. By default lets try
+     * looking in JNDI
      */
-    protected XAConnectionFactory createConnectionFactory() throws NamingException {
-        String name = getJndiName();
+    protected XAConnectionFactory createXAConnectionFactory() throws NamingException {
+        String name = getXAConnectionFactoryName();
         log.info("Looking up name: " + name + " in JNDI InitialContext for JMS ConnectionFactory");
 
         Object value = getInitialContext().lookup(name);
@@ -208,12 +216,32 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
         }
         if (value instanceof XAConnectionFactory) {
             return (XAConnectionFactory) value;
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("The object in JNDI at name: " + name
-                    + " cannot be cast to ConnectionFactory. "
-                    + "Either a JNDI configuration issue or you have multiple JMS API jars on your classpath. " +
-                    "Actual Object was: " + value);
+                    + " cannot be cast to XAConnectionFactory. "
+                    + "Either a JNDI configuration issue or you have multiple JMS API jars on your classpath. "
+                    + "Actual Object was: " + value);
+        }
+    }
+
+    /**
+     * Factory method to lazily create a {@link ConnectionFactory} if one is not explicitly configured. By default lets try
+     * looking in JNDI
+     */
+    protected ConnectionFactory createConnectionFactory() throws NamingException {
+        String name = getConnectionFactoryName();
+        log.info("Looking up name: " + name + " in JNDI InitialContext for JMS ConnectionFactory");
+
+        Object value = getInitialContext().lookup(name);
+        if (value == null) {
+            throw new IllegalArgumentException("No ConnectionFactory object is available in JNDI at name: " + name);
+        }
+        if (value instanceof ConnectionFactory) {
+            return (ConnectionFactory) value;
+        } else {
+            throw new IllegalArgumentException("The object in JNDI at name: " + name + " cannot be cast to ConnectionFactory. "
+                    + "Either a JNDI configuration issue or you have multiple JMS API jars on your classpath. "
+                    + "Actual Object was: " + value);
         }
     }
 }

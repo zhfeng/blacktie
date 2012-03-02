@@ -24,25 +24,20 @@ import org.codehaus.stomp.jms.StompConnect;
 public class StompConnectService implements StompConnectServiceMBean {
     private static final Logger log = LogManager.getLogger(StompConnectService.class);
     private StompConnect connect;
-    private String hostname = "localhost";
     private int port = 61613;
     private String connectionFactoryName = "java:/JmsXA";
 
     public void start() throws Exception {
         log.info("Starting StompConnectMBeanImpl");
         connect = new StompConnect();
-        connect.setUri("tcp://" + hostname + ":" + port);
-        connect.setJndiName(connectionFactoryName);
+        connect.setUri("tcp://" + System.getProperty("jboss.bind.address", "127.0.0.1") + ":" + port);
+        connect.setXAConnectionFactoryName(connectionFactoryName);
         connect.start();
         log.info("Started StompConnectMBeanImpl: " + connect.getUri());
     }
 
     public void stop() throws Exception {
         connect.stop();
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
     }
 
     public void setPort(String port) {

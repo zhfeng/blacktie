@@ -54,7 +54,7 @@ public class Main {
             connect.setUri(arg);
 
             if (args.length > 1) {
-                connect.setJndiName(args[1]);
+                connect.setXAConnectionFactoryName(args[1]);
             }
         }
         return true;

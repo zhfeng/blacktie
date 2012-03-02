@@ -17,21 +17,33 @@
  */
 package org.codehaus.stomp.jms;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.jms.BytesMessage;
+import javax.jms.Connection;
+import javax.jms.DeliveryMode;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TemporaryQueue;
+import javax.jms.TemporaryTopic;
+import javax.jms.TextMessage;
+import javax.jms.Topic;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.stomp.ProtocolException;
 import org.codehaus.stomp.Stomp;
 import org.codehaus.stomp.StompFrame;
-
-import javax.jms.*;
-
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * Represents a logical session (a parallel unit of work) within a Stomp connection
@@ -47,10 +59,11 @@ public class StompSession {
     private Connection connection;
     private static final Log log = LogFactory.getLog(StompSession.class);
 
-    public StompSession(ProtocolConverter protocolConverter, Session session, Connection connection) {
+    public StompSession(ProtocolConverter protocolConverter, Session session, Connection connection) throws JMSException {
         this.protocolConverter = protocolConverter;
         this.session = session;
         this.connection = connection;
+        this.producer = session.createProducer(null);
     }
 
     public ProtocolConverter getProtocolConverter() {
@@ -63,13 +76,6 @@ public class StompSession {
 
     public Connection getConnection() {
         return connection;
-    }
-
-    public MessageProducer getProducer() throws JMSException {
-        if (producer == null) {
-            producer = session.createProducer(null);
-        }
-        return producer;
     }
 
     public void close() throws JMSException {
@@ -93,7 +99,7 @@ public class StompSession {
         int priority = getPriority(headers);
         long timeToLive = getTimeToLive(headers);
 
-        getProducer().send(destination, message, deliveryMode, priority, timeToLive);
+        producer.send(destination, message, deliveryMode, priority, timeToLive);
     }
 
     public void sendToStomp(Message message, StompSubscription subscription) throws Exception {
@@ -185,7 +191,7 @@ public class StompSession {
             return "true".equals(o) ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT;
         }
         else {
-            return getProducer().getDeliveryMode();
+            return producer.getDeliveryMode();
         }
     }
 
@@ -195,7 +201,7 @@ public class StompSession {
             return Integer.parseInt((String) o);
         }
         else {
-            return getProducer().getPriority();
+            return producer.getPriority();
         }
     }
 
@@ -205,7 +211,7 @@ public class StompSession {
             return Long.parseLong((String) o);
         }
         else {
-            return getProducer().getTimeToLive();
+            return producer.getTimeToLive();
         }
     }
 

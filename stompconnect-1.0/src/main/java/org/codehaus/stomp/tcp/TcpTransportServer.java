@@ -212,12 +212,7 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
         InetAddress addr = InetAddress.getByName(host);
 
         try {
-            if (host.trim().equals("localhost") || addr.equals(InetAddress.getLocalHost())) {
-                this.serverSocket = serverSocketFactory.createServerSocket(bind.getPort(), backlog);
-            }
-            else {
-                this.serverSocket = serverSocketFactory.createServerSocket(bind.getPort(), backlog, addr);
-            }
+            this.serverSocket = serverSocketFactory.createServerSocket(bind.getPort(), backlog, addr);
             this.serverSocket.setSoTimeout(2000);
         }
         catch (IOException e) {

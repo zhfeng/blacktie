@@ -317,21 +317,36 @@ public class XMLEnvHandler extends DefaultHandler {
 		} else if (ORB.equals(localName)) {
 			for (int j = 0; j < atts.getLength(); j++) {
 				if (atts.getLocalName(j).equals("OPT")) {
-					String[] argv;
-					argv = atts.getValue(j).split(" ");
-					int orbargs = argv.length;
+					String[] argv = atts.getValue(j).split(" ");
+					int orbargs = 0;
 
-					for (int i = 1; i <= orbargs; i++) {
-						String arg = "blacktie.orb.arg." + i;
-						String toSet = getenv(argv[i - 1]);
-
-						prop.setProperty(arg, toSet);
-						log.debug(arg + " is " + toSet);
+					boolean lookForInterface = false;
+					for (int i = 0; i < argv.length; i++) {
+						String arg = "blacktie.orb.arg." + (i + 1);
+						String toSet = getenv(argv[i]);
+						
+						
+                        if (toSet.equals("-ORBListenEndpoints")) {
+                            lookForInterface = true;
+                        } else if (lookForInterface) {
+                            // " iiop://${JBOSSAS_IP_ADDR}:0"
+                            int startOfHostname = toSet.indexOf("//") + 2;
+                            int portIndex = toSet.indexOf(":", startOfHostname);
+                            String interfaceAddress = toSet.substring(startOfHostname, portIndex);
+                            String interfacePort = toSet.substring(portIndex + 1);
+                            prop.setProperty("blacktie.orb.interface", interfaceAddress);
+                            prop.setProperty("blacktie.orb.interface.port", interfacePort);
+                        } else {
+                            prop.setProperty(arg, toSet);
+                            log.debug(arg + " is " + toSet);
+                            orbargs++;
+                        }
 					}
 
 					log.debug("blacktie.orb.args is " + orbargs);
 					prop.setProperty("blacktie.orb.args",
 							Integer.toString(orbargs));
+					
 				} else if (atts.getLocalName(j).equals("TRANS_FACTORY_ID")) {
 					prop.setProperty("blacktie.trans.factoryid",
 							atts.getValue(j));

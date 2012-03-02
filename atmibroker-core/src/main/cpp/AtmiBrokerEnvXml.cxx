@@ -42,7 +42,7 @@ ServersInfo servers;
 ServiceInfo service;
 Buffers buffers;
 
-OrbConfig orbConfig = {NULL, NULL};
+OrbConfig orbConfig = {NULL, NULL, NULL};
 TxnConfig txnConfig = {NULL, NULL};
 MqConfig mqConfig = {
     NULL,	// host
@@ -154,7 +154,7 @@ static char * XMLCALL copy_value(const char *value) {
 		free(en);
 		free(pr);
 
-		return v;
+		return copy_value(v);
 	}
 
 	return strdup(value);
@@ -204,6 +204,9 @@ static void XMLCALL startElement
 			} else if(strcmp(atts[i], "TRANS_FACTORY_ID") == 0) {
 				orbConfig.transactionFactoryName = copy_value(atts[i+1]);
 				LOG4CXX_TRACE(loggerAtmiBrokerEnvXml, (char*) "set tFN: " << orbConfig.transactionFactoryName);
+			} else if(strcmp(atts[i], "INTERFACE") == 0) {
+				orbConfig.interface = copy_value(atts[i+1]);
+				LOG4CXX_TRACE(loggerAtmiBrokerEnvXml, (char*) "set tFN: " << orbConfig.interface);
 			}
 		}
 	} else if (strcmp(name, "TXN_CFG") == 0) {

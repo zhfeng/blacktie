@@ -70,7 +70,10 @@ public class OrbManagement implements Runnable {
 		log.debug("setting properities");
 		p.setProperty(CorbaOrbClassProp, CorbaOrbClassValue);
 		p.setProperty(CorbaSingletonClassProp, CorbaSingletonClassValue);
-		p.setProperty("OAPort", "0");
+		String oaiAddr = properties.getProperty("blacktie.orb.interface", "0.0.0.0");
+        String oaiAddrPort = properties.getProperty("blacktie.orb.interface.port", "0");
+		p.setProperty("OAIAddr", oaiAddr);
+		p.setProperty("OAPort", oaiAddrPort);
 
 		log.debug("set properities");
 		log.debug(" initing orb");

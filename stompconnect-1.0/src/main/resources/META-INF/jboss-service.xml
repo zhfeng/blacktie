@@ -5,7 +5,6 @@
  
     <mbean code="org.jboss.narayana.blacktie.stompconnect.StompConnectService" name="service.server.monitor:service=StompConnectService">
          <attribute name="ConnectionFactoryName">java:/JmsXA</attribute>
-         <attribute name="Hostname">localhost</attribute>
          <attribute name="Port">61613</attribute>
     </mbean>
  

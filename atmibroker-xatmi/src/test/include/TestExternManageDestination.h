@@ -28,8 +28,8 @@ class TestExternManageDestination : public BaseServerTest {
 #ifndef SunOS
 	CPPUNIT_TEST( test_tpcall_with_service);
 	CPPUNIT_TEST( test_tpcall_without_service);
-//	CPPUNIT_TEST( test_stored_messages);
-//	CPPUNIT_TEST( test_stored_message_priority);
+	CPPUNIT_TEST( test_stored_messages);
+	CPPUNIT_TEST( test_stored_message_priority);
 
 	CPPUNIT_TEST( test_btenqueue_with_txn_abort);
 	CPPUNIT_TEST( test_btenqueue_with_txn_commit);

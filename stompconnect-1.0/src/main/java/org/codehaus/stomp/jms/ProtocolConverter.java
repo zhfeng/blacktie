@@ -70,13 +70,15 @@ public class ProtocolConverter implements StompHandler {
     private String login;
     private String passcode;
     private String clientId;
+    private InitialContext initialContext;
 
-    public ProtocolConverter(ConnectionFactory connectionFactory, XAConnectionFactory xaConnectionFactory,
-            StompHandler outputHandler) throws NamingException {
+    public ProtocolConverter(InitialContext initialContext, ConnectionFactory connectionFactory,
+            XAConnectionFactory xaConnectionFactory, StompHandler outputHandler) throws NamingException {
         this.noneXAConnectionFactory = connectionFactory;
         this.xaConnectionFactory = xaConnectionFactory;
         this.outputHandler = outputHandler;
-        tm = (TransactionManager) new InitialContext().lookup("java:/TransactionManager");
+        this.initialContext = initialContext;
+        tm = (TransactionManager) initialContext.lookup("java:/TransactionManager");
     }
 
     public StompHandler getOutputHandler() {
@@ -233,7 +235,7 @@ public class ProtocolConverter implements StompHandler {
         if (log.isDebugEnabled()) {
             log.debug("Created session with ack mode: " + session.getAcknowledgeMode());
         }
-        this.noneXaSession = new StompSession(this, session, noneXaConnection);
+        this.noneXaSession = new StompSession(initialContext, this, session, noneXaConnection);
 
         Map<String, Object> responseHeaders = new HashMap<String, Object>();
 
@@ -431,7 +433,7 @@ public class ProtocolConverter implements StompHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Created XA session");
             }
-            xaSession = new StompSession(this, session, xaConnection);
+            xaSession = new StompSession(initialContext, this, session, xaConnection);
             log.trace("Created XA Session");
             xaSessions.put(tx, xaSession);
         } else {

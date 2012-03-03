@@ -52,7 +52,8 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
     private String connectionFactoryName = "java:/ConnectionFactory";
     private String xaConnectionFactoryName = "java:/JmsXA";
 
-    public StompConnect() {
+    public StompConnect() throws NamingException {
+        initialContext = new InitialContext();
     }
 
     public StompHandler createStompHandler(StompHandler outputHandler) throws NamingException {
@@ -64,7 +65,7 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
         if (xaFactory == null) {
             throw new IllegalArgumentException("No XAConnectionFactory is configured!");
         }
-        return new ProtocolConverter(factory, xaFactory, outputHandler);
+        return new ProtocolConverter(initialContext, factory, xaFactory, outputHandler);
     }
 
     /**
@@ -149,13 +150,6 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
         this.tcpServer = tcpServer;
     }
 
-    public InitialContext getInitialContext() throws NamingException {
-        if (initialContext == null) {
-            initialContext = new InitialContext();
-        }
-        return initialContext;
-    }
-
     /**
      * Allows an initial context to be configured which is used if no explicit {@link ConnectionFactory} is configured via the
      * {@link #setConnectionFactory(ConnectionFactory)} method
@@ -210,7 +204,7 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
         String name = getXAConnectionFactoryName();
         log.info("Looking up name: " + name + " in JNDI InitialContext for JMS ConnectionFactory");
 
-        Object value = getInitialContext().lookup(name);
+        Object value = initialContext.lookup(name);
         if (value == null) {
             throw new IllegalArgumentException("No ConnectionFactory object is available in JNDI at name: " + name);
         }
@@ -232,7 +226,7 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
         String name = getConnectionFactoryName();
         log.info("Looking up name: " + name + " in JNDI InitialContext for JMS ConnectionFactory");
 
-        Object value = getInitialContext().lookup(name);
+        Object value = initialContext.lookup(name);
         if (value == null) {
             throw new IllegalArgumentException("No ConnectionFactory object is available in JNDI at name: " + name);
         }

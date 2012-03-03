@@ -23,6 +23,7 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
+import javax.naming.NamingException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -90,6 +91,8 @@ public class StompSubscription implements Runnable {
             log.debug("Caught a JMS exception: " + e.getMessage());
         } catch (ProtocolException e) {
             log.debug("Caught a Protocol exception: " + e.getMessage());
+        } catch (NamingException e) {
+            log.debug("Caught a Naming exception: " + e.getMessage());
         }
 
     }

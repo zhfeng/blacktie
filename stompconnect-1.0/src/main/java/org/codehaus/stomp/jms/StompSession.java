@@ -40,6 +40,8 @@ import javax.jms.TemporaryQueue;
 import javax.jms.TemporaryTopic;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -60,9 +62,12 @@ public class StompSession {
     private final Map<String, StompSubscription> subscriptions = new ConcurrentHashMap<String, StompSubscription>();
     private List<String> created = new ArrayList<String>();
     private Connection connection;
+    private InitialContext initialContext;
     private static final Log log = LogFactory.getLog(StompSession.class);
 
-    public StompSession(ProtocolConverter protocolConverter, Session session, Connection connection) throws JMSException {
+    public StompSession(InitialContext initialContext, ProtocolConverter protocolConverter, Session session,
+            Connection connection) throws JMSException {
+        this.initialContext = initialContext;
         this.protocolConverter = protocolConverter;
         this.session = session;
         this.connection = connection;
@@ -84,7 +89,7 @@ public class StompSession {
         connection.close();
     }
 
-    public void sendToJms(StompFrame command) throws JMSException, ProtocolException {
+    public void sendToJms(StompFrame command) throws JMSException, ProtocolException, NamingException {
         Map headers = command.getHeaders();
         String destinationName = (String) headers.remove(Stomp.Headers.Send.DESTINATION);
         Message message = convertFrame(command);
@@ -104,15 +109,12 @@ public class StompSession {
         protocolConverter.sendToStomp(frame);
     }
 
-    public Destination convertDestination(String name, boolean forceNew) throws ProtocolException, JMSException {
+    public Destination convertDestination(String name, boolean forceNew) throws ProtocolException, JMSException,
+            NamingException {
         if (name == null) {
             throw new ProtocolException("No destination is specified!");
-        } else if (name.startsWith("/queue/")) {
-            String queueName = name.substring("/queue/".length(), name.length());
-            return session.createQueue(queueName);
-        } else if (name.startsWith("/topic/")) {
-            String topicName = name.substring("/topic/".length(), name.length());
-            return session.createTopic(topicName);
+        } else if (name.startsWith("/queue/") || name.startsWith("/topic/")) {
+            return (Destination) initialContext.lookup("java:" + name);
         } else if (name.startsWith("/temp-queue/")) {
             String tempName = name.substring("/temp-queue/".length(), name.length());
             Destination answer = temporaryDestinations.get(tempName);
@@ -232,7 +234,7 @@ public class StompSession {
     }
 
     protected void copyStandardHeadersFromFrameToMessage(StompFrame command, Message msg) throws JMSException,
-            ProtocolException {
+            ProtocolException, NamingException {
         final Map headers = new HashMap(command.getHeaders());
 
         // the standard JMS headers
@@ -257,7 +259,7 @@ public class StompSession {
         }
     }
 
-    protected Message convertFrame(StompFrame command) throws JMSException, ProtocolException {
+    protected Message convertFrame(StompFrame command) throws JMSException, ProtocolException, NamingException {
         final Map headers = command.getHeaders();
         final Message msg;
         if (headers.containsKey(Stomp.Headers.CONTENT_LENGTH)) {
@@ -301,7 +303,7 @@ public class StompSession {
         return command;
     }
 
-    public Message receiveFromJms(String destinationName, Map headers) throws JMSException, ProtocolException {
+    public Message receiveFromJms(String destinationName, Map headers) throws JMSException, ProtocolException, NamingException {
         long ttl = getTimeToLive(headers);
         log.trace("Consuming message - ttl=" + ttl);
         Destination destination = convertDestination(destinationName, true);
@@ -317,7 +319,7 @@ public class StompSession {
         return message;
     }
 
-    public MessageConsumer createConsumer(Map headers) throws ProtocolException, JMSException {
+    public MessageConsumer createConsumer(Map headers) throws ProtocolException, JMSException, NamingException {
         String selector = (String) headers.remove(Stomp.Headers.Subscribe.SELECTOR);
         String destinationName = (String) headers.get(Stomp.Headers.Subscribe.DESTINATION);
         Destination destination = convertDestination(destinationName, true);

@@ -23,8 +23,6 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
-import javax.jms.Session;
-import javax.jms.Topic;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,7 +43,6 @@ public class StompSubscription implements Runnable {
     private final String subscriptionId;
     private Destination destination;
     private MessageConsumer consumer;
-    private String destinationName;
     private boolean closed;
     private Thread thread;
     private Map<String, Object> headers;
@@ -75,32 +72,14 @@ public class StompSubscription implements Runnable {
 
     public void run() {
         try {
-            String selector = (String) headers.remove(Stomp.Headers.Subscribe.SELECTOR);
-            destinationName = (String) headers.get(Stomp.Headers.Subscribe.DESTINATION);
-            destination = session.convertDestination(destinationName, true);
-            Session jmsSession = session.getSession();
-            if (destination instanceof Topic) {
-                boolean noLocal = false;
-                String value = (String) headers.get(Stomp.Headers.Subscribe.NO_LOCAL);
-                if (value != null && "true".equalsIgnoreCase(value)) {
-                    noLocal = true;
-                }
-
-                String subscriberName = (String) headers.get(Stomp.Headers.Subscribe.DURABLE_SUBSCRIPTION_NAME);
-                if (subscriberName != null) {
-                    consumer = jmsSession.createDurableSubscriber((Topic) destination, subscriberName, selector, noLocal);
-                } else {
-                    consumer = jmsSession.createConsumer(destination, selector, noLocal);
-                }
-            } else {
-                consumer = jmsSession.createConsumer(destination, selector);
-            }
+            consumer = session.createConsumer(headers);
             while (!closed) {
+                String destinationName = (String) headers.get(Stomp.Headers.Subscribe.DESTINATION);
                 Message message = consumer.receive();
                 log.debug("received:" + destinationName);
                 if (message != null) {
                     try {
-                        session.getProtocolConverter().stopConnection(message, session.getConnection());
+                        session.getProtocolConverter().stopStompSession(message, session);
                         session.sendToStomp(message, this);
                     } catch (Exception e) {
                         log.error("Failed to process message due to: " + e + ". Message: " + message, e);

@@ -95,7 +95,7 @@ void TestXAStompConnection::test() {
 		clientSend.replyto = client->getReplyTo();
 		clientSend.type = (char*) "X_OCTET";
 		clientSend.subtype = (char*) "";
-		clientSend.ttl = 60 * 1000;
+		clientSend.ttl = 120 * 1000;
 		clientSend.control = NULL;
 		long discardTxTTL = -1;
 		clientSend.xid = txx_serialize(&discardTxTTL);

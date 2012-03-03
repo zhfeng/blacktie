@@ -51,6 +51,12 @@ mv .standalone-full.xml.bak $WORKSPACE/jboss-as-7.1.0.Final/standalone/configura
 sed -i 's?            <root-logger>?            <logger category="org.jboss.narayana.blacktie">\
                 <level name="ALL"/>\
             </logger>\
+            <logger category="org.codehaus.stomp">\
+                <level name="ALL"/>\
+            </logger>\
+            <logger category="org.hornetq">\
+                <level name="ALL"/>\
+            </logger>\
             <root-logger>?g' $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/standalone-full.xml
 
 sed -i 's?                </jms-destinations>?                    <jms-queue name="BTR_TestOne">\

@@ -21,24 +21,21 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import javax.jms.XAConnection;
 import javax.jms.XAConnectionFactory;
-import javax.jms.XASession;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.transaction.Transaction;
 import javax.transaction.TransactionManager;
-import javax.transaction.xa.XAResource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -63,20 +60,20 @@ import com.arjuna.ats.internal.jts.ORBManager;
 public class ProtocolConverter implements StompHandler {
     private static final transient Log log = LogFactory.getLog(ProtocolConverter.class);
     private final StompHandler outputHandler;
-    private ConnectionFactory connectionFactory;
+    private ConnectionFactory noneXAConnectionFactory;
     private XAConnectionFactory xaConnectionFactory;
-    private Connection connection;
-    private XAConnection xaConnection;
-    private StompSession session;
-    private StompSession xaSession;
-    private final Map<String, StompSubscription> subscriptions = new ConcurrentHashMap<String, StompSubscription>();
-    private final Map<String, Connection> stoppedConnections = new ConcurrentHashMap<String, Connection>();
+    private StompSession noneXaSession;
+    private Map<TransactionImple, StompSession> xaSessions = new ConcurrentHashMap<TransactionImple, StompSession>();
+    private final Map<String, StompSession> stoppedStompSessions = new ConcurrentHashMap<String, StompSession>();
 
-    private static TransactionManager tm;
+    private TransactionManager tm;
+    private String login;
+    private String passcode;
+    private String clientId;
 
     public ProtocolConverter(ConnectionFactory connectionFactory, XAConnectionFactory xaConnectionFactory,
             StompHandler outputHandler) throws NamingException {
-        this.connectionFactory = connectionFactory;
+        this.noneXAConnectionFactory = connectionFactory;
         this.xaConnectionFactory = xaConnectionFactory;
         this.outputHandler = outputHandler;
         tm = (TransactionManager) new InitialContext().lookup("java:/TransactionManager");
@@ -94,7 +91,7 @@ public class ProtocolConverter implements StompHandler {
      * @param ior the CORBA reference for the OTS transaction
      * @return a JTA transaction that wraps the OTS transaction
      */
-    private static Transaction controlToTx(String ior) {
+    private static TransactionImple controlToTx(String ior) {
         log.debug("controlToTx: ior: " + ior);
 
         ControlWrapper cw = createControlWrapper(ior);
@@ -120,20 +117,26 @@ public class ProtocolConverter implements StompHandler {
 
     public synchronized void close() throws JMSException {
         try {
-            // now the connetions
-            if (xaConnection != null) {
-                xaConnection.close();
-            }
-            if (connection != null) {
-                connection.close();
+            // First close the XA sessions
+            Iterator<StompSession> iterator = xaSessions.values().iterator();
+            while (iterator.hasNext()) {
+                StompSession xaSession = iterator.next();
+                try {
+                    xaSession.close();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
             }
         } finally {
-            xaConnection = null;
-            connection = null;
-            session = null;
-            xaSession = null;
-            subscriptions.clear();
-            stoppedConnections.clear();
+            try {
+                if (noneXaSession != null) {
+                    noneXaSession.close();
+                }
+            } finally {
+                noneXaSession = null;
+                xaSessions.clear();
+                stoppedStompSessions.clear();
+            }
         }
     }
 
@@ -196,41 +199,41 @@ public class ProtocolConverter implements StompHandler {
         log.error("Caught: " + e, e);
     }
 
-    public void stopConnection(Message message, Connection connection) throws JMSException {
-        connection.stop();
-        stoppedConnections.put(message.getJMSMessageID(), connection);
-        log.debug("Stopped connection: " + connection);
+    public void stopStompSession(Message message, StompSession session) throws JMSException {
+        session.stop();
+        stoppedStompSessions.put(message.getJMSMessageID(), session);
+        log.debug("Stopped connection: " + session);
     }
 
     // Implemenation methods
     // -------------------------------------------------------------------------
     protected void onStompConnect(StompFrame command) throws Exception {
-        if (xaConnection != null) {
-            throw new ProtocolException("Already connected.");
-        }
-        if (connection != null) {
+        if (noneXaSession != null) {
             throw new ProtocolException("Already connected.");
         }
 
         Map<String, Object> headers = command.getHeaders();
-        String login = (String) headers.get(Stomp.Headers.Connect.LOGIN);
-        String passcode = (String) headers.get(Stomp.Headers.Connect.PASSCODE);
-        String clientId = (String) headers.get(Stomp.Headers.Connect.CLIENT_ID);
+        login = (String) headers.get(Stomp.Headers.Connect.LOGIN);
+        passcode = (String) headers.get(Stomp.Headers.Connect.PASSCODE);
+        clientId = (String) headers.get(Stomp.Headers.Connect.CLIENT_ID);
 
+        Connection noneXaConnection;
         if (login != null) {
-            xaConnection = xaConnectionFactory.createXAConnection(login, passcode);
-            connection = connectionFactory.createConnection(login, passcode);
+            noneXaConnection = noneXAConnectionFactory.createConnection(login, passcode);
         } else {
-            xaConnection = xaConnectionFactory.createXAConnection();
-            connection = connectionFactory.createConnection();
+            noneXaConnection = noneXAConnectionFactory.createConnection();
         }
         if (clientId != null) {
-            connection.setClientID(clientId);
-            xaConnection.setClientID(clientId);
+            noneXaConnection.setClientID(clientId);
         }
 
-        connection.start();
-        xaConnection.start();
+        noneXaConnection.start();
+
+        Session session = noneXaConnection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        if (log.isDebugEnabled()) {
+            log.debug("Created session with ack mode: " + session.getAcknowledgeMode());
+        }
+        this.noneXaSession = new StompSession(this, session, noneXaConnection);
 
         Map<String, Object> responseHeaders = new HashMap<String, Object>();
 
@@ -261,31 +264,24 @@ public class ProtocolConverter implements StompHandler {
         checkConnected();
 
         Map<String, Object> headers = command.getHeaders();
-
         String xid = (String) headers.get("messagexid");
 
         if (xid != null) {
             log.trace("Transaction was propagated: " + xid);
-            Transaction tx = controlToTx(xid);
+            TransactionImple tx = controlToTx(xid);
             tm.resume(tx);
-            log.trace("Resumed transaction");
+            log.trace("Resumed transaction: " + tx);
 
-            StompSession session = getXASession();
+            // Enlist the resource BLACKTIE-308 we no longer need to enlist the JMS resource as JCA does this for us
+            StompSession session = getXASession(tx);
 
-            Transaction transaction = tm.getTransaction();
-            log.trace("Got transaction: " + transaction);
-
-            // BLACKTIE-308 we no longer need to enlist the JMS resource as JCA does this for us
             session.sendToJms(command);
 
             tm.suspend();
-            log.trace("Suspended transaction");
+            log.trace("Suspended transaction: " + tx);
         } else {
             log.trace("WAS NULL XID");
-
-            StompSession session = getSession();
-
-            session.sendToJms(command);
+            noneXaSession.sendToJms(command);
             log.trace("Sent to JMS");
         }
         sendResponse(command);
@@ -298,44 +294,28 @@ public class ProtocolConverter implements StompHandler {
         Map<String, Object> headers = command.getHeaders();
         String destinationName = (String) headers.remove(Stomp.Headers.Send.DESTINATION);
         String xid = (String) headers.get("messagexid");
-        StompSession session = null;
-        if (xid != null) {
-            session = getXASession();
-        } else {
-            session = getSession();
-        }
-        long ttl = session.getTimeToLive(headers);
-        Destination destination = session.convertDestination(destinationName, true);
         Message msg;
         MessageConsumer consumer;
 
-        log.trace("Consuming message - ttl=" + ttl + " IOR=" + xid);
-
         if (xid != null) {
             log.trace("Transaction was propagated: " + xid);
-            Transaction tx = controlToTx(xid);
+            TransactionImple tx = controlToTx(xid);
             tm.resume(tx);
-            log.trace("Resumed transaction");
+            log.trace("Resumed transaction: " + tx);
 
-            Transaction transaction = tm.getTransaction();
-            log.trace("Got transaction: " + transaction);
+            // Enlist the resource
+            StompSession session = getXASession(tx);
 
-            // create an XA consumer
-            XASession xaSession = (XASession) session.getSession();
-            consumer = xaSession.createConsumer(destination);
-            
-            msg = (ttl > 0 ? consumer.receive(ttl) : consumer.receive());
+            msg = session.receiveFromJms(destinationName, headers);
 
             tm.suspend();
-            log.trace("Suspended transaction");
+            log.trace("Suspended transaction: " + tx);
         } else {
-            javax.jms.Session ss = session.getSession();
-            consumer = ss.createConsumer(destination);
-            msg = (ttl > 0 ? consumer.receive(ttl) : consumer.receive());
+            log.trace("WAS NULL XID");
+            StompSession session = noneXaSession;
+            msg = session.receiveFromJms(destinationName, headers);
+            log.trace("Received from JMS");
         }
-
-        log.trace("Consumed message: " + msg);
-        consumer.close();
 
         StompFrame sf;
 
@@ -352,7 +332,7 @@ public class ProtocolConverter implements StompHandler {
         } else {
             // Don't use sendResponse since it uses Stomp.Responses.RECEIPT as the action
             // which only allows zero length message bodies, Stomp.Responses.MESSAGE is correct:
-            sf = session.convertMessage(msg);
+            sf = noneXaSession.convertMessage(msg);
         }
 
         if (headers.containsKey(Stomp.Headers.RECEIPT_REQUESTED))
@@ -364,27 +344,16 @@ public class ProtocolConverter implements StompHandler {
     protected void onStompSubscribe(StompFrame command) throws Exception {
         checkConnected();
 
-        if (subscriptions.size() > 0) {
-            throw new ProtocolException("This connection already has a subscription");
-        }
-
         Map<String, Object> headers = command.getHeaders();
         // We know this is going to be none-XA as the XA receive is handled in onStompReceive
-        StompSession session = getSession();
+        StompSession session = noneXaSession;
 
         String subscriptionId = (String) headers.get(Stomp.Headers.Subscribe.ID);
         if (subscriptionId == null) {
             subscriptionId = createSubscriptionId(headers);
         }
 
-        StompSubscription subscription = (StompSubscription) subscriptions.get(subscriptionId);
-        if (subscription != null) {
-            throw new ProtocolException("There already is a subscription for: " + subscriptionId
-                    + ". Either use unique subscription IDs or do not create multiple subscriptions for the same destination");
-        }
-        subscription = new StompSubscription(session, subscriptionId, command);
-        subscriptions.put(subscriptionId, subscription);
-
+        noneXaSession.subscribe(subscriptionId, command);
         sendResponse(command);
     }
 
@@ -402,11 +371,7 @@ public class ProtocolConverter implements StompHandler {
             subscriptionId = createSubscriptionId(headers);
         }
 
-        StompSubscription subscription = (StompSubscription) subscriptions.remove(subscriptionId);
-        if (subscription == null) {
-            throw new ProtocolException("Cannot unsubscribe as mo subscription exists for id: " + subscriptionId);
-        }
-        subscription.close();
+        noneXaSession.unsubscribe(subscriptionId);
         sendResponse(command);
     }
 
@@ -423,23 +388,20 @@ public class ProtocolConverter implements StompHandler {
             throw new ProtocolException("ACK received without a message-id to acknowledge!");
         }
 
-        Connection connection = stoppedConnections.remove(messageId);
-        if (connection == null) {
-            log.warn("Could not start connection for message: " + messageId);
+        StompSession session = stoppedStompSessions.remove(messageId);
+        if (session == null) {
+            log.warn("Could not start StompSession for message: " + messageId);
             throw new ProtocolException("No such message for message-id: " + messageId);
         }
 
         // PATCHED BY TOM FOR SINGLE MESSAGE DELIVERY
-        log.debug("Started connection: " + connection);
-        connection.start();
+        log.debug("Started StompSession: " + session);
+        session.start();
         sendResponse(command);
     }
 
     protected void checkConnected() throws ProtocolException {
-        if (xaConnection == null) {
-            throw new ProtocolException("Not connected.");
-        }
-        if (connection == null) {
+        if (noneXaSession == null) {
             throw new ProtocolException("Not connected.");
         }
     }
@@ -451,25 +413,27 @@ public class ProtocolConverter implements StompHandler {
         return "/subscription-to/" + headers.get(Stomp.Headers.Subscribe.DESTINATION);
     }
 
-    protected StompSession getSession() throws JMSException {
-        if (this.session == null) {
-            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            if (log.isDebugEnabled()) {
-                log.debug("Created session with ack mode: " + session.getAcknowledgeMode());
-            }
-            this.session = new StompSession(this, session, connection);
-        }
-        return session;
-    }
-
-    protected StompSession getXASession() throws JMSException {
+    protected StompSession getXASession(TransactionImple tx) throws JMSException {
+        StompSession xaSession = xaSessions.get(tx);
         if (xaSession == null) {
+
+            XAConnection xaConnection;
+            if (login != null) {
+                xaConnection = xaConnectionFactory.createXAConnection(login, passcode);
+            } else {
+                xaConnection = xaConnectionFactory.createXAConnection();
+            }
+            if (clientId != null) {
+                xaConnection.setClientID(clientId);
+            }
+            xaConnection.start();
             Session session = xaConnection.createXASession();
             if (log.isDebugEnabled()) {
                 log.debug("Created XA session");
             }
             xaSession = new StompSession(this, session, xaConnection);
             log.trace("Created XA Session");
+            xaSessions.put(tx, xaSession);
         } else {
             log.trace("Returned existing XA session");
         }

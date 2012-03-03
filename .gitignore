@@ -7,3 +7,7 @@ jbossesb-4.9/
 .classpath
 .settings/
 .project
+
+bin
+include
+lib

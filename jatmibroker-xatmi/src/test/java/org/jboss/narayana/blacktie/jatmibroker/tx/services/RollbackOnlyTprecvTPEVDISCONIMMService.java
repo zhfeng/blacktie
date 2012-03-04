@@ -12,17 +12,15 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.Service;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.TPSVCINFO;
 
 public class RollbackOnlyTprecvTPEVDISCONIMMService implements Service {
-	private static final Logger log = LogManager
-			.getLogger(RollbackOnlyTprecvTPEVDISCONIMMService.class);
+    private static final Logger log = LogManager.getLogger(RollbackOnlyTprecvTPEVDISCONIMMService.class);
 
-	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
-		log.info("test_tprecv_TPEV_DISCONIMM_service");
-		Buffer status = svcinfo.getSession().tprecv(0);
-		TXINFO txinfo = new TXINFO();
-		int inTx = TX.tx_info(txinfo);
-		boolean rbkOnly = (txinfo.transaction_state == TX.TX_ROLLBACK_ONLY);
-		log.info("status=%d, inTx=%d, rbkOnly=%d" + status + " " + inTx + " "
-				+ rbkOnly);
-		return null;
-	}
+    public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
+        log.info("test_tprecv_TPEV_DISCONIMM_service");
+        Buffer status = svcinfo.getSession().tprecv(0);
+        TXINFO txinfo = new TXINFO();
+        int inTx = TX.tx_info(txinfo);
+        boolean rbkOnly = (txinfo.transaction_state == TX.TX_ROLLBACK_ONLY);
+        log.info("status=%d, inTx=%d, rbkOnly=%d" + status + " " + inTx + " " + rbkOnly);
+        return null;
+    }
 }

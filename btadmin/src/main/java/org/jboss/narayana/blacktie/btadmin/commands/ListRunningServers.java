@@ -35,42 +35,39 @@ import org.jboss.narayana.blacktie.btadmin.CommandHandler;
 import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
 
 public class ListRunningServers implements Command {
-	/**
-	 * The logger to use for output
-	 */
-	private static Logger log = LogManager.getLogger(ListRunningServers.class);
+    /**
+     * The logger to use for output
+     */
+    private static Logger log = LogManager.getLogger(ListRunningServers.class);
 
-	/**
-	 * Does the command require the admin connection.
-	 */
-	public boolean requiresAdminConnection() {
-		return true;
-	}
+    /**
+     * Does the command require the admin connection.
+     */
+    public boolean requiresAdminConnection() {
+        return true;
+    }
 
-	/**
-	 * Show the usage of the command
-	 */
-	public String getQuickstartUsage() {
-		return "";
-	}
+    /**
+     * Show the usage of the command
+     */
+    public String getQuickstartUsage() {
+        return "";
+    }
 
-	/**
-	 * This is a no-op for this command
-	 */
-	public void initializeArgs(String[] args) throws IncompatibleArgsException {
-		// NO-OP as no arguments
-	}
+    /**
+     * This is a no-op for this command
+     */
+    public void initializeArgs(String[] args) throws IncompatibleArgsException {
+        // NO-OP as no arguments
+    }
 
-	/**
-	 * List the running servers to console and log file
-	 */
-	public void invoke(MBeanServerConnection beanServerConnection,
-			ObjectName blacktieAdmin, Properties configuration)
-			throws InstanceNotFoundException, MBeanException,
-			ReflectionException, IOException {
-		List<String> listRunningServers = (ArrayList<String>) beanServerConnection
-				.invoke(blacktieAdmin, "listRunningServers", null, null);
-		log.info(CommandHandler.convertList("listRunningServers",
-				listRunningServers));
-	}
+    /**
+     * List the running servers to console and log file
+     */
+    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration)
+            throws InstanceNotFoundException, MBeanException, ReflectionException, IOException {
+        List<String> listRunningServers = (ArrayList<String>) beanServerConnection.invoke(blacktieAdmin, "listRunningServers",
+                null, null);
+        log.info(CommandHandler.convertList("listRunningServers", listRunningServers));
+    }
 }

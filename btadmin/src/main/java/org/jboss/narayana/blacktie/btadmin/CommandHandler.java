@@ -29,7 +29,6 @@ import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
-import javax.naming.Context;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -40,146 +39,133 @@ import org.jboss.narayana.blacktie.jatmibroker.core.conf.XMLParser;
  * Handle the command
  */
 public class CommandHandler {
-	private static Logger log = LogManager.getLogger(CommandHandler.class);
-	private MBeanServerConnection beanServerConnection;
-	private ObjectName blacktieAdmin;
-	private Properties prop = new Properties();
-	private String url;
+    private static Logger log = LogManager.getLogger(CommandHandler.class);
+    private MBeanServerConnection beanServerConnection;
+    private ObjectName blacktieAdmin;
+    private Properties prop = new Properties();
+    private String url;
+    private String username;
+    private String password;
 
-	public CommandHandler() throws ConfigurationException,
-			MalformedObjectNameException, NullPointerException {
-		// Obtain the JMXURL from the btconfig.xml
-		XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
-		url = (String) prop.get("JMXURL");
-		if (url == null) {
-			throw new ConfigurationException(
-					"No JMX url configuration in btconfig.xml");
-		}
-		this.blacktieAdmin = new ObjectName("jboss.blacktie:service=Admin");
-	}
+    public CommandHandler() throws ConfigurationException, MalformedObjectNameException, NullPointerException {
+        // Obtain the JMXURL from the btconfig.xml
+        XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
+        url = (String) prop.get("JMXURL");
+        username = (String) prop.get("JMXUSERNAME");
+        password = (String) prop.get("JMXPASSWORD");
+        this.blacktieAdmin = new ObjectName("jboss.blacktie:service=Admin");
+    }
 
-	public int handleCommand(String[] args) throws InstantiationException,
-			IllegalAccessException, ClassNotFoundException,
-			NullPointerException, IOException {
-		int exitStatus = -1;
-		if (args.length < 1 || args[0] == null || args[0].trim().length() == 0) {
-			log.error("No command was provided");
-		} else {
-			Command command = loadCommand(args[0]);
+    public int handleCommand(String[] args) throws InstantiationException, IllegalAccessException, ClassNotFoundException,
+            NullPointerException, IOException {
+        int exitStatus = -1;
+        if (args.length < 1 || args[0] == null || args[0].trim().length() == 0) {
+            log.error("No command was provided");
+        } else {
+            Command command = loadCommand(args[0]);
 
-			// Create an new array for the commands arguments
-			String[] commandArgs = new String[args.length - 1];
-			if (commandArgs.length > 0) {
-				log.trace("Copying arguments for the command");
-				System.arraycopy(args, 1, commandArgs, 0, commandArgs.length);
-			}
+            // Create an new array for the commands arguments
+            String[] commandArgs = new String[args.length - 1];
+            if (commandArgs.length > 0) {
+                log.trace("Copying arguments for the command");
+                System.arraycopy(args, 1, commandArgs, 0, commandArgs.length);
+            }
 
-			String quickstartUsage = command.getQuickstartUsage();
-			char[] charArray = quickstartUsage.toCharArray();
-			int expectedArgsLength = 0;
-			int optionalArgs = 0;
-			// Note this does assume that each word is a parameter
-			for (int i = 0; i < quickstartUsage.length(); i++) {
-				if (charArray[i] == ' ') {
-					expectedArgsLength++;
-				} else if (charArray[i] == '[') {
-					optionalArgs++;
-				}
-			}
-			// Add the last parameter
-			if (charArray.length > 0) {
-				expectedArgsLength++;
-			}
-			// Check if the number of parameters is in an expected range
-			if (commandArgs.length > expectedArgsLength
-					|| commandArgs.length < expectedArgsLength - optionalArgs) {
-				if (optionalArgs == 0) {
-					log.trace("Arguments incompatible, expected "
-							+ expectedArgsLength + ", received: "
-							+ commandArgs.length);
-				} else {
-					log.trace("Arguments incompatible, expected at least "
-							+ optionalArgs + " and no more than "
-							+ expectedArgsLength + ", received: "
-							+ commandArgs.length);
-				}
-				log.error(("Expected Usage: " + args[0] + " " + quickstartUsage)
-						.trim());
-			} else {
-				if (command.requiresAdminConnection()) {
-					initializeAdminConnection();
-				}
-				try {
-					// Try to initialize the arguments
-					command.initializeArgs(commandArgs);
-					log.trace("Arguments initialized");
-					try {
-						// Try to invoke the command
-						command.invoke(beanServerConnection, blacktieAdmin,
-								prop);
-						exitStatus = 0;
-						log.trace("Command invoked");
-					} catch (CommandFailedException e) {
-						exitStatus = e.getExitCode();
-					} catch (Exception e) {
-						log.error(
-								"Could not invoke the command: "
-										+ e.getMessage(), e);
-					}
-				} catch (IncompatibleArgsException e) {
-					String usage = "Expected Usage: " + args[0] + " "
-							+ quickstartUsage;
-					log.error("Arguments invalid: " + e.getMessage());
-					log.error(usage.trim());
-					log.trace("Arguments invalid: " + e.getMessage(), e);
-				}
-			}
-		}
-		return exitStatus;
-	}
+            String quickstartUsage = command.getQuickstartUsage();
+            char[] charArray = quickstartUsage.toCharArray();
+            int expectedArgsLength = 0;
+            int optionalArgs = 0;
+            // Note this does assume that each word is a parameter
+            for (int i = 0; i < quickstartUsage.length(); i++) {
+                if (charArray[i] == ' ') {
+                    expectedArgsLength++;
+                } else if (charArray[i] == '[') {
+                    optionalArgs++;
+                }
+            }
+            // Add the last parameter
+            if (charArray.length > 0) {
+                expectedArgsLength++;
+            }
+            // Check if the number of parameters is in an expected range
+            if (commandArgs.length > expectedArgsLength || commandArgs.length < expectedArgsLength - optionalArgs) {
+                if (optionalArgs == 0) {
+                    log.trace("Arguments incompatible, expected " + expectedArgsLength + ", received: " + commandArgs.length);
+                } else {
+                    log.trace("Arguments incompatible, expected at least " + optionalArgs + " and no more than "
+                            + expectedArgsLength + ", received: " + commandArgs.length);
+                }
+                log.error(("Expected Usage: " + args[0] + " " + quickstartUsage).trim());
+            } else {
+                if (command.requiresAdminConnection()) {
+                    initializeAdminConnection();
+                }
+                try {
+                    // Try to initialize the arguments
+                    command.initializeArgs(commandArgs);
+                    log.trace("Arguments initialized");
+                    try {
+                        // Try to invoke the command
+                        command.invoke(beanServerConnection, blacktieAdmin, prop);
+                        exitStatus = 0;
+                        log.trace("Command invoked");
+                    } catch (CommandFailedException e) {
+                        exitStatus = e.getExitCode();
+                    } catch (Exception e) {
+                        log.error("Could not invoke the command: " + e.getMessage(), e);
+                    }
+                } catch (IncompatibleArgsException e) {
+                    String usage = "Expected Usage: " + args[0] + " " + quickstartUsage;
+                    log.error("Arguments invalid: " + e.getMessage());
+                    log.error(usage.trim());
+                    log.trace("Arguments invalid: " + e.getMessage(), e);
+                }
+            }
+        }
+        return exitStatus;
+    }
 
-	public static Command loadCommand(String commandName)
-			throws InstantiationException, IllegalAccessException,
-			ClassNotFoundException {
-		String firstLetter = commandName.substring(0, 1);
-		String remainder = commandName.substring(1);
-		String capitalized = firstLetter.toUpperCase() + remainder;
-		String className = "org.jboss.narayana.blacktie.btadmin.commands." + capitalized;
-		log.trace("Will execute the " + className + " command");
-		Command command = (Command) Class.forName(className).newInstance();
-		log.debug("Command was known");
-		return command;
-	}
+    public static Command loadCommand(String commandName) throws InstantiationException, IllegalAccessException,
+            ClassNotFoundException {
+        String firstLetter = commandName.substring(0, 1);
+        String remainder = commandName.substring(1);
+        String capitalized = firstLetter.toUpperCase() + remainder;
+        String className = "org.jboss.narayana.blacktie.btadmin.commands." + capitalized;
+        log.trace("Will execute the " + className + " command");
+        Command command = (Command) Class.forName(className).newInstance();
+        log.debug("Command was known");
+        return command;
+    }
 
-	public void initializeAdminConnection() throws IOException {
-		if (beanServerConnection == null) {
-			// Initialize the connection to the mbean server
-			JMXServiceURL u = new JMXServiceURL(url);
-			Hashtable h = new Hashtable();
+    public void initializeAdminConnection() throws IOException {
+        if (beanServerConnection == null) {
+            // Initialize the connection to the mbean server
+            JMXServiceURL u = new JMXServiceURL(url);
+            Hashtable h = new Hashtable();
             String[] creds = new String[2];
-            creds[0] = "admin";
-            creds[1] = "password";
+            creds[0] = username;
+            creds[1] = password;
             h.put(JMXConnector.CREDENTIALS, creds);
-			JMXConnector c = JMXConnectorFactory.connect(u, h);
-			this.beanServerConnection = c.getMBeanServerConnection();
-		}
-	}
+            JMXConnector c = JMXConnectorFactory.connect(u, h);
+            this.beanServerConnection = c.getMBeanServerConnection();
+        }
+    }
 
-	/**
-	 * Utility function to output the list
-	 * 
-	 * @param operationName
-	 * @param list
-	 */
-	public static String convertList(String operationName, List list) {
-		StringBuffer buffer = new StringBuffer();
-		buffer.append("Output from: " + operationName);
-		int i = 0;
-		Iterator iterator = list.iterator();
-		while (iterator.hasNext()) {
-			buffer.append("\nElement: " + i + " Value: " + iterator.next());
-			i++;
-		}
-		return buffer.toString();
-	}
+    /**
+     * Utility function to output the list
+     * 
+     * @param operationName
+     * @param list
+     */
+    public static String convertList(String operationName, List list) {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("Output from: " + operationName);
+        int i = 0;
+        Iterator iterator = list.iterator();
+        while (iterator.hasNext()) {
+            buffer.append("\nElement: " + i + " Value: " + iterator.next());
+            i++;
+        }
+        return buffer.toString();
+    }
 }

@@ -24,21 +24,19 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
 
 public class DefaultCodecImpl implements Codec {
-	Connection connection;
+    Connection connection;
 
-	public DefaultCodecImpl(Connection connection) {
-		this.connection = connection;
-	}
-	
-	public Buffer decode(String type, String subtype, byte[] data, int len) 
-		throws ConnectionException, ConfigurationException {
-		Buffer buffer = connection.tpalloc(type, subtype, len);
-		buffer.deserialize(data);
-		return buffer;
-	}
+    public DefaultCodecImpl(Connection connection) {
+        this.connection = connection;
+    }
 
-	public byte[] encode(Buffer buf) 
-		throws ConnectionException {	
-		return buf.serialize();
-	}
+    public Buffer decode(String type, String subtype, byte[] data, int len) throws ConnectionException, ConfigurationException {
+        Buffer buffer = connection.tpalloc(type, subtype, len);
+        buffer.deserialize(data);
+        return buffer;
+    }
+
+    public byte[] encode(Buffer buf) throws ConnectionException {
+        return buf.serialize();
+    }
 }

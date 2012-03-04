@@ -26,7 +26,6 @@ import javax.naming.NamingException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.jboss.ejb3.annotation.ResourceAdapter;
-import org.jboss.narayana.blacktie.quickstarts.integration1.ejb.CreditRemote;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
@@ -35,41 +34,39 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.TPSVCINFO;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_COMMON;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.mdb.MDBBlacktieService;
+import org.jboss.narayana.blacktie.quickstarts.integration1.ejb.CreditRemote;
 
 @javax.ejb.TransactionAttribute(javax.ejb.TransactionAttributeType.NOT_SUPPORTED)
 @MessageDriven(activationConfig = {
-		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-		@ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_CREDITEXAMPLE") })
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_CREDITEXAMPLE") })
 // @Depends("org.hornetq:module=JMS,name=\"BTR_CREDITEXAMPLE\",type=Queue")
 @ResourceAdapter("hornetq-ra.rar")
-public class CreditAdapterService extends MDBBlacktieService implements
-		javax.jms.MessageListener {
-	private static final Logger log = LogManager
-			.getLogger(CreditAdapterService.class);
+public class CreditAdapterService extends MDBBlacktieService implements javax.jms.MessageListener {
+    private static final Logger log = LogManager.getLogger(CreditAdapterService.class);
 
-	public CreditAdapterService() throws ConfigurationException {
-		super();
-	}
+    public CreditAdapterService() throws ConfigurationException {
+        super("CreditAdapterService");
+    }
 
-	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException {
-		X_COMMON rcv = (X_COMMON) svcinfo.getBuffer();
-		long acct_no = rcv.getLong("acct_no");
-		short amount = rcv.getShort("amount");
+    public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
+        X_COMMON rcv = (X_COMMON) svcinfo.getBuffer();
+        long acct_no = rcv.getLong("acct_no");
+        short amount = rcv.getShort("amount");
 
-		String resp = "NAMINGERROR";
-		try {
-			Context ctx = new InitialContext();
-			CreditRemote bean = (CreditRemote) ctx.lookup("CreditBean/remote");
-			log.debug("resolved CreditBean");
-			resp = bean.credit(acct_no, amount);
-		} catch (NamingException e) {
-			log.error("Got a naming error: " + e.getMessage(), e);
-		}
-		log.trace("Returning: " + resp);
+        String resp = "NAMINGERROR";
+        try {
+            Context ctx = new InitialContext();
+            CreditRemote bean = (CreditRemote) ctx.lookup("CreditBean/remote");
+            log.debug("resolved CreditBean");
+            resp = bean.credit(acct_no, amount);
+        } catch (NamingException e) {
+            log.error("Got a naming error: " + e.getMessage(), e);
+        }
+        log.trace("Returning: " + resp);
 
-		X_OCTET buffer = (X_OCTET) svcinfo.getConnection().tpalloc("X_OCTET",
-				null, resp.length() + 1);
-		buffer.setByteArray(resp.getBytes());
-		return new Response(Connection.TPSUCCESS, 0, buffer, 0);
-	}
+        X_OCTET buffer = (X_OCTET) svcinfo.getConnection().tpalloc("X_OCTET", null, resp.length() + 1);
+        buffer.setByteArray(resp.getBytes());
+        return new Response(Connection.TPSUCCESS, 0, buffer, 0);
+    }
 }

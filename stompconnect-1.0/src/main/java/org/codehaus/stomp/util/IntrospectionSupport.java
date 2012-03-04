@@ -53,12 +53,11 @@ public class IntrospectionSupport {
             String name = method.getName();
             Class type = method.getReturnType();
             Class params[] = method.getParameterTypes();
-            if (name.startsWith("get") && params.length == 0 &&
-                    type != null && IntrospectionSupport.isSettableType(type)) {
+            if (name.startsWith("get") && params.length == 0 && type != null && IntrospectionSupport.isSettableType(type)) {
 
                 try {
 
-                    Object value = method.invoke(target, new Object[]{});
+                    Object value = method.invoke(target, new Object[] {});
                     if (value == null) {
                         continue;
                     }
@@ -71,8 +70,7 @@ public class IntrospectionSupport {
                     name = name.substring(3, 4).toLowerCase() + name.substring(4);
                     props.put(optionPrefix + name, strValue);
                     rc = true;
-                }
-                catch (Throwable ignore) {
+                } catch (Throwable ignore) {
                 }
             }
         }
@@ -154,15 +152,13 @@ public class IntrospectionSupport {
 
             // If the type is null or it matches the needed type, just use the value directly
             if (value == null || value.getClass() == setter.getParameterTypes()[0]) {
-                setter.invoke(target, new Object[]{value});
-            }
-            else {
+                setter.invoke(target, new Object[] { value });
+            } else {
                 // We need to convert it
-                setter.invoke(target, new Object[]{IntrospectionSupport.convert(value, setter.getParameterTypes()[0])});
+                setter.invoke(target, new Object[] { IntrospectionSupport.convert(value, setter.getParameterTypes()[0]) });
             }
             return true;
-        }
-        catch (Throwable ignore) {
+        } catch (Throwable ignore) {
             return false;
         }
     }
@@ -198,9 +194,7 @@ public class IntrospectionSupport {
         for (int i = 0; i < methods.length; i++) {
             Method method = methods[i];
             Class params[] = method.getParameterTypes();
-            if (method.getName().equals(name)
-                    && params.length == 1
-                    && IntrospectionSupport.isSettableType(params[0])) {
+            if (method.getName().equals(name) && params.length == 1 && IntrospectionSupport.isSettableType(params[0])) {
                 return method;
             }
         }
@@ -235,8 +229,7 @@ public class IntrospectionSupport {
             Map.Entry entry = (Map.Entry) iter.next();
             if (first) {
                 first = false;
-            }
-            else {
+            } else {
                 buffer.append(", ");
             }
             buffer.append(entry.getKey());
@@ -265,9 +258,8 @@ public class IntrospectionSupport {
         Field[] fields = startClass.getDeclaredFields();
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
-            if (Modifier.isStatic(field.getModifiers()) ||
-                    Modifier.isTransient(field.getModifiers()) ||
-                    Modifier.isPrivate(field.getModifiers())) {
+            if (Modifier.isStatic(field.getModifiers()) || Modifier.isTransient(field.getModifiers())
+                    || Modifier.isPrivate(field.getModifiers())) {
                 continue;
             }
 
@@ -277,13 +269,11 @@ public class IntrospectionSupport {
                 if (o != null && o.getClass().isArray()) {
                     try {
                         o = Arrays.asList((Object[]) o);
-                    }
-                    catch (Throwable e) {
+                    } catch (Throwable e) {
                     }
                 }
                 map.put(field.getName(), o);
-            }
-            catch (Throwable e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
             }
         }

@@ -19,7 +19,7 @@ package org.codehaus.stomp;
 
 /**
  * Represents a handler of Stomp frames
- *
+ * 
  * @version $Revision: 65 $
  */
 public interface StompHandler {

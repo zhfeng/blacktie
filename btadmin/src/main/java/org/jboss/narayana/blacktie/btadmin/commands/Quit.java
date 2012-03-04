@@ -30,20 +30,19 @@ import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
  */
 public class Quit implements Command {
 
-	public boolean requiresAdminConnection() {
-		return false;
-	}
+    public boolean requiresAdminConnection() {
+        return false;
+    }
 
-	public String getQuickstartUsage() {
-		return "";
-	}
+    public String getQuickstartUsage() {
+        return "";
+    }
 
-	public void initializeArgs(String[] args) throws IncompatibleArgsException {
-		// NO-OP
-	}
+    public void initializeArgs(String[] args) throws IncompatibleArgsException {
+        // NO-OP
+    }
 
-	public void invoke(MBeanServerConnection beanServerConnection,
-			ObjectName blacktieAdmin, Properties configuration) {
-		// NO-OP
-	}
+    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration) {
+        // NO-OP
+    }
 }

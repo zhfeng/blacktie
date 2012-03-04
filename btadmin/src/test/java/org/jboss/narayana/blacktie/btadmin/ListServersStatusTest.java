@@ -25,73 +25,65 @@ import junit.framework.TestCase;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.jboss.narayana.blacktie.btadmin.CommandHandler;
 
 public class ListServersStatusTest extends TestCase {
-	private static Logger log = LogManager
-			.getLogger(ListServersStatusTest.class);
+    private static Logger log = LogManager.getLogger(ListServersStatusTest.class);
 
-	private CommandHandler commandHandler;
+    private CommandHandler commandHandler;
 
-	private boolean running = false;
+    private boolean running = false;
 
-	public void setUp() throws Exception {
-		this.commandHandler = new CommandHandler();
-	}
+    public void setUp() throws Exception {
+        this.commandHandler = new CommandHandler();
+    }
 
-	public void tearDown() throws Exception {
-		log.info("ListServersStatusTest::tearDown");
+    public void tearDown() throws Exception {
+        log.info("ListServersStatusTest::tearDown");
 
-		if (running) {
-			if (commandHandler.handleCommand("shutdown testsui".split(" ")) != 0) {
-				fail("Could not stop the server");
-			} else {
-				running = false;
-			}
-		}
-	}
+        if (running) {
+            if (commandHandler.handleCommand("shutdown testsui".split(" ")) != 0) {
+                fail("Could not stop the server");
+            } else {
+                running = false;
+            }
+        }
+    }
 
-	public void testListServersStatusTestWithAdditionalArgs() throws IOException,
-			MalformedObjectNameException, NullPointerException,
-			InstantiationException, IllegalAccessException,
-			ClassNotFoundException {
-		log.info("ListServersStatusTest::testListServersStatusTestWithAdditionalArgs");
-		String command = "listServersStatus foo";
-		if (commandHandler.handleCommand(command.split(" ")) == 0) {
-			fail("Command was successful");
-		}
-	}
+    public void testListServersStatusTestWithAdditionalArgs() throws IOException, MalformedObjectNameException,
+            NullPointerException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+        log.info("ListServersStatusTest::testListServersStatusTestWithAdditionalArgs");
+        String command = "listServersStatus foo";
+        if (commandHandler.handleCommand(command.split(" ")) == 0) {
+            fail("Command was successful");
+        }
+    }
 
-	public void testListServersStatusTestWithoutServers() throws IOException,
-			MalformedObjectNameException, NullPointerException,
-			InstantiationException, IllegalAccessException,
-			ClassNotFoundException {
-		log.info("ListServersStatusTest::testListServersStatusTestWithoutServers");
-		String command = "listRunningServers";
-		if (commandHandler.handleCommand(command.split(" ")) != 0) {
-			fail("Command was not successful");
-		}
-	}
+    public void testListServersStatusTestWithoutServers() throws IOException, MalformedObjectNameException,
+            NullPointerException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+        log.info("ListServersStatusTest::testListServersStatusTestWithoutServers");
+        String command = "listRunningServers";
+        if (commandHandler.handleCommand(command.split(" ")) != 0) {
+            fail("Command was not successful");
+        }
+    }
 
-	public void testListServersStatusTestWithServers() throws IOException,
-			MalformedObjectNameException, NullPointerException,
-			InstantiationException, IllegalAccessException,
-			ClassNotFoundException {
-		log.info("ListServersStatusTest::testListServersStatusTestWithServers");
-		if (commandHandler.handleCommand("startup testsui".split(" ")) != 0) {
-			fail("Could not start the server");
-		}
-		running = true;
-		log.info("Started");
-		String command = "advertise testsui BAR";
-		if (commandHandler.handleCommand(command.split(" ")) != 0) {
-			fail("Command failed");
-		}
-		log.info("advertised");
-		command = "listServersStatus";
-		if (commandHandler.handleCommand(command.split(" ")) != 0) {
-			fail("Command was not successful");
-		}
-		log.info("got status");
-	}
+    public void testListServersStatusTestWithServers() throws IOException, MalformedObjectNameException, NullPointerException,
+            InstantiationException, IllegalAccessException, ClassNotFoundException {
+        log.info("ListServersStatusTest::testListServersStatusTestWithServers");
+        if (commandHandler.handleCommand("startup testsui".split(" ")) != 0) {
+            fail("Could not start the server");
+        }
+        running = true;
+        log.info("Started");
+        String command = "advertise testsui BAR";
+        if (commandHandler.handleCommand(command.split(" ")) != 0) {
+            fail("Command failed");
+        }
+        log.info("advertised");
+        command = "listServersStatus";
+        if (commandHandler.handleCommand(command.split(" ")) != 0) {
+            fail("Command was not successful");
+        }
+        log.info("got status");
+    }
 }

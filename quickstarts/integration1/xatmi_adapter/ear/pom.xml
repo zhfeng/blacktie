@@ -90,18 +90,20 @@
                     </modules>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jboss-maven-plugin</artifactId>
-                <version>1.5.0</version>
-                <configuration>
-                    <hostName>localhost</hostName>
-                    <port>8080</port>
-                    <fileNames>
-                        <fileName>${project.build.directory}/${project.build.finalName}.${project.packaging}</fileName>
-                    </fileNames>
-                </configuration>
-            </plugin>
+					<plugin>
+						<groupId>org.jboss.as.plugins</groupId>
+						<artifactId>jboss-as-maven-plugin</artifactId>
+						<version>7.1.0.Final</version>
+						<executions>
+							<execution>
+								<id>redeploy</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>deploy</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
         </plugins>
     </build>
     <dependencies>

@@ -34,30 +34,27 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.mdb.MDBBlacktieService;
 
 @javax.ejb.TransactionAttribute(javax.ejb.TransactionAttributeType.NOT_SUPPORTED)
 @MessageDriven(activationConfig = {
-		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-		@ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_TxCreateService") })
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_TxCreateService") })
 // @Depends("org.hornetq:module=JMS,name=\"BTR_TxCreateService\",type=Queue")
 @ResourceAdapter("hornetq-ra.rar")
-public class TxCreateServiceTestService extends MDBBlacktieService implements
-		javax.jms.MessageListener {
-	private static final Logger log = LogManager
-			.getLogger(TxCreateServiceTestService.class);
+public class TxCreateServiceTestService extends MDBBlacktieService implements javax.jms.MessageListener {
+    private static final Logger log = LogManager.getLogger(TxCreateServiceTestService.class);
 
-	public TxCreateServiceTestService() throws ConfigurationException {
-		super();
-	}
+    public TxCreateServiceTestService() throws ConfigurationException {
+        super("TxCreateServiceTestService");
+    }
 
-	public Response tpservice(TPSVCINFO svcinfo) {
-		try {
-			Context context = new InitialContext();
-			TransactionManager tm = (TransactionManager) context
-					.lookup("java:/TransactionManager");
-			tm.begin();
-		} catch (Exception e) {
-			log.error("Caught an exception", e);
-			return new Response(Connection.TPFAIL, 0, null, 0);
-		}
+    public Response tpservice(TPSVCINFO svcinfo) {
+        try {
+            Context context = new InitialContext();
+            TransactionManager tm = (TransactionManager) context.lookup("java:/TransactionManager");
+            tm.begin();
+        } catch (Exception e) {
+            log.error("Caught an exception", e);
+            return new Response(Connection.TPFAIL, 0, null, 0);
+        }
 
-		return new Response(Connection.TPSUCCESS, 0, svcinfo.getBuffer(), 0);
-	}
+        return new Response(Connection.TPSUCCESS, 0, svcinfo.getBuffer(), 0);
+    }
 }

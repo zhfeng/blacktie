@@ -33,107 +33,94 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
 
 public class TxBlacktieServiceTestCase extends TestCase {
-	private static final Logger log = LogManager
-			.getLogger(TxBlacktieServiceTestCase.class);
-	private Connection connection;
+    private static final Logger log = LogManager.getLogger(TxBlacktieServiceTestCase.class);
+    private Connection connection;
 
-	public void setUp() throws ConnectionException, ConfigurationException {
-		log.info("TxBlacktieServiceTestCase::setUp");
-		ConnectionFactory connectionFactory = ConnectionFactory
-				.getConnectionFactory();
-		connection = connectionFactory.getConnection();
-	}
+    public void setUp() throws ConnectionException, ConfigurationException {
+        log.info("TxBlacktieServiceTestCase::setUp");
+        ConnectionFactory connectionFactory = ConnectionFactory.getConnectionFactory();
+        connection = connectionFactory.getConnection();
+    }
 
-	public void tearDown() throws ConnectionException, ConfigurationException {
-		log.info("TxBlacktieServiceTestCase::tearDown");
-		connection.close();
-	}
+    public void tearDown() throws ConnectionException, ConfigurationException {
+        log.info("TxBlacktieServiceTestCase::tearDown");
+        connection.close();
+    }
 
-	private JABTransaction startTx() throws JABException {
-		log.info("TxBlacktieServiceTestCase::startTx");
-		JABSessionAttributes attrs = new JABSessionAttributes();
-		JABSession session = new JABSession(attrs);
+    private JABTransaction startTx() throws JABException {
+        log.info("TxBlacktieServiceTestCase::startTx");
+        JABSessionAttributes attrs = new JABSessionAttributes();
+        JABSession session = new JABSession(attrs);
 
-		// for (Map.Entry e : attrs.getProperties().entrySet())
-		// log.info(e.getKey() + " = " + e.getValue());
+        // for (Map.Entry e : attrs.getProperties().entrySet())
+        // log.info(e.getKey() + " = " + e.getValue());
 
-		try {
-			return new JABTransaction(session, 5000);
-		} catch (Exception e) {
-			throw new JABException(e.getMessage(), e);
-		}
-	}
+        try {
+            return new JABTransaction(session, 5000);
+        } catch (Exception e) {
+            throw new JABException(e.getMessage(), e);
+        }
+    }
 
-	public void test1() throws ConnectionException, JABException {
-		log.info("TxBlacktieServiceTestCase::test1");
-		byte[] args = "test=test1,tx=true".getBytes();
-		X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null,
-				args.length);
-		buffer.setByteArray(args);
+    public void test1() throws ConnectionException, JABException, ConfigurationException {
+        log.info("TxBlacktieServiceTestCase::test1");
+        byte[] args = "test=test1,tx=true".getBytes();
+        X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null, args.length);
+        buffer.setByteArray(args);
 
-		JABTransaction transaction = startTx();
-		Response response = connection.tpcall("TxEchoService", buffer, 0);
-		String responseData = new String(
-				((X_OCTET) response.getBuffer()).getByteArray());
-		transaction.commit();
-		assertEquals("test=test1,tx=true", responseData);
-	}
+        JABTransaction transaction = startTx();
+        Response response = connection.tpcall("TxEchoService", buffer, 0);
+        String responseData = new String(((X_OCTET) response.getBuffer()).getByteArray());
+        transaction.commit();
+        assertEquals("test=test1,tx=true", responseData);
+    }
 
-	public void test2() throws ConnectionException, JABException {
-		log.info("TxBlacktieServiceTestCase::test2");
-		byte[] args = "test=test2,tx=true".getBytes();
-		X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null,
-				args.length);
-		buffer.setByteArray(args);
+    public void test2() throws ConnectionException, JABException, ConfigurationException {
+        log.info("TxBlacktieServiceTestCase::test2");
+        byte[] args = "test=test2,tx=true".getBytes();
+        X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null, args.length);
+        buffer.setByteArray(args);
 
-		Response response = connection.tpcall("TxEchoService", buffer, 0);
-		String responseData = new String(
-				((X_OCTET) response.getBuffer()).getByteArray());
-		assertNotSame("test=test2,tx=true", responseData);
-	}
+        Response response = connection.tpcall("TxEchoService", buffer, 0);
+        String responseData = new String(((X_OCTET) response.getBuffer()).getByteArray());
+        assertNotSame("test=test2,tx=true", responseData);
+    }
 
-	public void test3() throws ConnectionException, JABException {
-		log.info("TxBlacktieServiceTestCase::test3");
-		byte[] args = "test=test3,tx=false".getBytes();
-		X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null,
-				args.length);
-		buffer.setByteArray(args);
+    public void test3() throws ConnectionException, JABException, ConfigurationException {
+        log.info("TxBlacktieServiceTestCase::test3");
+        byte[] args = "test=test3,tx=false".getBytes();
+        X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null, args.length);
+        buffer.setByteArray(args);
 
-		Response response = connection.tpcall("TxEchoService", buffer, 0);
-		String responseData = new String(
-				((X_OCTET) response.getBuffer()).getByteArray());
-		assertEquals("test=test3,tx=false", responseData);
-	}
+        Response response = connection.tpcall("TxEchoService", buffer, 0);
+        String responseData = new String(((X_OCTET) response.getBuffer()).getByteArray());
+        assertEquals("test=test3,tx=false", responseData);
+    }
 
-	public void test4() throws ConnectionException, JABException {
-		log.info("TxBlacktieServiceTestCase::test4");
-		byte[] args = "test=test4,tx=false".getBytes();
-		X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null,
-				args.length);
-		buffer.setByteArray(args);
+    public void test4() throws ConnectionException, JABException, ConfigurationException {
+        log.info("TxBlacktieServiceTestCase::test4");
+        byte[] args = "test=test4,tx=false".getBytes();
+        X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null, args.length);
+        buffer.setByteArray(args);
 
-		JABTransaction transaction = startTx();
-		Response response = connection.tpcall("TxEchoService", buffer, 0);
-		String responseData = new String(
-				((X_OCTET) response.getBuffer()).getByteArray());
-		transaction.commit();
-		assertNotSame("test=test4,tx=false", responseData);
-	}
+        JABTransaction transaction = startTx();
+        Response response = connection.tpcall("TxEchoService", buffer, 0);
+        String responseData = new String(((X_OCTET) response.getBuffer()).getByteArray());
+        transaction.commit();
+        assertNotSame("test=test4,tx=false", responseData);
+    }
 
-	/*
-	 * Test that the AS can create a transaction and propagate it too another
-	 * blacktie service.
-	 */
-	public void test5() throws ConnectionException, JABException {
-		log.info("TxBlacktieServiceTestCase::test5");
-		byte[] args = "test=test5,tx=create".getBytes();
-		X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null,
-				args.length);
-		buffer.setByteArray(args);
+    /*
+     * Test that the AS can create a transaction and propagate it too another blacktie service.
+     */
+    public void test5() throws ConnectionException, JABException, ConfigurationException {
+        log.info("TxBlacktieServiceTestCase::test5");
+        byte[] args = "test=test5,tx=create".getBytes();
+        X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null, args.length);
+        buffer.setByteArray(args);
 
-		Response response = connection.tpcall("TxEchoService", buffer, 0);
-		String responseData = new String(
-				((X_OCTET) response.getBuffer()).getByteArray());
-		assertEquals("test=test5,tx=create", responseData);
-	}
+        Response response = connection.tpcall("TxEchoService", buffer, 0);
+        String responseData = new String(((X_OCTET) response.getBuffer()).getByteArray());
+        assertEquals("test=test5,tx=create", responseData);
+    }
 }

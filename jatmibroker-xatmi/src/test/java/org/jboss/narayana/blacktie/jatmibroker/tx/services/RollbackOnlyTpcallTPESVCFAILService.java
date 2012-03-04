@@ -11,15 +11,13 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.TPSVCINFO;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
 
 public class RollbackOnlyTpcallTPESVCFAILService implements Service {
-	private static final Logger log = LogManager
-			.getLogger(RollbackOnlyTpcallTPESVCFAILService.class);
+    private static final Logger log = LogManager.getLogger(RollbackOnlyTpcallTPESVCFAILService.class);
 
-	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
-		log.info("test_tpcall_TPESVCFAIL_service");
-		int len = 60;
-		X_OCTET toReturn = (X_OCTET) svcinfo.getConnection().tpalloc("X_OCTET",
-				null, len);
-		toReturn.setByteArray("test_tpcall_TPESVCFAIL_service".getBytes());
-		return new Response(Connection.TPFAIL, 0, toReturn, 0);
-	}
+    public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
+        log.info("test_tpcall_TPESVCFAIL_service");
+        int len = 60;
+        X_OCTET toReturn = (X_OCTET) svcinfo.getConnection().tpalloc("X_OCTET", null, len);
+        toReturn.setByteArray("test_tpcall_TPESVCFAIL_service".getBytes());
+        return new Response(Connection.TPFAIL, 0, toReturn, 0);
+    }
 }

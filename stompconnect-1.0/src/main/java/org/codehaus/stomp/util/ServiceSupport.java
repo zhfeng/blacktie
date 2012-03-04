@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A helper class for working with services together with a useful base class for service implementations.
- *
+ * 
  * @version $Revision: 50 $
  */
 public abstract class ServiceSupport {
@@ -40,8 +40,7 @@ public abstract class ServiceSupport {
             stopping.set(true);
             try {
                 doStop();
-            }
-            finally {
+            } finally {
                 stopped.set(true);
                 started.set(false);
                 stopping.set(false);

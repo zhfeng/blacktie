@@ -17,14 +17,6 @@
  */
 package org.codehaus.stomp.tcp;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.codehaus.stomp.StompHandler;
-import org.codehaus.stomp.StompHandlerFactory;
-import org.codehaus.stomp.util.IOExceptionSupport;
-import org.codehaus.stomp.util.ServiceSupport;
-
-import javax.net.ServerSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -37,6 +29,15 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.net.ServerSocketFactory;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.codehaus.stomp.StompHandler;
+import org.codehaus.stomp.StompHandlerFactory;
+import org.codehaus.stomp.util.IOExceptionSupport;
+import org.codehaus.stomp.util.ServiceSupport;
 
 /**
  * @version $Revision: 52 $
@@ -56,7 +57,8 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
     private URI bindLocation;
     private List<TcpTransport> connections = new CopyOnWriteArrayList<TcpTransport>();
 
-    public TcpTransportServer(StompHandlerFactory stompHandlerFactory, URI location, ServerSocketFactory serverSocketFactory) throws IOException, URISyntaxException {
+    public TcpTransportServer(StompHandlerFactory stompHandlerFactory, URI location, ServerSocketFactory serverSocketFactory)
+            throws IOException, URISyntaxException {
         this.stompHandlerFactory = stompHandlerFactory;
         this.connectURI = location;
         this.bindLocation = location;
@@ -81,19 +83,16 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
                 if (socket != null) {
                     if (isStopped()) {
                         socket.close();
-                    }
-                    else {
+                    } else {
                         TcpTransport transport = createTransport(socket);
                         connectHandlers(transport);
                         transport.start();
                         connections.add(transport);
                     }
                 }
-            }
-            catch (SocketTimeoutException ste) {
+            } catch (SocketTimeoutException ste) {
                 // expect this to happen
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 if (!isStopping() && !isStopped()) {
                     e.printStackTrace();
                     onAcceptError(e);
@@ -110,7 +109,7 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
     }
 
     // Properties
-    //-------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     public boolean isDaemon() {
         return daemon;
     }
@@ -172,7 +171,7 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
     }
 
     // Implementation methods
-    //-------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     protected void doStart() throws Exception {
         bind();
         log.info("Listening for connections at: " + getConnectURI());
@@ -192,8 +191,7 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
             for (TcpTransport connection : connections) {
                 connection.stop();
             }
-        }
-        finally {
+        } finally {
             connections.clear();
         }
 
@@ -214,15 +212,13 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
         try {
             this.serverSocket = serverSocketFactory.createServerSocket(bind.getPort(), backlog, addr);
             this.serverSocket.setSoTimeout(2000);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw IOExceptionSupport.create("Failed to bind to server socket: " + bind + " due to: " + e, e);
         }
         try {
-            setConnectURI(new URI(bind.getScheme(), bind.getUserInfo(), resolveHostName(bind.getHost()), serverSocket.getLocalPort(), bind.getPath(),
-                    bind.getQuery(), bind.getFragment()));
-        }
-        catch (URISyntaxException e) {
+            setConnectURI(new URI(bind.getScheme(), bind.getUserInfo(), resolveHostName(bind.getHost()),
+                    serverSocket.getLocalPort(), bind.getPath(), bind.getQuery(), bind.getFragment()));
+        } catch (URISyntaxException e) {
             throw IOExceptionSupport.create(e);
         }
     }
@@ -236,8 +232,7 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
         log.error("Received accept error: " + e, e);
         try {
             stop();
-        }
-        catch (Exception e1) {
+        } catch (Exception e1) {
             log.error("Failed to shut down: " + e, e);
         }
     }

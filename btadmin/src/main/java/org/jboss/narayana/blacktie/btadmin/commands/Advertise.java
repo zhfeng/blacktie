@@ -36,52 +36,49 @@ import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
  * The advertise command
  */
 public class Advertise implements Command {
-	/**
-	 * The logger to use for output
-	 */
-	private static Logger log = LogManager.getLogger(Advertise.class);
+    /**
+     * The logger to use for output
+     */
+    private static Logger log = LogManager.getLogger(Advertise.class);
 
-	/**
-	 * The name of the server.
-	 */
-	private String serverName;
+    /**
+     * The name of the server.
+     */
+    private String serverName;
 
-	/**
-	 * The name of the service.
-	 */
-	private String serviceName;
+    /**
+     * The name of the service.
+     */
+    private String serviceName;
 
-	/**
-	 * Does the command require the admin connection.
-	 */
-	public boolean requiresAdminConnection() {
-		return true;
-	}
+    /**
+     * Does the command require the admin connection.
+     */
+    public boolean requiresAdminConnection() {
+        return true;
+    }
 
-	/**
-	 * Show the usage of the command
-	 */
-	public String getQuickstartUsage() {
-		return "<serverName> <serviceName>";
-	}
+    /**
+     * Show the usage of the command
+     */
+    public String getQuickstartUsage() {
+        return "<serverName> <serviceName>";
+    }
 
-	public void initializeArgs(String[] args) throws IncompatibleArgsException {
-		serverName = args[0];
-		serviceName = args[1];
-	}
+    public void initializeArgs(String[] args) throws IncompatibleArgsException {
+        serverName = args[0];
+        serviceName = args[1];
+    }
 
-	public void invoke(MBeanServerConnection beanServerConnection,
-			ObjectName blacktieAdmin, Properties configuration)
-			throws InstanceNotFoundException, MBeanException,
-			ReflectionException, IOException, CommandFailedException {
-		Boolean result = (Boolean) beanServerConnection.invoke(blacktieAdmin,
-				"advertise", new Object[] { serverName, serviceName },
-				new String[] { "java.lang.String", "java.lang.String" });
-		if (result) {
-			log.info("Service advertised");
-		} else {
-			log.error("Service could not be advertised");
-			throw new CommandFailedException(-1);
-		}
-	}
+    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration)
+            throws InstanceNotFoundException, MBeanException, ReflectionException, IOException, CommandFailedException {
+        Boolean result = (Boolean) beanServerConnection.invoke(blacktieAdmin, "advertise", new Object[] { serverName,
+                serviceName }, new String[] { "java.lang.String", "java.lang.String" });
+        if (result) {
+            log.info("Service advertised");
+        } else {
+            log.error("Service could not be advertised");
+            throw new CommandFailedException(-1);
+        }
+    }
 }

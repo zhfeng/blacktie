@@ -38,46 +38,43 @@ import org.w3c.dom.ls.LSSerializer;
  * The command.
  */
 public class ListServersStatus implements Command {
-	/**
-	 * The logger to use for output
-	 */
-	private static Logger log = LogManager.getLogger(ListServersStatus.class);
+    /**
+     * The logger to use for output
+     */
+    private static Logger log = LogManager.getLogger(ListServersStatus.class);
 
-	/**
-	 * Does the command require the admin connection.
-	 */
-	public boolean requiresAdminConnection() {
-		return true;
-	}
+    /**
+     * Does the command require the admin connection.
+     */
+    public boolean requiresAdminConnection() {
+        return true;
+    }
 
-	/**
-	 * Show the usage of the command
-	 */
-	public String getQuickstartUsage() {
-		return "";
-	}
+    /**
+     * Show the usage of the command
+     */
+    public String getQuickstartUsage() {
+        return "";
+    }
 
-	/**
-	 * This is a no-op for this command
-	 */
-	public void initializeArgs(String[] args) throws IncompatibleArgsException {
-		// NO-OP as no arguments
-	}
+    /**
+     * This is a no-op for this command
+     */
+    public void initializeArgs(String[] args) throws IncompatibleArgsException {
+        // NO-OP as no arguments
+    }
 
-	/**
-	 * List the running servers to console and log file
-	 */
-	public void invoke(MBeanServerConnection beanServerConnection,
-			ObjectName blacktieAdmin, Properties configuration)
-			throws InstanceNotFoundException, MBeanException,
-			ReflectionException, IOException {
-		org.w3c.dom.Element output = (org.w3c.dom.Element) beanServerConnection
-				.invoke(blacktieAdmin, "listServersStatus", null, null);
-		Document document = output.getOwnerDocument();
-		DOMImplementationLS domImplLS = (DOMImplementationLS) document
-				.getImplementation();
-		LSSerializer serializer = domImplLS.createLSSerializer();
-		String str = serializer.writeToString(output);
-		log.info(str);
-	}
+    /**
+     * List the running servers to console and log file
+     */
+    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration)
+            throws InstanceNotFoundException, MBeanException, ReflectionException, IOException {
+        org.w3c.dom.Element output = (org.w3c.dom.Element) beanServerConnection.invoke(blacktieAdmin, "listServersStatus",
+                null, null);
+        Document document = output.getOwnerDocument();
+        DOMImplementationLS domImplLS = (DOMImplementationLS) document.getImplementation();
+        LSSerializer serializer = domImplLS.createLSSerializer();
+        String str = serializer.writeToString(output);
+        log.info(str);
+    }
 }

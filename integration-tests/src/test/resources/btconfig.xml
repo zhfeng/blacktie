@@ -67,7 +67,7 @@
 		RECEIVE_TIMEOUT='10' TIME_TO_LIVE='10'
 		NAMING_URL='jnp://${JBOSSAS_IP_ADDR}:1099' />
 	<JMX
-		url="service:jmx:remoting-jmx://localhost:9999" />
+		url="service:jmx:remoting-jmx://jmx://${JBOSSAS_IP_ADDR}:9999" username="admin" password="password" />
 
 	<BUFFERS>
 		<BUFFER name='abcdefghijklmnop'>

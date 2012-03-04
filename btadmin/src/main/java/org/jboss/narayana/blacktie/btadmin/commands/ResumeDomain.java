@@ -36,39 +36,36 @@ import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
  * The command
  */
 public class ResumeDomain implements Command {
-	/**
-	 * The logger to use for output
-	 */
-	private static Logger log = LogManager.getLogger(ResumeDomain.class);
+    /**
+     * The logger to use for output
+     */
+    private static Logger log = LogManager.getLogger(ResumeDomain.class);
 
-	/**
-	 * Does the command require the admin connection.
-	 */
-	public boolean requiresAdminConnection() {
-		return true;
-	}
+    /**
+     * Does the command require the admin connection.
+     */
+    public boolean requiresAdminConnection() {
+        return true;
+    }
 
-	/**
-	 * Show the usage of the command
-	 */
-	public String getQuickstartUsage() {
-		return "";
-	}
+    /**
+     * Show the usage of the command
+     */
+    public String getQuickstartUsage() {
+        return "";
+    }
 
-	public void initializeArgs(String[] args) throws IncompatibleArgsException {
-	}
+    public void initializeArgs(String[] args) throws IncompatibleArgsException {
+    }
 
-	public void invoke(MBeanServerConnection beanServerConnection,
-			ObjectName blacktieAdmin, Properties configuration)
-			throws InstanceNotFoundException, MBeanException,
-			ReflectionException, IOException, CommandFailedException {
-		Boolean result = (Boolean) beanServerConnection.invoke(blacktieAdmin,
-				"resumeDomain", new Object[] {}, new String[] {});
-		if (result) {
-			log.info("Domain resumed");
-		} else {
-			log.error("Domain could not be resumed");
-			throw new CommandFailedException(-1);
-		}
-	}
+    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration)
+            throws InstanceNotFoundException, MBeanException, ReflectionException, IOException, CommandFailedException {
+        Boolean result = (Boolean) beanServerConnection.invoke(blacktieAdmin, "resumeDomain", new Object[] {}, new String[] {});
+        if (result) {
+            log.info("Domain resumed");
+        } else {
+            log.error("Domain could not be resumed");
+            throw new CommandFailedException(-1);
+        }
+    }
 }

@@ -11,21 +11,19 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.Service;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.TPSVCINFO;
 
 public class TPSendTPSendOnlyService implements Service {
-	private static final Logger log = LogManager
-			.getLogger(TPSendTPSendOnlyService.class);
+    private static final Logger log = LogManager.getLogger(TPSendTPSendOnlyService.class);
 
-	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
-		log.info("testtpsend_tpsendonly_service");
-		int result = svcinfo.getSession().tpsend(svcinfo.getBuffer(),
-				Connection.TPRECVONLY);
-		try {
-			Buffer tprecv = svcinfo.getSession().tprecv(0);
-		} catch (ConnectionException e) {
-			if (e.getTperrno() != Connection.TPEEVENT) {
-				log.error("ConnectionException: ", e);
-				throw e;
-			}
-		}
-		return null;
-	}
+    public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
+        log.info("testtpsend_tpsendonly_service");
+        int result = svcinfo.getSession().tpsend(svcinfo.getBuffer(), Connection.TPRECVONLY);
+        try {
+            Buffer tprecv = svcinfo.getSession().tprecv(0);
+        } catch (ConnectionException e) {
+            if (e.getTperrno() != Connection.TPEEVENT) {
+                log.error("ConnectionException: ", e);
+                throw e;
+            }
+        }
+        return null;
+    }
 }

@@ -28,24 +28,24 @@ import org.jboss.ejb3.annotation.RemoteBinding;
 @Stateless
 @RemoteBinding(jndiBinding = "CreditBean/remote")
 public class CreditBean implements CreditRemote {
-	private static final Logger log = LogManager.getLogger(CreditBean.class);
+    private static final Logger log = LogManager.getLogger(CreditBean.class);
 
-	/*
-	 * @TransactionAttribute(TransactionAttributeType.REQUIRED)
-	 * 
-	 * @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	 * 
-	 * @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-	 * 
-	 * @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-	 * 
-	 * @TransactionAttribute(TransactionAttributeType.NEVER)
-	 */
+    /*
+     * @TransactionAttribute(TransactionAttributeType.REQUIRED)
+     * 
+     * @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+     * 
+     * @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+     * 
+     * @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+     * 
+     * @TransactionAttribute(TransactionAttributeType.NEVER)
+     */
 
-	@TransactionAttribute(TransactionAttributeType.MANDATORY)
-	public String credit(long acct_no, short amount) {
-		log.info("Credit called: acct_no: " + acct_no + " amount: " + amount);
-		return "CREDITTED";
-	}
+    @TransactionAttribute(TransactionAttributeType.MANDATORY)
+    public String credit(long acct_no, short amount) {
+        log.info("Credit called: acct_no: " + acct_no + " amount: " + amount);
+        return "CREDITTED";
+    }
 
 }

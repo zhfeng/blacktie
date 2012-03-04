@@ -17,15 +17,6 @@
  */
 package org.codehaus.stomp.tcp;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.codehaus.stomp.StompFrame;
-import org.codehaus.stomp.StompHandler;
-import org.codehaus.stomp.StompMarshaller;
-import org.codehaus.stomp.util.IntrospectionSupport;
-import org.codehaus.stomp.util.ServiceSupport;
-
-import javax.net.SocketFactory;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -40,6 +31,16 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.net.SocketFactory;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.codehaus.stomp.StompFrame;
+import org.codehaus.stomp.StompHandler;
+import org.codehaus.stomp.StompMarshaller;
+import org.codehaus.stomp.util.IntrospectionSupport;
+import org.codehaus.stomp.util.ServiceSupport;
 
 /**
  * @version $Revision: 65 $
@@ -79,16 +80,16 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
 
     /**
      * Connect to a remote Node - e.g. a Broker
-     *
+     * 
      * @param localLocation e.g. local InetAddress and local port
      */
-    public TcpTransport(StompHandler stompHandler, SocketFactory socketFactory, URI remoteLocation, URI localLocation) throws IOException {
+    public TcpTransport(StompHandler stompHandler, SocketFactory socketFactory, URI remoteLocation, URI localLocation)
+            throws IOException {
         this.inputHandler = stompHandler;
         this.socketFactory = socketFactory;
         try {
             this.socket = socketFactory.createSocket();
-        }
-        catch (SocketException e) {
+        } catch (SocketException e) {
             e.printStackTrace();
             this.socket = null;
         }
@@ -132,17 +133,13 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
             try {
                 StompFrame frame = marshaller.unmarshal(dataIn);
                 inputHandler.onStompFrame(frame);
-            }
-            catch (SocketTimeoutException e) {
-            }
-            catch (InterruptedIOException e) {
-            }
-            catch (Exception e) {
+            } catch (SocketTimeoutException e) {
+            } catch (InterruptedIOException e) {
+            } catch (Exception e) {
                 log.debug("Caught an exception: " + e.getMessage());
                 try {
                     stop();
-                }
-                catch (Exception e2) {
+                } catch (Exception e2) {
                     log.warn("Caught while closing: " + e2 + ". Now Closed", e2);
                 }
 
@@ -185,9 +182,8 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
     }
 
     /**
-     * Sets whether 'localhost' or the actual local host name should be used to
-     * make local connections. On some operating systems such as Macs its not
-     * possible to connect as the local host name so localhost is better.
+     * Sets whether 'localhost' or the actual local host name should be used to make local connections. On some operating
+     * systems such as Macs its not possible to connect as the local host name so localhost is better.
      */
     public void setUseLocalHost(boolean useLocalHost) {
         this.useLocalHost = useLocalHost;
@@ -287,7 +283,7 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
 
     /**
      * Configures the socket for use
-     *
+     * 
      * @param sock
      * @throws SocketException
      */
@@ -299,8 +295,7 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
         try {
             sock.setReceiveBufferSize(socketBufferSize);
             sock.setSendBufferSize(socketBufferSize);
-        }
-        catch (SocketException se) {
+        } catch (SocketException se) {
             log.warn("Cannot set socket buffer size = " + socketBufferSize);
             log.debug("Cannot set socket buffer size. Reason: " + se, se);
         }
@@ -351,19 +346,17 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
             if (remoteAddress != null) {
                 if (connectionTimeout >= 0) {
                     socket.connect(remoteAddress, connectionTimeout);
-                }
-                else {
+                } else {
                     socket.connect(remoteAddress);
                 }
             }
-        }
-        else {
+        } else {
             // For SSL sockets.. you can't create an unconnected socket :(
             // This means the timout option are not supported either.
             if (localAddress != null) {
-                socket = socketFactory.createSocket(remoteAddress.getAddress(), remoteAddress.getPort(), localAddress.getAddress(), localAddress.getPort());
-            }
-            else {
+                socket = socketFactory.createSocket(remoteAddress.getAddress(), remoteAddress.getPort(),
+                        localAddress.getAddress(), localAddress.getPort());
+            } else {
                 socket = socketFactory.createSocket(remoteAddress.getAddress(), remoteAddress.getPort());
             }
         }
@@ -395,10 +388,10 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
     }
 
     protected void initializeStreams() throws Exception {
-//        TcpBufferedInputStream buffIn = new TcpBufferedInputStream(socket.getInputStream(), ioBufferSize);
-        this.dataIn = new DataInputStream(socket.getInputStream());//new DataInputStream(buffIn);
-  //      TcpBufferedOutputStream buffOut = new TcpBufferedOutputStream(socket.getOutputStream(), ioBufferSize);
-        this.dataOut = new DataOutputStream(socket.getOutputStream());//new DataOutputStream(buffOut);
+        // TcpBufferedInputStream buffIn = new TcpBufferedInputStream(socket.getInputStream(), ioBufferSize);
+        this.dataIn = new DataInputStream(socket.getInputStream());// new DataInputStream(buffIn);
+        // TcpBufferedOutputStream buffOut = new TcpBufferedOutputStream(socket.getOutputStream(), ioBufferSize);
+        this.dataOut = new DataOutputStream(socket.getOutputStream());// new DataOutputStream(buffOut);
     }
 
     protected void closeStreams() throws IOException {

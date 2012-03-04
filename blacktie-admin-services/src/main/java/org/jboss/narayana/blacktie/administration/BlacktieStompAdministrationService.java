@@ -78,7 +78,11 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
         super("BlacktieStompAdministrationService");
         XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
         beanServerConnection = java.lang.management.ManagementFactory.getPlatformMBeanServer();
-        client = ModelControllerClient.Factory.create(InetAddress.getByName("localhost"), 9999, getCallbackHandler());
+        String managementAddress = System.getProperty("jboss.bind.address.management", "localhost");
+        if (managementAddress.equals("0.0.0.0")) {
+            managementAddress = "127.0.0.1";
+        }
+        client = ModelControllerClient.Factory.create(InetAddress.getByName(managementAddress), 9999, getCallbackHandler());
     }
 
     static void applyUpdate(ModelNode update, final ModelControllerClient client) throws IOException {
@@ -108,7 +112,8 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
         } else {
             prefix = "BTR_";
         }
-        ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-" + type + "=" + prefix + "*");
+        ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-" + type + "=" + prefix
+                + "*");
         ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
         for (int i = 0; i < dests.length; i++) {
             String serviceComponentOfObjectName = dests[i].getObjectName().getCanonicalName();
@@ -246,7 +251,7 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
                     op.get("address").add("hornetq-server", "default");
                     op.get("address").add("jms-" + type, prefix + serviceName);
                     op.get("entries").add("/" + type + "/" + prefix + serviceName);
-//                    op.get("jms-" + type + "-address").set("jms." + type + "." + prefix + serviceName);
+                    // op.get("jms-" + type + "-address").set("jms." + type + "." + prefix + serviceName);
                     applyUpdate(op, client);
                     log.debug("Invoked hornetq to deploy queue");
                 }

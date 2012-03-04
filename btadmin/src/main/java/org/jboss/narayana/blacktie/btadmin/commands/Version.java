@@ -31,25 +31,24 @@ import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
  * The shutdown command will shutdown the server specified
  */
 public class Version implements Command {
-	/**
-	 * The logger to use for output
-	 */
-	private static Logger log = LogManager.getLogger(Version.class);
+    /**
+     * The logger to use for output
+     */
+    private static Logger log = LogManager.getLogger(Version.class);
 
-	public boolean requiresAdminConnection() {
-		return false;
-	}
+    public boolean requiresAdminConnection() {
+        return false;
+    }
 
-	public String getQuickstartUsage() {
-		return "";
-	}
+    public String getQuickstartUsage() {
+        return "";
+    }
 
-	public void initializeArgs(String[] args) throws IncompatibleArgsException {
-		// NO-OP
-	}
+    public void initializeArgs(String[] args) throws IncompatibleArgsException {
+        // NO-OP
+    }
 
-	public void invoke(MBeanServerConnection beanServerConnection,
-			ObjectName blacktieAdmin, Properties configuration) {
-		log.info("JBoss BlackTie 5.0.0.M2-SNAPSHOT");
-	}
+    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration) {
+        log.info("JBoss BlackTie 5.0.0.M2-SNAPSHOT");
+    }
 }

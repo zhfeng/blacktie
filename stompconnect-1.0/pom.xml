@@ -187,16 +187,10 @@
 						<version>7.1.0.Final</version>
 						<executions>
 							<execution>
-								<id>redeploy</id>
 								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>deploy</goal>
 								</goals>
-								<configuration>
-									<fileNames>
-										<fileName>${project.build.directory}/${project.build.finalName}.${project.packaging}</fileName>
-									</fileNames>
-								</configuration>
 							</execution>
 						</executions>
 					</plugin>

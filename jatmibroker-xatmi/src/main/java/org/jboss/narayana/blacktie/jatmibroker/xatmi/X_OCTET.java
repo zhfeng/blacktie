@@ -27,56 +27,53 @@ import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
  */
 public class X_OCTET extends Buffer {
 
-	/**
-	 * The default ID
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     * The default ID
+     */
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * Populated by the list of supported types for this buffer, in this case
-	 * byte[]
-	 */
-	private static List<Class> types = new ArrayList<Class>();
+    /**
+     * Populated by the list of supported types for this buffer, in this case byte[]
+     */
+    private static List<Class> types = new ArrayList<Class>();
 
-	/**
-	 * Populate the list
-	 */
-	static {
-		Class[] x_octetType = new Class[] { byte[].class };
-		for (int i = 0; i < x_octetType.length; i++) {
-			types.add(x_octetType[i]);
-		}
-	}
+    /**
+     * Populate the list
+     */
+    static {
+        Class[] x_octetType = new Class[] { byte[].class };
+        for (int i = 0; i < x_octetType.length; i++) {
+            types.add(x_octetType[i]);
+        }
+    }
 
-	/**
-	 * The constructor is hidden as it should be created from the Connection
-	 * factory method.
-	 * 
-	 * @param len
-	 * 
-	 * @throws ConnectionException
-	 * @throws ConfigurationException 
-	 */
-	X_OCTET(int len) throws ConnectionException, ConfigurationException {
-		super("X_OCTET", "", false, types, null, len);
-	}
+    /**
+     * The constructor is hidden as it should be created from the Connection factory method.
+     * 
+     * @param len
+     * 
+     * @throws ConnectionException
+     * @throws ConfigurationException
+     */
+    X_OCTET(int len) throws ConnectionException, ConfigurationException {
+        super("X_OCTET", "", false, types, null, len);
+    }
 
-	/**
-	 * Set the data of the buffer.
-	 * 
-	 * @param bytes
-	 *            The data to set.
-	 */
-	public void setByteArray(byte[] bytes) {
-		super.setRawData(bytes);
-	}
+    /**
+     * Set the data of the buffer.
+     * 
+     * @param bytes The data to set.
+     */
+    public void setByteArray(byte[] bytes) {
+        super.setRawData(bytes);
+    }
 
-	/**
-	 * Get the content of the buffer.
-	 * 
-	 * @return The content of the buffer.
-	 */
-	public byte[] getByteArray() {
-		return super.getRawData();
-	}
+    /**
+     * Get the content of the buffer.
+     * 
+     * @return The content of the buffer.
+     */
+    public byte[] getByteArray() {
+        return super.getRawData();
+    }
 }

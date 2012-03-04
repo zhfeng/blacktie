@@ -11,14 +11,12 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.TPSVCINFO;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
 
 public class TPGetRplyService implements Service {
-	private static final Logger log = LogManager
-			.getLogger(TPGetRplyService.class);
+    private static final Logger log = LogManager.getLogger(TPGetRplyService.class);
 
-	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
-		log.info("testtpgetrply_service");
-		X_OCTET toReturn = (X_OCTET) svcinfo.getConnection().tpalloc("X_OCTET",
-				null, 22);
-		toReturn.setByteArray("testtpgetrply_service".getBytes());
-		return new Response(Connection.TPSUCCESS, 0, toReturn, 0);
-	}
+    public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
+        log.info("testtpgetrply_service");
+        X_OCTET toReturn = (X_OCTET) svcinfo.getConnection().tpalloc("X_OCTET", null, 22);
+        toReturn.setByteArray("testtpgetrply_service".getBytes());
+        return new Response(Connection.TPSUCCESS, 0, toReturn, 0);
+    }
 }

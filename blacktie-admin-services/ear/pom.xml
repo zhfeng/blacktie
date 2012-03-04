@@ -155,11 +155,6 @@
 								<goals>
 									<goal>deploy</goal>
 								</goals>
-								<configuration>
-									<fileNames>
-										<fileName>${project.build.directory}/${project.build.finalName}.${project.packaging}</fileName>
-									</fileNames>
-								</configuration>
 							</execution>
 						</executions>
 					</plugin>

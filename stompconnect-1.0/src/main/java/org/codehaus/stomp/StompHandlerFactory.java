@@ -19,7 +19,7 @@ package org.codehaus.stomp;
 
 /**
  * A factory of input handlers of the STOMP frames
- *
+ * 
  * @version $Revision: 52 $
  */
 public interface StompHandlerFactory {

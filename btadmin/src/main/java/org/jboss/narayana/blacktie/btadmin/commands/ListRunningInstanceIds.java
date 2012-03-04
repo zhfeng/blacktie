@@ -37,47 +37,42 @@ import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
  * List the running instance ids of a server.
  */
 public class ListRunningInstanceIds implements Command {
-	/**
-	 * The logger to use for output
-	 */
-	private static Logger log = LogManager
-			.getLogger(ListRunningInstanceIds.class);
+    /**
+     * The logger to use for output
+     */
+    private static Logger log = LogManager.getLogger(ListRunningInstanceIds.class);
 
-	/**
-	 * The server name.
-	 */
-	private String serverName;
+    /**
+     * The server name.
+     */
+    private String serverName;
 
-	/**
-	 * Does the command require the admin connection.
-	 */
-	public boolean requiresAdminConnection() {
-		return true;
-	}
+    /**
+     * Does the command require the admin connection.
+     */
+    public boolean requiresAdminConnection() {
+        return true;
+    }
 
-	/**
-	 * Get the usage of the command.
-	 */
-	public String getQuickstartUsage() {
-		return "<serverName>";
-	}
+    /**
+     * Get the usage of the command.
+     */
+    public String getQuickstartUsage() {
+        return "<serverName>";
+    }
 
-	/**
-	 * Initialize the arguments for the command
-	 */
-	public void initializeArgs(String[] args) throws IncompatibleArgsException {
-		serverName = args[0];
-	}
+    /**
+     * Initialize the arguments for the command
+     */
+    public void initializeArgs(String[] args) throws IncompatibleArgsException {
+        serverName = args[0];
+    }
 
-	public void invoke(MBeanServerConnection beanServerConnection,
-			ObjectName blacktieAdmin, Properties configuration)
-			throws InstanceNotFoundException, MBeanException,
-			ReflectionException, IOException {
-		List<Integer> ids = (List<Integer>) beanServerConnection.invoke(
-				blacktieAdmin, "listRunningInstanceIds",
-				new Object[] { serverName },
-				new String[] { "java.lang.String" });
-		log.info(CommandHandler.convertList("listRunningInstanceIds", ids));
-	}
+    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration)
+            throws InstanceNotFoundException, MBeanException, ReflectionException, IOException {
+        List<Integer> ids = (List<Integer>) beanServerConnection.invoke(blacktieAdmin, "listRunningInstanceIds",
+                new Object[] { serverName }, new String[] { "java.lang.String" });
+        log.info(CommandHandler.convertList("listRunningInstanceIds", ids));
+    }
 
 }

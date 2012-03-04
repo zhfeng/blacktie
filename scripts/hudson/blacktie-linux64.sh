@@ -35,13 +35,12 @@ if [ "$?" != "0" ]; then
 fi
 
 # START JBOSS
-$WORKSPACE/jboss-as-7.1.0.Final/bin/standalone.sh -c standalone-full.xml -Djboss.bind.address=$JBOSSAS_IP_ADDR&
+$WORKSPACE/jboss-as-7.1.0.Final/bin/standalone.sh -c standalone-full.xml -Djboss.bind.address=$JBOSSAS_IP_ADDR -Djboss.bind.address.management=0.0.0.0&
 sleep 15
 
 # BUILD BLACKTIE
 cd $WORKSPACE
-# THESE ARE SEPARATE SO WE DO NOT COPY THE OLD ARTIFACTS IF THE BUILD FAILS
-./build.sh clean
+JBOSS_HOME=$WORKSPACE/jboss-as-7.1.0.Final ./build.sh clean install -Duse.valgrind=false -Djbossas.ip.addr=$JBOSSAS_IP_ADDR
 if [ "$?" != "0" ]; then
 	ps -f
 	for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
@@ -52,19 +51,6 @@ if [ "$?" != "0" ]; then
   ps -f
 	exit -1
 fi
-export JBOSS_HOME=$WORKSPACE/jboss-as-7.1.0.Final
-./build.sh install -Duse.valgrind=false -Djbossas.ip.addr=$JBOSSAS_IP_ADDR
-if [ "$?" != "0" ]; then
-	ps -f
-	for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
-	killall -9 testsuite
-	killall -9 server
-	killall -9 client
-	killall -9 cs
-  ps -f
-	exit -1
-fi
-export JBOSS_HOME=
 
 # INITIALIZE THE BLACKTIE DISTRIBUTION
 cd $WORKSPACE/scripts/test

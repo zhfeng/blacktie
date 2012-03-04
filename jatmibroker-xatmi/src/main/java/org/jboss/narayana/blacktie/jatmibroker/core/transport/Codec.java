@@ -22,7 +22,7 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.Buffer;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
 
 public interface Codec {
-	public byte[] encode(Buffer buf) throws ConnectionException;
-	public Buffer decode(String type, String subtype, byte[] data, int len) 
-		throws ConnectionException, ConfigurationException;
+    public byte[] encode(Buffer buf) throws ConnectionException;
+
+    public Buffer decode(String type, String subtype, byte[] data, int len) throws ConnectionException, ConfigurationException;
 }

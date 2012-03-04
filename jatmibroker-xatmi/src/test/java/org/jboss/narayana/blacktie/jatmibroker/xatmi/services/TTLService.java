@@ -17,7 +17,7 @@ public class TTLService implements Service {
 	public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
 		log.info("test_ttl_service");
 
-		int timeout = 30;
+		int timeout = 35;
 		X_OCTET dptr = (X_OCTET) svcinfo.getBuffer();
 		String data = new String(dptr.getByteArray());
 		log.info("test_ttl_service get data: " + data);

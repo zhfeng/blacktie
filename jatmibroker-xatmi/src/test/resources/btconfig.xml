@@ -65,10 +65,6 @@
 			workingDirectory="." argLine="foo" serverId="1" />
 		<MACHINE id="myserv24" hostname="tom-2cfd36gb7up" pathToExecutable="notExist"
 			workingDirectory="." argLine="foo" serverId="2" />
-		<MACHINE id="myserv25" hostname="tomsfc16" pathToExecutable="notExist"
-			workingDirectory="." argLine="foo" serverId="1" />
-		<MACHINE id="myserv26" hostname="tomsfc16" pathToExecutable="notExist"
-			workingDirectory="." argLine="foo" serverId="2" />
 	</MACHINES>
 	<SERVERS>
 		<SERVER name='myserv'>
@@ -96,8 +92,6 @@
 			<MACHINE-REF id="myserv22" />
 			<MACHINE-REF id="myserv23" />
 			<MACHINE-REF id="myserv24" />
-			<MACHINE-REF id="myserv25" />
-			<MACHINE-REF id="myserv26" />
 			<SERVICE_NAMES>
 				<SERVICE name='TestOne'  externally-managed-destination='true'/>
 				<SERVICE name='TestTwo'  externally-managed-destination='true'/>

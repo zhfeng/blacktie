@@ -99,6 +99,8 @@ public class TestTimeToLive extends TestCase {
 //			log.warn("sleep exception " + e);
 //		}
 
+		log.info("send third message");
+
 		String toSend = "counter";
 		int sendlen = toSend.length() + 1;
 		X_OCTET sendbuf = (X_OCTET) connection

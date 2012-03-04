@@ -200,8 +200,8 @@ void TestTransactions::test_info()
 // test for transaction timeout behaviour
 void TestTransactions::test_timeout()
 {
-	long timeout = 16;
-	long delay = 32;
+	long timeout = 10;
+	long delay = 20;
 	btlogger("TestTransactions::test_timeout begin");
 	// cause RMs to sleep during 2PC
 	fault_t fault1 = {0, 102, O_XA_COMMIT, XA_OK, F_DELAY, (void*)&delay};

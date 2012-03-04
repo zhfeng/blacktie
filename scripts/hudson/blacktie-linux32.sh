@@ -1,3 +1,5 @@
+ulimit -c unlimited
+
 # CHECK IF WORKSPACE IS SET
 if [ -n "${WORKSPACE+x}" ]; then
   echo WORKSPACE is set
@@ -10,7 +12,7 @@ set NOPAUSE=true
 
 # KILL ANY PREVIOUS BUILD REMNANTS
 ps -f
-for i in `ps -eaf | grep java | grep "run.sh" | grep -v grep | cut -c10-15`; do kill -9 $i; done
+for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
 killall -9 testsuite
 killall -9 server
 killall -9 client
@@ -33,17 +35,15 @@ if [ "$?" != "0" ]; then
 fi
 
 # START JBOSS
-export JBOSSAS_IP_ADDR=localhost
-$WORKSPACE/jboss-5.1.0.GA/bin/run.sh -c all-with-hornetq -b localhost&
-sleep 53
+$WORKSPACE/jboss-as-7.1.0.Final/bin/standalone.sh -c standalone-full.xml -Djboss.bind.address=$JBOSSAS_IP_ADDR -Djboss.bind.address.management=0.0.0.0&
+sleep 15
 
 # BUILD BLACKTIE
 cd $WORKSPACE
-# THESE ARE SEPARATE SO WE DO NOT COPY THE OLD ARTIFACTS IF THE BUILD FAILS
-./build.sh clean
+JBOSS_HOME=$WORKSPACE/jboss-as-7.1.0.Final ./build.sh clean install -Duse.valgrind=false -Djbossas.ip.addr=$JBOSSAS_IP_ADDR
 if [ "$?" != "0" ]; then
 	ps -f
-	for i in `ps -eaf | grep java | grep "run.sh" | grep -v grep | cut -c10-15`; do kill -9 $i; done
+	for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
 	killall -9 testsuite
 	killall -9 server
 	killall -9 client
@@ -51,26 +51,13 @@ if [ "$?" != "0" ]; then
   ps -f
 	exit -1
 fi
-export JBOSS_HOME=$WORKSPACE/jboss-5.1.0.GA
-./build.sh install -Duse.valgrind=true
-if [ "$?" != "0" ]; then
-	ps -f
-	for i in `ps -eaf | grep java | grep "run.sh" | grep -v grep | cut -c10-15`; do kill -9 $i; done
-	killall -9 testsuite
-	killall -9 server
-	killall -9 client
-	killall -9 cs
-  ps -f
-	exit -1
-fi
-export JBOSS_HOME=
 
 # INITIALIZE THE BLACKTIE DISTRIBUTION
 cd $WORKSPACE/scripts/test
 ant dist -DBT_HOME=$WORKSPACE/dist/ -DVERSION=blacktie-5.0.0.M2-SNAPSHOT -DMACHINE_ADDR=`hostname` -DJBOSSAS_IP_ADDR=localhost -Dbpa=centos55x32
 if [ "$?" != "0" ]; then
 	ps -f
-	for i in `ps -eaf | grep java | grep "run.sh" | grep -v grep | cut -c10-15`; do kill -9 $i; done
+	for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
 	killall -9 testsuite
 	killall -9 server
 	killall -9 client
@@ -85,7 +72,7 @@ chmod 775 setenv.sh
 . setenv.sh
 if [ "$?" != "0" ]; then
 	ps -f
-	for i in `ps -eaf | grep java | grep "run.sh" | grep -v grep | cut -c10-15`; do kill -9 $i; done
+	for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
 	killall -9 testsuite
 	killall -9 server
 	killall -9 client
@@ -105,27 +92,28 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DB2_LIB
 
 export PATH=$PATH:$WORKSPACE/tools/maven/bin
 
-cp $WORKSPACE/dist/blacktie-5.0.0.M2-SNAPSHOT/quickstarts/xatmi/security/hornetq-*.properties $WORKSPACE/jboss-5.1.0.GA/server/all-with-hornetq/conf/props
-sed -i 's?</security-settings>?      <security-setting match="jms.queue.BTR_SECURE">\
-         <permission type="send" roles="blacktie"/>\
-         <permission type="consume" roles="blacktie"/>\
-      </security-setting>\
-</security-settings>?g' $WORKSPACE/jboss-5.1.0.GA/server/all-with-hornetq/deploy/hornetq.sar/hornetq-configuration.xml
+#cp $WORKSPACE/dist/blacktie-5.0.0.M2-SNAPSHOT/quickstarts/xatmi/security/hornetq-*.properties $WORKSPACE/jboss-5.1.0.GA/server/all-with-hornetq/conf/props
+#sed -i 's?</security-settings>?      <security-setting match="jms.queue.BTR_SECURE">\
+#         <permission type="send" roles="blacktie"/>\
+#         <permission type="consume" roles="blacktie"/>\
+#      </security-setting>\
+#</security-settings>?g' $WORKSPACE/jboss-5.1.0.GA/server/all-with-hornetq/deploy/hornetq.sar/hornetq-configuration.xml
 
 ./run_all_quickstarts.sh tx
 if [ "$?" != "0" ]; then
 	ps -f
-	for i in `ps -eaf | grep java | grep "run.sh" | grep -v grep | cut -c10-15`; do kill -9 $i; done
+	for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
 	killall -9 testsuite
 	killall -9 server
 	killall -9 client
 	killall -9 cs
+  ps -f
 	exit -1
 fi
 
 # KILL ANY BUILD REMNANTS
 ps -f
-for i in `ps -eaf | grep java | grep "run.sh" | grep -v grep | cut -c10-15`; do kill -9 $i; done
+for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
 killall -9 testsuite
 killall -9 server
 killall -9 client

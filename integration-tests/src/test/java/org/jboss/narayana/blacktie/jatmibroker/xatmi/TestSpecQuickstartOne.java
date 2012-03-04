@@ -56,7 +56,7 @@ public class TestSpecQuickstartOne extends TestCase {
 		server.serverdone();
 	}
 
-	public void test() throws ConnectionException {
+	public void test() throws ConnectionException, ConfigurationException {
 		log.info("TestSpecQuickstartOne::test_specquickstartone");
 		long dlen = 0;
 		long clen = 0; /* contains a character array named input and an */

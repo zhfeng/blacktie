@@ -124,6 +124,8 @@ sed -i 's?<connection-factory name="InVMConnectionFactory">?<connection-factory 
 #sed -i 's?/hornetq?&.sar?' build.xml
 #ant deploy
 
+
+(cd $WORKSPACE/jboss-as-7.1.0.Final/bin/ && JBOSS_HOME= ./add-user.sh admin password)
 (cd $WORKSPACE/jboss-as-7.1.0.Final/bin/ && JBOSS_HOME= ./add-user.sh guest password -a)
 
 sed -i 's?#guest=guest?guest=guest,blacktie?g' $WORKSPACE/jboss-as-7.1.0.Final/standalone/configuration/application-roles.properties

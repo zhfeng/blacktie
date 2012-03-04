@@ -48,7 +48,7 @@ public class TestTPACall extends TestCase {
 		server.serverdone();
 	}
 
-	public void test_tpacall() throws ConnectionException {
+	public void test_tpacall() throws ConnectionException, ConfigurationException {
 		server.tpadvertiseTestTPACall();
 		log.info("test_tpacall");
 		byte[] toSend = "test_tpacall".getBytes();
@@ -69,7 +69,7 @@ public class TestTPACall extends TestCase {
 		}
 	}
 
-	public void test_tpacall_x_octet_not_exist() throws ConnectionException {
+	public void test_tpacall_x_octet_not_exist() throws ConnectionException, ConfigurationException {
 		log.info("test_tpacall_x_octet_not_exist");
 		Buffer sendbuf = connection.tpalloc("X_OCTET", null, 25);
 

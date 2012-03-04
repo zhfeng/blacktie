@@ -169,8 +169,8 @@
         <dependency>
             <groupId>jacorb</groupId>
             <artifactId>jacorb</artifactId>
-            <scope>provided</scope>
             <version>2.3.1jboss.patch01-brew</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -33,7 +33,7 @@
 		 RECEIVE_TIMEOUT="10" TIME_TO_LIVE="10"
 		NAMING_URL="jnp://localhost:1099" />
 	<JMX
-		url="service:jmx:rmi:///jndi/rmi://localhost:1090/jmxconnector" />
+		url="service:jmx:remoting-jmx://localhost:9999" />
 	<BUFFERS>
 		<BUFFER name="debit">
 			<ATTRIBUTE id="acct_no" type="long" />

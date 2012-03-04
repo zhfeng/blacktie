@@ -37,11 +37,11 @@ import org.w3c.dom.ls.LSSerializer;
 /**
  * The command.
  */
-public class GetServersStatus implements Command {
+public class ListServersStatus implements Command {
 	/**
 	 * The logger to use for output
 	 */
-	private static Logger log = LogManager.getLogger(GetServersStatus.class);
+	private static Logger log = LogManager.getLogger(ListServersStatus.class);
 
 	/**
 	 * Does the command require the admin connection.
@@ -72,7 +72,7 @@ public class GetServersStatus implements Command {
 			throws InstanceNotFoundException, MBeanException,
 			ReflectionException, IOException {
 		org.w3c.dom.Element output = (org.w3c.dom.Element) beanServerConnection
-				.invoke(blacktieAdmin, "getServersStatus", null, null);
+				.invoke(blacktieAdmin, "listServersStatus", null, null);
 		Document document = output.getOwnerDocument();
 		DOMImplementationLS domImplLS = (DOMImplementationLS) document
 				.getImplementation();

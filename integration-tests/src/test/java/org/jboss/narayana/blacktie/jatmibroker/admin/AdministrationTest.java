@@ -22,6 +22,7 @@ import junit.framework.TestCase;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.jboss.narayana.blacktie.jatmibroker.RunServer;
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionFactory;
@@ -50,7 +51,7 @@ public class AdministrationTest extends TestCase {
 		return new String(received, 1, received.length - 1);
 	}
 
-	private void callBAR() throws ConnectionException {
+	private void callBAR() throws ConnectionException, ConfigurationException {
 		connection.tpcall("BAR", null, 0);
 		log.info("call BAR OK");
 	}

@@ -33,7 +33,7 @@ public class JMXAdministrationTest extends TestCase {
 	public void test() throws IOException, ConfigurationException,
 			MalformedObjectNameException, NullPointerException,
 			InstanceNotFoundException, MBeanException, ReflectionException {
-		String url = "service:jmx:rmi:///jndi/rmi://localhost:1090/jmxconnector";
+		String url = "service:jmx:remoting-jmx://localhost:9999";
 		System.out.println("usage: mvn test");
 		System.out
 				.println("warning: forkMode must be set to none, please see README");
@@ -42,7 +42,11 @@ public class JMXAdministrationTest extends TestCase {
 				+ url + "\"");
 
 		JMXServiceURL u = new JMXServiceURL(url);
-		JMXConnector c = JMXConnectorFactory.connect(u);
+            String[] creds = new String[2];
+            creds[0] = "admin";
+            creds[1] = "password";
+            h.put(JMXConnector.CREDENTIALS, creds);
+			JMXConnector c = JMXConnectorFactory.connect(u, h);
 		MBeanServerConnection beanServerConnection = c
 				.getMBeanServerConnection();
 

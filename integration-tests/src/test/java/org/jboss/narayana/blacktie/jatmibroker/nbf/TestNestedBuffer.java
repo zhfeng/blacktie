@@ -47,7 +47,7 @@ public class TestNestedBuffer extends TestCase {
 		server.serverdone();
 	}
 	
-	public void test_nested_buffer() throws ConnectionException {
+	public void test_nested_buffer() throws ConnectionException, ConfigurationException {
 		log.info("test_nested_buffer");
 		server.tpadvertiseTestNBF();
 		

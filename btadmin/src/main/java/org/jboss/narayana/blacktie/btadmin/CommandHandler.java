@@ -18,6 +18,7 @@
 package org.jboss.narayana.blacktie.btadmin;
 
 import java.io.IOException;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -28,6 +29,7 @@ import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import javax.naming.Context;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -153,7 +155,12 @@ public class CommandHandler {
 		if (beanServerConnection == null) {
 			// Initialize the connection to the mbean server
 			JMXServiceURL u = new JMXServiceURL(url);
-			JMXConnector c = JMXConnectorFactory.connect(u);
+			Hashtable h = new Hashtable();
+            String[] creds = new String[2];
+            creds[0] = "admin";
+            creds[1] = "password";
+            h.put(JMXConnector.CREDENTIALS, creds);
+			JMXConnector c = JMXConnectorFactory.connect(u, h);
 			this.beanServerConnection = c.getMBeanServerConnection();
 		}
 	}

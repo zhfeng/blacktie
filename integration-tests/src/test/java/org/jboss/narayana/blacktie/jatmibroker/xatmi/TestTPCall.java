@@ -54,7 +54,7 @@ public class TestTPCall extends TestCase {
 		server.serverdone();
 	}
 
-	public void test_tpcall_unknown_service() throws ConnectionException {
+	public void test_tpcall_unknown_service() throws ConnectionException, ConfigurationException {
 		log.info("TestTPCall::test_tpcall_unknown_service");
 
 		String message = "test_tpcall_unknown_service";
@@ -74,7 +74,7 @@ public class TestTPCall extends TestCase {
 		}
 	}
 
-	public void test_tpcall_x_octet() throws ConnectionException {
+	public void test_tpcall_x_octet() throws ConnectionException, ConfigurationException {
 		log.info("TestTPCall::test_tpcall_x_octet");
 		server.tpadvertisetpcallXOctet();
 
@@ -97,7 +97,7 @@ public class TestTPCall extends TestCase {
 	}
 
 	public void test_tpcall_x_octet_after_delay() throws ConnectionException,
-			InterruptedException {
+			InterruptedException, ConfigurationException {
 		log.info("TestTPCall::test_tpcall_x_octet_after_delay");
 		server.tpadvertisetpcallXOctet();
 		Thread.currentThread().sleep(3000);
@@ -119,7 +119,7 @@ public class TestTPCall extends TestCase {
 		assertTrue(Arrays.equals(received, expected));
 	}
 
-	public void test_tpcall_x_common() throws ConnectionException {
+	public void test_tpcall_x_common() throws ConnectionException, ConfigurationException {
 		log.info("TestTPCall::test_tpcall_x_common");
 		server.tpadvertisetpcallXCommon();
 
@@ -138,7 +138,7 @@ public class TestTPCall extends TestCase {
 		assertTrue(Arrays.equals(received, expected));
 	}
 
-	public void test_tpcall_x_c_type() throws ConnectionException {
+	public void test_tpcall_x_c_type() throws ConnectionException, ConfigurationException {
 		log.info("TestTPCall::test_tpcall_x_c_type");
 		server.tpadvertisetpcallXCType();
 

@@ -27,9 +27,9 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.jboss.narayana.blacktie.btadmin.CommandHandler;
 
-public class GetServersStatusTest extends TestCase {
+public class ListServersStatusTest extends TestCase {
 	private static Logger log = LogManager
-			.getLogger(GetServersStatusTest.class);
+			.getLogger(ListServersStatusTest.class);
 
 	private CommandHandler commandHandler;
 
@@ -40,7 +40,7 @@ public class GetServersStatusTest extends TestCase {
 	}
 
 	public void tearDown() throws Exception {
-		log.info("GetServersStatusTest::tearDown");
+		log.info("ListServersStatusTest::tearDown");
 
 		if (running) {
 			if (commandHandler.handleCommand("shutdown testsui".split(" ")) != 0) {
@@ -51,33 +51,33 @@ public class GetServersStatusTest extends TestCase {
 		}
 	}
 
-	public void testGetServersStatusWithAdditionalArgs() throws IOException,
+	public void testListServersStatusTestWithAdditionalArgs() throws IOException,
 			MalformedObjectNameException, NullPointerException,
 			InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-		log.info("GetServersStatusTest::testGetServersStatusWithAdditionalArgs");
-		String command = "getServersStatus foo";
+		log.info("ListServersStatusTest::testListServersStatusTestWithAdditionalArgs");
+		String command = "listServersStatus foo";
 		if (commandHandler.handleCommand(command.split(" ")) == 0) {
 			fail("Command was successful");
 		}
 	}
 
-	public void testGetServersStatusWithoutServers() throws IOException,
+	public void testListServersStatusTestWithoutServers() throws IOException,
 			MalformedObjectNameException, NullPointerException,
 			InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-		log.info("GetServersStatusTest::testGetServersStatusWithoutServers");
+		log.info("ListServersStatusTest::testListServersStatusTestWithoutServers");
 		String command = "listRunningServers";
 		if (commandHandler.handleCommand(command.split(" ")) != 0) {
 			fail("Command was not successful");
 		}
 	}
 
-	public void testGetServersStatusWithServers() throws IOException,
+	public void testListServersStatusTestWithServers() throws IOException,
 			MalformedObjectNameException, NullPointerException,
 			InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
-		log.info("GetServersStatusTest::testGetServersStatusWithServers");
+		log.info("ListServersStatusTest::testListServersStatusTestWithServers");
 		if (commandHandler.handleCommand("startup testsui".split(" ")) != 0) {
 			fail("Could not start the server");
 		}
@@ -88,7 +88,7 @@ public class GetServersStatusTest extends TestCase {
 			fail("Command failed");
 		}
 		log.info("advertised");
-		command = "getServersStatus";
+		command = "listServersStatus";
 		if (commandHandler.handleCommand(command.split(" ")) != 0) {
 			fail("Command was not successful");
 		}

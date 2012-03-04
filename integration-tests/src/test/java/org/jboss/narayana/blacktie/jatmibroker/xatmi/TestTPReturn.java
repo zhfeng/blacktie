@@ -63,7 +63,7 @@ public class TestTPReturn extends TestCase {
 	// }
 
 	// REMOVE SERVICE JUST THROWS EXCEPTION
-	public void test_tpreturn_nonbuffer() throws ConnectionException {
+	public void test_tpreturn_nonbuffer() throws ConnectionException, ConfigurationException {
 		log.info("test_tpreturn_nonbuffer");
 
 		// Do local work
@@ -84,7 +84,7 @@ public class TestTPReturn extends TestCase {
 		}
 	}
 
-	public void test_tpreturn_tpurcode() throws ConnectionException {
+	public void test_tpreturn_tpurcode() throws ConnectionException, ConfigurationException {
 		log.info("test_tpreturn_tpurcode");
 
 		// Do local work
@@ -106,7 +106,7 @@ public class TestTPReturn extends TestCase {
 		assertTrue(success.getRcode() == 77);
 	}
 
-	public void test_tpreturn_opensession() throws ConnectionException {
+	public void test_tpreturn_opensession() throws ConnectionException, ConfigurationException {
 		log.info("test_tpreturn_opensession");
 
 		// Do local work

@@ -73,7 +73,7 @@ public class TestTPSend extends TestCase {
 		}
 	}
 
-	public void test_tpsend_tpsendonly() throws ConnectionException {
+	public void test_tpsend_tpsendonly() throws ConnectionException, ConfigurationException {
 		log.info("test_tpsend_tpsendonly");
 		server.tpadvertiseTestTPSendTPSendOnly();
 

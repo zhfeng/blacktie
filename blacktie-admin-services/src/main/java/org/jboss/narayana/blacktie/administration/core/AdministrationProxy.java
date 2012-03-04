@@ -293,8 +293,8 @@ public class AdministrationProxy {
 		return ids;
 	}
 
-	public Element getServersStatus() {
-		log.trace("getServersStatus");
+	public Element listServersStatus() {
+		log.trace("listServersStatus");
 		try {
 			String status = "<servers>\n";
 

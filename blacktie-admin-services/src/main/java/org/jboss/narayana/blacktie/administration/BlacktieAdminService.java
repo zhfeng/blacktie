@@ -115,8 +115,8 @@ public class BlacktieAdminService implements BlacktieAdminServiceMBean {
 	/**
 	 * Get the servers status for the domain
 	 */
-	public Element getServersStatus() {
-		return administrationProxy.getServersStatus();
+	public Element listServersStatus() {
+		return administrationProxy.listServersStatus();
 	}
 
 	/**

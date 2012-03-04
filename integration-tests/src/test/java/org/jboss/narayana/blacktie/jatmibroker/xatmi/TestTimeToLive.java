@@ -49,7 +49,7 @@ public class TestTimeToLive extends TestCase {
 		server.serverdone();
 	}
 
-	public void test_call_ttl() throws ConnectionException {
+	public void test_call_ttl() throws ConnectionException, ConfigurationException {
 		log.info("test_call_ttl");
 
 		server.tpadvertiseTTL();

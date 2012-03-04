@@ -56,7 +56,7 @@ public class TestTPGetRply extends TestCase {
 		server.serverdone();
 	}
 
-	public void test_tpgetrply() throws ConnectionException {
+	public void test_tpgetrply() throws ConnectionException, ConfigurationException {
 		log.info("test_tpgetrply");
 		server.tpadvertiseTestTPGetrply();
 		int cd = connection.tpacall(RunServer.getServiceNameTestTPGetrply(),
@@ -69,7 +69,7 @@ public class TestTPGetRply extends TestCase {
 	}
 
 	// 8.5
-	public void test_tpgetrply_baddesc() throws ConnectionException {
+	public void test_tpgetrply_baddesc() throws ConnectionException, ConfigurationException {
 		log.info("test_tpgetrply_baddesc");
 		server.tpadvertiseTestTPGetrply();
 		int cd = 2;
@@ -128,7 +128,7 @@ public class TestTPGetRply extends TestCase {
 	// assertTrue(tperrno == TPEINVAL);
 	// }
 
-	public void test_tpgetrply_with_TPGETANY() throws ConnectionException {
+	public void test_tpgetrply_with_TPGETANY() throws ConnectionException, ConfigurationException {
 		log.info("test_tpgetrply_with_TPGETANY");
 		server.tpadvertiseTestTPGetrplyOne();
 		server.tpadvertiseTestTPGetrplyTwo();
@@ -150,7 +150,7 @@ public class TestTPGetRply extends TestCase {
 				"test_tpgetrply_TPGETANY_two") == 0);
 	}
 
-	public void test_tpgetrply_without_TPGETANY() throws ConnectionException {
+	public void test_tpgetrply_without_TPGETANY() throws ConnectionException, ConfigurationException {
 		log.info("test_tpgetrply_without_TPGETANY");
 		server.tpadvertiseTestTPGetrplyOne();
 		server.tpadvertiseTestTPGetrplyTwo();

@@ -45,7 +45,7 @@ public class BlacktieStompAdministrationServiceTest extends TestCase {
 	 * 
 	 * @throws ConnectionException
 	 */
-	public void xtest() throws ConnectionException {
+	public void xtest() throws ConnectionException, ConfigurationException {
 		processStompCommand("tpadvertise,foo,FOOTest,5.0.0.M2-SNAPSHOT,", 1);
 		try {
 			connection.tpacall("FOOTest", null, Connection.TPNOREPLY);
@@ -71,17 +71,17 @@ public class BlacktieStompAdministrationServiceTest extends TestCase {
 		processDomainCommand("unadvertise,foo,FOOTest,", 1);
 	}
 
-	public void testUnknownService() throws ConnectionException {
+	public void testUnknownService() throws ConnectionException, ConfigurationException {
 		processStompCommand(
 				"tpadvertise,foo,UNKNOWN_SERVICE,5.0.0.M2-SNAPSHOT,", 0);
 	}
 
-	public void testWrongVersionService() throws ConnectionException {
+	public void testWrongVersionService() throws ConnectionException, ConfigurationException {
 		processStompCommand("tpadvertise,foo,FOOTest,WrongVersion,", 4);
 	}
 
 	private void processStompCommand(String command, int expectation)
-			throws ConnectionException {
+			throws ConnectionException, ConfigurationException {
 		byte[] toSend = command.getBytes();
 		X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null,
 				toSend.length);
@@ -94,7 +94,7 @@ public class BlacktieStompAdministrationServiceTest extends TestCase {
 	}
 
 	private void processDomainCommand(String command, int expectation)
-			throws ConnectionException {
+			throws ConnectionException, ConfigurationException {
 		byte[] toSend = command.getBytes();
 		X_OCTET buffer = (X_OCTET) connection.tpalloc("X_OCTET", null,
 				toSend.length);

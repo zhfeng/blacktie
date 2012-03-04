@@ -105,8 +105,8 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements
 				String serverName = getString(parameters);
 				List<Integer> response = listRunningInstanceIds(serverName);
 				toReturn = convertListInt(response);
-			} else if (operation.equals("getServersStatus")) {
-				Element response = getServersStatus();
+			} else if (operation.equals("listServersStatus")) {
+				Element response = listServersStatus();
 				toReturn = response.toString().getBytes();
 			} else if (operation.equals("listServiceStatus")) {
 				String serverName = getString(parameters);
@@ -311,8 +311,8 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements
 	/**
 	 * Get the servers status for the domain
 	 */
-	public Element getServersStatus() {
-		return administrationProxy.getServersStatus();
+	public Element listServersStatus() {
+		return administrationProxy.listServersStatus();
 	}
 
 	/**

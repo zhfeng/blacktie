@@ -103,7 +103,7 @@ public interface BlacktieAdministration {
 	/**
 	 * Describe the status of the servers in the domain
 	 */
-	public org.w3c.dom.Element getServersStatus();
+	public org.w3c.dom.Element listServersStatus();
 
 	/**
 	 * Describe the service status of server

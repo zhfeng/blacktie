@@ -54,7 +54,7 @@ public class TestTPAlloc extends TestCase {
 		// }
 	}
 
-	public void test_tpalloc_zero() {
+	public void test_tpalloc_zero() throws ConfigurationException {
 		log.info("test_tpalloc_zero");
 		try {
 			m_allocated = connection.tpalloc("X_OCTET", null, 0);
@@ -63,7 +63,7 @@ public class TestTPAlloc extends TestCase {
 		}
 	}
 
-	public void test_tpalloc_negative() {
+	public void test_tpalloc_negative() throws ConfigurationException {
 		log.info("test_tpalloc_negative");
 		try {
 			m_allocated = connection.tpalloc("X_OCTET", null, -1);
@@ -73,13 +73,13 @@ public class TestTPAlloc extends TestCase {
 	}
 
 	public void test_tpalloc_x_octet_subtype_ignored()
-			throws ConnectionException {
+			throws ConnectionException, ConfigurationException {
 		log.info("test_tpalloc_x_octet_subtype_ignored");
 		m_allocated = connection.tpalloc("X_OCTET", "fail", 25);
 	}
 
 	// 9.1.1
-	public void test_tpalloc_x_octet() throws ConnectionException {
+	public void test_tpalloc_x_octet() throws ConnectionException, ConfigurationException {
 		log.info("test_tpalloc_x_octet");
 		m_allocated = connection.tpalloc("X_OCTET", null, 28);
 
@@ -88,7 +88,7 @@ public class TestTPAlloc extends TestCase {
 	}
 
 	// 9.1.2
-	public void test_tpalloc_x_common() throws ConnectionException {
+	public void test_tpalloc_x_common() throws ConnectionException, ConfigurationException {
 		log.info("test_tpalloc_x_common");
 		X_COMMON dptr = (X_COMMON) connection.tpalloc("X_COMMON", "deposit", 0);
 		m_allocated = dptr;
@@ -108,7 +108,7 @@ public class TestTPAlloc extends TestCase {
 		assertTrue(dptr.getShort("status_len") == 0);
 	}
 
-	public void test_tpalloc_x_common_bigsubtype() throws ConnectionException {
+	public void test_tpalloc_x_common_bigsubtype() throws ConnectionException, ConfigurationException {
 		log.info("test_tpalloc_x_common_bigsubtype");
 		X_COMMON dptr = (X_COMMON) connection.tpalloc("X_COMMON",
 				"abcdefghijklmnop", 0);
@@ -120,7 +120,7 @@ public class TestTPAlloc extends TestCase {
 	}
 
 	// 9.1.3
-	public void test_tpalloc_x_c_type() throws ConnectionException {
+	public void test_tpalloc_x_c_type() throws ConnectionException, ConfigurationException {
 		log.info("test_tpalloc_x_c_type");
 		X_C_TYPE aptr;
 		aptr = (X_C_TYPE) connection.tpalloc("X_C_TYPE", "acct_info", 0);
@@ -146,7 +146,7 @@ public class TestTPAlloc extends TestCase {
 		assertTrue(aptr.getDoubleArray("balances")[1] == 0);
 	}
 
-	public void test_tpalloc_unknowntype() {
+	public void test_tpalloc_unknowntype() throws ConfigurationException {
 		log.info("test_tpalloc_unknowntype");
 		try {
 			m_allocated = connection.tpalloc("TOM", null, 10);
@@ -156,7 +156,7 @@ public class TestTPAlloc extends TestCase {
 		}
 	}
 
-	public void test_tpalloc_x_common_subtype_required() {
+	public void test_tpalloc_x_common_subtype_required() throws ConfigurationException {
 		log.info("test_tpalloc_x_common_subtype_required");
 		try {
 			m_allocated = connection.tpalloc("X_COMMON", null, 0);
@@ -166,7 +166,7 @@ public class TestTPAlloc extends TestCase {
 		}
 	}
 
-	public void test_tpalloc_x_c_type_subtype_required() {
+	public void test_tpalloc_x_c_type_subtype_required() throws ConfigurationException {
 		log.info("test_tpalloc_x_c_type_subtype_required");
 		try {
 			m_allocated = connection.tpalloc("X_C_TYPE", null, 0);
@@ -176,7 +176,7 @@ public class TestTPAlloc extends TestCase {
 		}
 	}
 
-	public void test_tpalloc_x_common_unknown_subtype() {
+	public void test_tpalloc_x_common_unknown_subtype() throws ConfigurationException {
 		log.info("test_tpalloc_x_common_unknown_subtype");
 		try {
 			m_allocated = connection.tpalloc("X_COMMON", "UNKNOWN", 0);
@@ -186,7 +186,7 @@ public class TestTPAlloc extends TestCase {
 		}
 	}
 
-	public void test_tpalloc_x_c_type_unknown_subtype() {
+	public void test_tpalloc_x_c_type_unknown_subtype() throws ConfigurationException {
 		log.info("test_tpalloc_x_c_type_unknown_subtype");
 		try {
 			m_allocated = connection.tpalloc("X_C_TYPE", "UNKNOWN", 0);

@@ -54,7 +54,7 @@ public class TestTPService extends TestCase {
 		server.serverdone();
 	}
 
-	public void test_tpservice_notpreturn() {
+	public void test_tpservice_notpreturn() throws ConfigurationException {
 		log.info("test_tpservice_notpreturn");
 		try {
 			connection.tpcall(RunServer.getServiceNameTestTPService(), sendbuf,

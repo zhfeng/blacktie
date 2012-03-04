@@ -133,7 +133,7 @@
 			<fileMode>0755</fileMode>
 		</file>
 		<file>
-			<source>../blacktie-admin-services/ear/target/config/btconfig.xml</source>
+			<source>../blacktie-admin-services/target/classes/btconfig.xml</source>
 			<outputDirectory>blacktie-admin-services</outputDirectory>
 		</file>
 	</files>

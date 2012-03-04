@@ -126,40 +126,40 @@ public class TestTPGetRply extends TestCase {
 	// assertTrue(tperrno == TPEINVAL);
 	// }
 
-	public void test_tpgetrply_with_TPNOBLOCK() throws ConnectionException, ConfigurationException {
-		log.info("test_tpgetrply_with_TPNOBLOCK");
-		server.tpadvertiseTestTPGetRplyTPNOBLOCK();
-
-		int cd = connection.tpacall(server.getServiceNameTPGetRplyTPNOBLOCK(),
-				sendbuf, 0);
-		assertTrue(cd != -1);
-
-		// RETRIEVE THE RESPONSE
-		try {
-			Response valToTest = connection.tpgetrply(cd, Connection.TPNOBLOCK);
-			fail("Expected exception");
-		} catch (ConnectionException e) {
-			assertTrue(e.getTperrno() == Connection.TPEBLOCK);
-			// DRAIN THE RESPONSE
-			Response toTest = connection.tpgetrply(cd, 0);
-			assertTrue(TestTPConversation.strcmp(toTest.getBuffer(),
-					"test_tpgetrply_TPNOBLOCK") == 0);
-		}
-	}
-
-	public void test_tpgetrply_without_TPNOBLOCK() throws ConnectionException, ConfigurationException {
-		log.info("test_tpgetrply_without_TPNOBLOCK");
-		server.tpadvertiseTestTPGetRplyTPNOBLOCK();
-
-		int cd = connection.tpacall(server.getServiceNameTPGetRplyTPNOBLOCK(),
-				sendbuf, 0);
-		assertTrue(cd != -1);
-
-		// RETRIEVE THE RESPONSE
-		Response toTest = connection.tpgetrply(cd, 0);
-		assertTrue(TestTPConversation.strcmp(toTest.getBuffer(),
-				"test_tpgetrply_TPNOBLOCK") == 0);
-	}
+//	public void test_tpgetrply_with_TPNOBLOCK() throws ConnectionException, ConfigurationException {
+//		log.info("test_tpgetrply_with_TPNOBLOCK");
+//		server.tpadvertiseTestTPGetRplyTPNOBLOCK();
+//
+//		int cd = connection.tpacall(server.getServiceNameTPGetRplyTPNOBLOCK(),
+//				sendbuf, 0);
+//		assertTrue(cd != -1);
+//
+//		// RETRIEVE THE RESPONSE
+//		try {
+//			Response valToTest = connection.tpgetrply(cd, Connection.TPNOBLOCK);
+//			fail("Expected exception");
+//		} catch (ConnectionException e) {
+//			assertTrue(e.getTperrno() == Connection.TPEBLOCK);
+//			// DRAIN THE RESPONSE
+//			Response toTest = connection.tpgetrply(cd, 0);
+//			assertTrue(TestTPConversation.strcmp(toTest.getBuffer(),
+//					"test_tpgetrply_TPNOBLOCK") == 0);
+//		}
+//	}
+//
+//	public void test_tpgetrply_without_TPNOBLOCK() throws ConnectionException, ConfigurationException {
+//		log.info("test_tpgetrply_without_TPNOBLOCK");
+//		server.tpadvertiseTestTPGetRplyTPNOBLOCK();
+//
+//		int cd = connection.tpacall(server.getServiceNameTPGetRplyTPNOBLOCK(),
+//				sendbuf, 0);
+//		assertTrue(cd != -1);
+//
+//		// RETRIEVE THE RESPONSE
+//		Response toTest = connection.tpgetrply(cd, 0);
+//		assertTrue(TestTPConversation.strcmp(toTest.getBuffer(),
+//				"test_tpgetrply_TPNOBLOCK") == 0);
+//	}
 
 	public void test_tpgetrply_with_TPGETANY() throws ConnectionException, ConfigurationException {
 		log.info("test_tpgetrply_with_TPGETANY");

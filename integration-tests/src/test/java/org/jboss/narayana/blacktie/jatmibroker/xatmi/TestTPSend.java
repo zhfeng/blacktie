@@ -21,12 +21,12 @@ import junit.framework.TestCase;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.jboss.narayana.blacktie.jatmibroker.xatmi.TestTPSend;
 import org.jboss.narayana.blacktie.jatmibroker.RunServer;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionFactory;
+import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ResponseException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Session;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
@@ -49,7 +49,6 @@ public class TestTPSend extends TestCase {
 		sendlen = "tpsend".length() + 1;
 		sendbuf = (X_OCTET) connection.tpalloc("X_OCTET", null, sendlen);
 		sendbuf.setByteArray("tpsend".getBytes());
-
 	}
 
 	public void tearDown() throws ConnectionException, ConfigurationException {
@@ -99,16 +98,17 @@ public class TestTPSend extends TestCase {
 
 		cd.tpsend(sendbuf, 0);
 	}
-	// TODO
-	// public void test_tpsend_non_TPCONV_session() throws ConnectionException {
-	// server.tpadvertiseTestTPSendNonTPCONVService();
-	//
-	// try {
-	// Response rcvbuf = connection.tpcall(RunServer
-	// .getServiceNameTPSendNonTPCONVService(), sendbuf, 0);
-	// fail("Received a rcvbuf: " + rcvbuf);
-	// } catch (ConnectionException e) {
-	// assertTrue(e.getTperrno() == Connection.TPESVCERR);
-	// }
-	// }
+
+	public void test_tpsend_non_TPCONV_session() throws ConnectionException, ConfigurationException {
+		server.tpadvertiseTestTPSendNonTPCONVService();
+
+		try {
+			Response rcvbuf = connection.tpcall(
+					RunServer.getServiceNameTPSendNonTPCONVService(), sendbuf,
+					0);
+			fail("Received a rcvbuf: " + rcvbuf);
+		} catch (ConnectionException e) {
+			assertTrue(e.getTperrno() == Connection.TPESVCERR);
+		}
+	}
 }

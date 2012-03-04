@@ -21,8 +21,6 @@ import junit.framework.TestCase;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.jboss.narayana.blacktie.jatmibroker.xatmi.TestTPConversation;
-import org.jboss.narayana.blacktie.jatmibroker.xatmi.TestTPGetRply;
 import org.jboss.narayana.blacktie.jatmibroker.RunServer;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Buffer;
@@ -127,6 +125,41 @@ public class TestTPGetRply extends TestCase {
 	// assertTrue(tperrno != TPEBLOCK);
 	// assertTrue(tperrno == TPEINVAL);
 	// }
+
+	public void test_tpgetrply_with_TPNOBLOCK() throws ConnectionException, ConfigurationException {
+		log.info("test_tpgetrply_with_TPNOBLOCK");
+		server.tpadvertiseTestTPGetRplyTPNOBLOCK();
+
+		int cd = connection.tpacall(server.getServiceNameTPGetRplyTPNOBLOCK(),
+				sendbuf, 0);
+		assertTrue(cd != -1);
+
+		// RETRIEVE THE RESPONSE
+		try {
+			Response valToTest = connection.tpgetrply(cd, Connection.TPNOBLOCK);
+			fail("Expected exception");
+		} catch (ConnectionException e) {
+			assertTrue(e.getTperrno() == Connection.TPEBLOCK);
+			// DRAIN THE RESPONSE
+			Response toTest = connection.tpgetrply(cd, 0);
+			assertTrue(TestTPConversation.strcmp(toTest.getBuffer(),
+					"test_tpgetrply_TPNOBLOCK") == 0);
+		}
+	}
+
+	public void test_tpgetrply_without_TPNOBLOCK() throws ConnectionException, ConfigurationException {
+		log.info("test_tpgetrply_without_TPNOBLOCK");
+		server.tpadvertiseTestTPGetRplyTPNOBLOCK();
+
+		int cd = connection.tpacall(server.getServiceNameTPGetRplyTPNOBLOCK(),
+				sendbuf, 0);
+		assertTrue(cd != -1);
+
+		// RETRIEVE THE RESPONSE
+		Response toTest = connection.tpgetrply(cd, 0);
+		assertTrue(TestTPConversation.strcmp(toTest.getBuffer(),
+				"test_tpgetrply_TPNOBLOCK") == 0);
+	}
 
 	public void test_tpgetrply_with_TPGETANY() throws ConnectionException, ConfigurationException {
 		log.info("test_tpgetrply_with_TPGETANY");

@@ -23,7 +23,6 @@ import junit.framework.TestCase;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.jboss.narayana.blacktie.jatmibroker.xatmi.TestTPAlloc;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Buffer;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
@@ -54,19 +53,16 @@ public class TestTPAlloc extends TestCase {
 		// }
 	}
 
-	public void test_tpalloc_zero() throws ConfigurationException {
+	public void test_tpalloc_zero() throws ConfigurationException, ConnectionException {
 		log.info("test_tpalloc_zero");
-		try {
-			m_allocated = connection.tpalloc("X_OCTET", null, 0);
-		} catch (ConnectionException e) {
-			assertTrue(e.getTperrno() == Connection.TPEINVAL);
-		}
+		m_allocated = connection.tpalloc("X_OCTET", null, 0);
 	}
 
 	public void test_tpalloc_negative() throws ConfigurationException {
 		log.info("test_tpalloc_negative");
 		try {
 			m_allocated = connection.tpalloc("X_OCTET", null, -1);
+            fail("Could allocate a negative buffer");
 		} catch (ConnectionException e) {
 			assertTrue(e.getTperrno() == Connection.TPEINVAL);
 		}
@@ -156,43 +152,39 @@ public class TestTPAlloc extends TestCase {
 		}
 	}
 
-	public void test_tpalloc_x_common_subtype_required() throws ConfigurationException {
+	public void test_tpalloc_x_common_subtype_required() throws ConnectionException {
 		log.info("test_tpalloc_x_common_subtype_required");
 		try {
 			m_allocated = connection.tpalloc("X_COMMON", null, 0);
 			fail("Should not have got here");
-		} catch (ConnectionException e) {
-			assertTrue(e.getTperrno() == Connection.TPEOS);
+		} catch (ConfigurationException e) {
 		}
 	}
 
-	public void test_tpalloc_x_c_type_subtype_required() throws ConfigurationException {
+	public void test_tpalloc_x_c_type_subtype_required() throws ConnectionException  {
 		log.info("test_tpalloc_x_c_type_subtype_required");
 		try {
 			m_allocated = connection.tpalloc("X_C_TYPE", null, 0);
 			fail("Should not have got here");
-		} catch (ConnectionException e) {
-			assertTrue(e.getTperrno() == Connection.TPEOS);
+		} catch (ConfigurationException e) {
 		}
 	}
 
-	public void test_tpalloc_x_common_unknown_subtype() throws ConfigurationException {
+	public void test_tpalloc_x_common_unknown_subtype() throws ConnectionException {
 		log.info("test_tpalloc_x_common_unknown_subtype");
 		try {
 			m_allocated = connection.tpalloc("X_COMMON", "UNKNOWN", 0);
 			fail("Should not have got here");
-		} catch (ConnectionException e) {
-			assertTrue(e.getTperrno() == Connection.TPEOS);
+		} catch (ConfigurationException e) {
 		}
 	}
 
-	public void test_tpalloc_x_c_type_unknown_subtype() throws ConfigurationException {
+	public void test_tpalloc_x_c_type_unknown_subtype() throws ConnectionException {
 		log.info("test_tpalloc_x_c_type_unknown_subtype");
 		try {
 			m_allocated = connection.tpalloc("X_C_TYPE", "UNKNOWN", 0);
 			fail("Should not have got here");
-		} catch (ConnectionException e) {
-			assertTrue(e.getTperrno() == Connection.TPEOS);
+		} catch (ConfigurationException e) {
 		}
 	}
 }

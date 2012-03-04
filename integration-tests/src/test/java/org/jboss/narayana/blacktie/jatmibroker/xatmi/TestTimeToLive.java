@@ -21,7 +21,6 @@ import junit.framework.TestCase;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.jboss.narayana.blacktie.jatmibroker.xatmi.TestTimeToLive;
 import org.jboss.narayana.blacktie.jatmibroker.RunServer;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
@@ -92,13 +91,15 @@ public class TestTimeToLive extends TestCase {
 			}
 		}
 
-		try {
-			log.info("wait 30 second for first message process");
-			Thread.sleep(30 * 1000);
-			log.info("wait done");
-		} catch (Exception e) {
-			log.warn("sleep exception " + e);
-		}
+//		try {
+//			log.info("wait 30 second for first message process");
+//			Thread.sleep(30 * 1000);
+//			log.info("wait done");
+//		} catch (Exception e) {
+//			log.warn("sleep exception " + e);
+//		}
+
+		log.info("send third message");
 
 		String toSend = "counter";
 		int sendlen = toSend.length() + 1;

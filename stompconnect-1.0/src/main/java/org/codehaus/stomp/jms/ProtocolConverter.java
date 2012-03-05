@@ -29,7 +29,6 @@ import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import javax.jms.XAConnection;
 import javax.jms.XAConnectionFactory;
@@ -201,9 +200,8 @@ public class ProtocolConverter implements StompHandler {
         log.error("Caught: " + e, e);
     }
 
-    public void stopStompSession(Message message, StompSession session) throws JMSException {
-        session.stop();
-        stoppedStompSessions.put(message.getJMSMessageID(), session);
+    public void stopStompSession(String messageId, StompSession session) throws JMSException {
+        stoppedStompSessions.put(messageId, session);
         log.debug("Stopped connection: " + session);
     }
 
@@ -231,7 +229,7 @@ public class ProtocolConverter implements StompHandler {
 
         noneXaConnection.start();
 
-        Session session = noneXaConnection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Session session = noneXaConnection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
         if (log.isDebugEnabled()) {
             log.debug("Created session with ack mode: " + session.getAcknowledgeMode());
         }
@@ -297,8 +295,7 @@ public class ProtocolConverter implements StompHandler {
         String destinationName = (String) headers.remove(Stomp.Headers.Send.DESTINATION);
         String xid = (String) headers.get("messagexid");
         Message msg;
-        MessageConsumer consumer;
-
+        StompSession session;
         if (xid != null) {
             log.trace("Transaction was propagated: " + xid);
             TransactionImple tx = controlToTx(xid);
@@ -306,7 +303,7 @@ public class ProtocolConverter implements StompHandler {
             log.trace("Resumed transaction: " + tx);
 
             // Enlist the resource
-            StompSession session = getXASession(tx);
+            session = getXASession(tx);
 
             msg = session.receiveFromJms(destinationName, headers);
 
@@ -314,13 +311,13 @@ public class ProtocolConverter implements StompHandler {
             log.trace("Suspended transaction: " + tx);
         } else {
             log.trace("WAS NULL XID");
-            StompSession session = noneXaSession;
+            session = noneXaSession;
             msg = session.receiveFromJms(destinationName, headers);
+
             log.trace("Received from JMS");
         }
 
         StompFrame sf;
-
         if (msg == null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter stream = new PrintWriter(new OutputStreamWriter(baos, "UTF-8"));
@@ -334,7 +331,7 @@ public class ProtocolConverter implements StompHandler {
         } else {
             // Don't use sendResponse since it uses Stomp.Responses.RECEIPT as the action
             // which only allows zero length message bodies, Stomp.Responses.MESSAGE is correct:
-            sf = noneXaSession.convertMessage(msg);
+            sf = session.convertMessage(msg);
         }
 
         if (headers.containsKey(Stomp.Headers.RECEIPT_REQUESTED))
@@ -347,14 +344,13 @@ public class ProtocolConverter implements StompHandler {
         checkConnected();
 
         Map<String, Object> headers = command.getHeaders();
-        // We know this is going to be none-XA as the XA receive is handled in onStompReceive
-        StompSession session = noneXaSession;
 
         String subscriptionId = (String) headers.get(Stomp.Headers.Subscribe.ID);
         if (subscriptionId == null) {
             subscriptionId = createSubscriptionId(headers);
         }
 
+        // We know this is going to be none-XA as the XA receive is handled in onStompReceive
         noneXaSession.subscribe(subscriptionId, command);
         sendResponse(command);
     }
@@ -387,7 +383,7 @@ public class ProtocolConverter implements StompHandler {
         Map<String, Object> headers = command.getHeaders();
         String messageId = (String) headers.get(Stomp.Headers.Ack.MESSAGE_ID);
         if (messageId == null) {
-            throw new ProtocolException("ACK received without a message-id to acknowledge!");
+            throw new ProtocolException("ACK received without a message-id!");
         }
 
         StompSession session = stoppedStompSessions.remove(messageId);
@@ -397,8 +393,8 @@ public class ProtocolConverter implements StompHandler {
         }
 
         // PATCHED BY TOM FOR SINGLE MESSAGE DELIVERY
+        session.acknowledge();
         log.debug("Started StompSession: " + session);
-        session.start();
         sendResponse(command);
     }
 

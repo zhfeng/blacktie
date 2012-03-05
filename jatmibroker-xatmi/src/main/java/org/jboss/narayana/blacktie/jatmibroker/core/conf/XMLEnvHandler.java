@@ -120,6 +120,9 @@ public class XMLEnvHandler extends DefaultHandler {
                         }
 
                         if (env == null) {
+                            if (val.equals("jboss.bind.address.management")) {
+                                env = "127.0.0.1";
+                            }
                             matches[i] = val;
                         } else {
                             matches[i] = env;
@@ -388,6 +391,7 @@ public class XMLEnvHandler extends DefaultHandler {
                 avalue = getenv(atts.getValue(i));
 
                 if (atts.getLocalName(i).equals("url")) {
+                    avalue = avalue.replace("0.0.0.0", "127.0.0.1");
                     prop.setProperty("JMXURL", avalue);
                 } else if (atts.getLocalName(i).equals("username")) {
                     prop.setProperty("JMXUSERNAME", avalue);

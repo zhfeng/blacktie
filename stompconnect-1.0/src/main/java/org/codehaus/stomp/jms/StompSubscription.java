@@ -54,7 +54,7 @@ public class StompSubscription implements Runnable {
         this.session = session;
         this.headers = frame.getHeaders();
 
-        thread = new Thread(this);
+        thread = new Thread(this, "StompSubscription: " + Thread.currentThread().getName());
         thread.start();
     }
 
@@ -80,7 +80,7 @@ public class StompSubscription implements Runnable {
                 log.debug("received:" + destinationName);
                 if (message != null) {
                     try {
-                        session.getProtocolConverter().stopStompSession(message, session);
+                        session.expectAck(message);
                         session.sendToStomp(message, this);
                     } catch (Exception e) {
                         log.error("Failed to process message due to: " + e + ". Message: " + message, e);

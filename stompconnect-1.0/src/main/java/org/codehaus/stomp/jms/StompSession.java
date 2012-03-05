@@ -63,6 +63,7 @@ public class StompSession {
     private List<String> created = new ArrayList<String>();
     private Connection connection;
     private InitialContext initialContext;
+    private Message unackedMessage;
     private static final Log log = LogFactory.getLog(StompSession.class);
 
     public StompSession(InitialContext initialContext, ProtocolConverter protocolConverter, Session session,
@@ -100,6 +101,7 @@ public class StompSession {
         long timeToLive = getTimeToLive(headers);
 
         producer.send(destination, message, deliveryMode, priority, timeToLive);
+        log.debug("Sent message: " + message.getJMSMessageID());
     }
 
     public void sendToStomp(Message message, StompSubscription subscription) throws Exception {
@@ -314,8 +316,12 @@ public class StompSession {
         } else {
             message = consumer.receive();
         }
+        if (message != null) {
+            // As this is a dequeue, automatically acknowledge the message
+            message.acknowledge();
+        }
         consumer.close();
-        log.trace("Consumed message: " + message);
+        log.trace("Received message: " + message);
         return message;
     }
 
@@ -344,11 +350,8 @@ public class StompSession {
         return consumer;
     }
 
-    public void stop() throws JMSException {
-        connection.stop();
-    }
-
-    public void start() throws JMSException {
+    public void acknowledge() throws JMSException {
+        unackedMessage.acknowledge();
         connection.start();
     }
 
@@ -374,5 +377,11 @@ public class StompSession {
             throw new ProtocolException("Cannot unsubscribe as mo subscription exists for id: " + subscriptionId);
         }
         subscription.close();
+    }
+
+    public void expectAck(Message message) throws JMSException {
+        this.unackedMessage = message;
+        connection.stop();
+        protocolConverter.stopStompSession(message.getJMSMessageID(), this);
     }
 }

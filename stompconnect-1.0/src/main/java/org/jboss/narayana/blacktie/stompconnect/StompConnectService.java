@@ -28,7 +28,11 @@ public class StompConnectService implements StompConnectServiceMBean {
     private String connectionFactoryName = "java:/JmsXA";
 
     public void start() throws Exception {
-        String uri = "tcp://" + System.getProperty("jboss.bind.address", "127.0.0.1") + ":" + port;
+        String bindAddress = System.getProperty("jboss.bind.address", "127.0.0.1");
+        if (bindAddress.equals("") || bindAddress.equals("0.0.0.0")) {
+            bindAddress = "127.0.0.1";
+        }
+        String uri = "tcp://" + bindAddress + ":" + port;
         log.info("Starting StompConnectMBeanImpl: " + uri);
         connect = new StompConnect();
         connect.setUri(uri);

@@ -17,18 +17,14 @@ IF %ERRORLEVEL% NEQ 0 exit -1
 
 rem START JBOSS
 cd %WORKSPACE%\jboss-7.1.0.Final\bin
-start /B run.bat -c all-with-hornetq -b %JBOSSAS_IP_ADDR%
+start /B standalone.bat -c standalone-full.xml -Djboss.bind.address=%JBOSSAS_IP_ADDR% -Djboss.bind.address.management=0.0.0.0
 echo "Started server"
-@ping 127.0.0.1 -n 120 -w 1000 > nul
+@ping 127.0.0.1 -n 20 -w 1000 > nul
 
 rem BUILD BLACKTIE
 cd %WORKSPACE%
-call build.bat clean
-IF %ERRORLEVEL% NEQ 0 echo "Failing build 1" & exit -1
-set JBOSS_HOME=%WORKSPACE%\jboss-7.1.0.Final
-call build.bat install "-Dbpa=vc9x32" "-Djbossas.ip.addr=%JBOSSAS_IP_ADDR%"
+call build.bat clean install "-Dbpa=vc9x32" "-Djbossas.ip.addr=%JBOSSAS_IP_ADDR%"
 IF %ERRORLEVEL% NEQ 0 echo "Failing build 2" & exit -1
-set JBOSS_HOME=
 
 rem CREATE BLACKTIE DISTRIBUTION
 cd %WORKSPACE%\scripts\test
@@ -42,6 +38,7 @@ cd %WORKSPACE%
 call ant initializeBlackTieQuickstartSecurity
 cd %WORKSPACE%\dist\blacktie-5.0.0.M2-SNAPSHOT
 IF %ERRORLEVEL% NEQ 0 echo "Failing build 4" & exit -1
+
 set ORACLE_HOME=C:\hudson\workspace\blacktie-windows2003\instantclient_11_2
 set TNS_ADMIN=C:\hudson\workspace\blacktie-windows2003\instantclient_11_2\network\admin
 set PATH=%PATH%;%ORACLE_HOME%\bin;%ORACLE_HOME%\vc9

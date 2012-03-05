@@ -40,7 +40,7 @@ sleep 15
 
 # BUILD BLACKTIE
 cd $WORKSPACE
-JBOSS_HOME=$WORKSPACE/jboss-as-7.1.0.Final ./build.sh clean install -Duse.valgrind=false -Djbossas.ip.addr=$JBOSSAS_IP_ADDR
+./build.sh clean install -Duse.valgrind=false -Djbossas.ip.addr=$JBOSSAS_IP_ADDR
 if [ "$?" != "0" ]; then
 	ps -f
 	for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done

@@ -45,9 +45,9 @@
 			workingDirectory="." argLine="foo" serverId="1" />
 		<MACHINE id="myserv14" hostname="tarrytown" pathToExecutable="notExist"
 			workingDirectory="." argLine="foo" serverId="2" />
-		<MACHINE id="myserv15" hostname="clance" pathToExecutable="notExist"
+		<MACHINE id="myserv15" hostname="wicket" pathToExecutable="notExist"
 			workingDirectory="." argLine="foo" serverId="1" />
-		<MACHINE id="myserv16" hostname="clance" pathToExecutable="notExist"
+		<MACHINE id="myserv16" hostname="wicket" pathToExecutable="notExist"
 			workingDirectory="." argLine="foo" serverId="2" />
 		<MACHINE id="myserv17" hostname="sol2" pathToExecutable="notExist"
 			workingDirectory="." argLine="foo" serverId="1" />

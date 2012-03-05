@@ -3,9 +3,9 @@ call ant -f scripts/hudson/initializeDependencies.xml -Dbasedir=. initializeData
 IF %ERRORLEVEL% NEQ 0 exit -1
 
 cd %WORKSPACE%\jboss-as-7.1.0.Final\bin\
-call add-user admin password
+call add-user admin password --silent=true
 IF %ERRORLEVEL% NEQ 0 exit -1
-call add-user guest password -a
+call add-user guest password -a --silent=true
 IF %ERRORLEVEL% NEQ 0 exit -1
 cd %WORKSPACE%
 

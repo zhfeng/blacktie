@@ -52,12 +52,35 @@
             </plugin>
         </plugins>
     </build>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.jboss.as</groupId>
+                <artifactId>jboss-as-parent</artifactId>
+                <version>7.1.0.Final</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.jboss.narayana.blacktie</groupId>
             <artifactId>jatmibroker-xatmi</artifactId>
             <version>5.0.0.M2-SNAPSHOT</version>
         </dependency>
+		<dependency>
+			<groupId>org.jboss.remoting3</groupId>
+			<artifactId>remoting-jmx</artifactId>
+		</dependency>		
+		<dependency>
+			<groupId>org.jboss.xnio</groupId>
+			<artifactId>xnio-nio</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.marshalling</groupId>
+			<artifactId>jboss-marshalling-river</artifactId>
+		</dependency>
         <!--  Test -->
         <dependency>
             <groupId>junit</groupId>

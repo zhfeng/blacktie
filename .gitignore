@@ -18,5 +18,6 @@ instantclient-basiclite-win32-11.2.0.1.0.zip
 instantclient-sdk-win32-11.2.0.1.0.zip
 tnsnames.ora
 init.bat
+init.sh
 
 dist

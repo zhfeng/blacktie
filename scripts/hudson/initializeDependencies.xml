@@ -22,7 +22,7 @@
        <unzip src="./jbossesb-4.9.zip" dest="."/> -->
     </target>
     <target name="initializeJBoss">
-        <get src="http://172.17.131.2/userContent/blacktie/jboss-as-7.1.0.Final.zip" dest="./jboss-as-7.1.0.Final.zip" verbose="true" usetimestamp="true" skipexisting="true"/>
+        <get src="http://172.17.131.2/userContent/jboss-as-7.1.0.Final.zip" dest="./jboss-as-7.1.0.Final.zip" verbose="true" usetimestamp="true" skipexisting="true"/>
         <!--       <get src="http://172.17.131.2/userContent/blacktie/jbossesb-4.9.zip" dest="./jbossesb-4.9.zip" verbose="true" usetimestamp="true" skipexisting="true"/>  -->
         <delete dir="jboss-as-7.1.0.Final"/>
         <unzip src="jboss-as-7.1.0.Final.zip" dest="."/>

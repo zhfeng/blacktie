@@ -203,8 +203,7 @@ public class CommandHandler implements java.lang.reflect.InvocationHandler {
         } else if (returnType == java.util.List.class) {
             String listTerminator = BlacktieAdministration.LIST_TERMINATOR;
             String string = new String(byteArray);
-            StringTokenizer outParameters = new StringTokenizer(string, "," +
-            		"", false);
+            StringTokenizer outParameters = new StringTokenizer(string, "," + "", false);
             if (!method.getName().equals("listRunningInstanceIds")) {
                 List<String> toReturn = new ArrayList<String>();
                 while (outParameters.hasMoreTokens()) {

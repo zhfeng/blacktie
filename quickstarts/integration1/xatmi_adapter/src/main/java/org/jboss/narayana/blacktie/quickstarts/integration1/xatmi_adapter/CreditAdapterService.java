@@ -25,7 +25,6 @@ import javax.naming.NamingException;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.jboss.ejb3.annotation.ResourceAdapter;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
@@ -36,12 +35,10 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.mdb.MDBBlacktieService;
 import org.jboss.narayana.blacktie.quickstarts.integration1.ejb.CreditRemote;
 
-@javax.ejb.TransactionAttribute(javax.ejb.TransactionAttributeType.NOT_SUPPORTED)
 @MessageDriven(activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_CREDITEXAMPLE") })
-// @Depends("org.hornetq:module=JMS,name=\"BTR_CREDITEXAMPLE\",type=Queue")
-@ResourceAdapter("hornetq-ra.rar")
+@javax.ejb.TransactionAttribute(javax.ejb.TransactionAttributeType.NEVER)
 public class CreditAdapterService extends MDBBlacktieService implements javax.jms.MessageListener {
     private static final Logger log = LogManager.getLogger(CreditAdapterService.class);
 
@@ -57,7 +54,8 @@ public class CreditAdapterService extends MDBBlacktieService implements javax.jm
         String resp = "NAMINGERROR";
         try {
             Context ctx = new InitialContext();
-            CreditRemote bean = (CreditRemote) ctx.lookup("CreditBean/remote");
+            CreditRemote bean = (CreditRemote) ctx
+                    .lookup("java:global/integration1-ejb-ear-5.0.0.M2-SNAPSHOT/integration1-ejb-5.0.0.M2-SNAPSHOT/CreditBean!org.jboss.narayana.blacktie.quickstarts.integration1.ejb.CreditRemote");
             log.debug("resolved CreditBean");
             resp = bean.credit(acct_no, amount);
         } catch (NamingException e) {

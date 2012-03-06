@@ -189,6 +189,12 @@
             </dependency>
             <dependency>
                 <groupId>org.jboss.narayana.blacktie</groupId>
+                <artifactId>blacktie-admin-services</artifactId>
+                <type>ear</type>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.narayana.blacktie</groupId>
                 <artifactId>atmibroker-idl-java</artifactId>
                 <version>${project.version}</version>
             </dependency>

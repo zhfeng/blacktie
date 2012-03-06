@@ -211,6 +211,11 @@
             <artifactId>blacktie-admin-services</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.jboss.narayana.blacktie</groupId>
+            <artifactId>blacktie-admin-services</artifactId>
+            <type>ear</type>
+        </dependency>
+        <dependency>
             <groupId>org.codehaus.stomp</groupId>
             <artifactId>stompconnect</artifactId>
         </dependency>

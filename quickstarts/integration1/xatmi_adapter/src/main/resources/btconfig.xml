@@ -27,11 +27,11 @@
 		</SERVER>
 	</SERVERS>
 	<ORB
-		OPT="-ORBInitRef NameService=corbaloc::localhost:3528/NameService"
+		OPT="-ORBInitRef NameService=corbaloc::127.0.0.1:3528/NameService"
 		TRANS_FACTORY_ID="TransactionManagerService.OTS" />
-	<MQ HOST="localhost" PORT="61613" USER="guest" PASSWORD="password"
+	<MQ HOST="127.0.0.1" PORT="61613" USER="guest" PASSWORD="password"
 		 RECEIVE_TIMEOUT="10" TIME_TO_LIVE="10"
-		NAMING_URL="jnp://localhost:1099" />
+		NAMING_URL="jnp://127.0.0.1:1099" />
 	<BUFFERS>
 		<BUFFER name="debit">
 			<ATTRIBUTE id="acct_no" type="long" />

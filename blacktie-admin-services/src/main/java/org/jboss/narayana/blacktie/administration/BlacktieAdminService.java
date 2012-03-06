@@ -22,7 +22,6 @@ import java.util.List;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.jboss.narayana.blacktie.administration.core.AdministrationProxy;
-import org.w3c.dom.Element;
 
 /**
  * This is the JMX interface into the blacktie administration proxy.

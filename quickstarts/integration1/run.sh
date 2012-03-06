@@ -53,29 +53,17 @@ if [ "$?" != "0" ]; then
 fi
 
 #rem "Run Converted XATMI service"
-cd $BLACKTIE_HOME/quickstarts/integration1/ejb/ear/
-mvn jboss:deploy
-if [ "$?" != "0" ]; then
-	exit -1
-fi
-cd $BLACKTIE_HOME/quickstarts/integration1/xatmi_adapter/ear/
-mvn jboss:deploy
-if [ "$?" != "0" ]; then
-	exit -1
-fi
 cd $BLACKTIE_HOME/quickstarts/integration1/client/
 sleep 5
 ./client 
 if [ "$?" != "0" ]; then
-	exit -1
+	echo exit -1
 fi
-cd $BLACKTIE_HOME/quickstarts/integration1/xatmi_adapter/ear/
-mvn jboss:undeploy
+(cd $BLACKTIE_HOME/quickstarts/integration1/xatmi_adapter/ear/ && mvn jboss-as:undeploy)
 if [ "$?" != "0" ]; then
 	exit -1
 fi
-cd $BLACKTIE_HOME/quickstarts/integration1/ejb/ear/
-mvn jboss:undeploy
+(cd $BLACKTIE_HOME/quickstarts/integration1/ejb/ear/ && mvn jboss-as:undeploy)
 if [ "$?" != "0" ]; then
 	exit -1
 fi

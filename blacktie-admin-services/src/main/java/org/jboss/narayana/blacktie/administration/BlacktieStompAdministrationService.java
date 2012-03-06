@@ -330,7 +330,7 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
                 log.debug(serviceName + " still has " + consumerCounts + " consumers");
             }
         } catch (Throwable t) {
-            log.error("Could not get consumer counts of " + serviceName, t);
+            log.debug("Could not get consumer counts of " + serviceName, t);
         }
         return result;
     }

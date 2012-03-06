@@ -25,7 +25,6 @@ import javax.transaction.TransactionManager;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.jboss.ejb3.annotation.ResourceAdapter;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
@@ -36,8 +35,6 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.mdb.MDBBlacktieService;
 @MessageDriven(activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_TxCreateService") })
-// @Depends("org.hornetq:module=JMS,name=\"BTR_TxCreateService\",type=Queue")
-@ResourceAdapter("hornetq-ra.rar")
 public class TxCreateServiceTestService extends MDBBlacktieService implements javax.jms.MessageListener {
     private static final Logger log = LogManager.getLogger(TxCreateServiceTestService.class);
 

@@ -80,53 +80,70 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>jboss-maven-plugin</artifactId>
-				<version>1.5.0</version>
-				<configuration>
-					<fileNames>
-						<fileName>${project.build.directory}/${project.build.finalName}-jar-with-dependencies.${project.packaging}</fileName>
-					</fileNames>
-					<hostName>${env.JBOSSAS_IP_ADDR}</hostName>
-				</configuration>
+				<groupId>org.jboss.as.plugins</groupId>
+				<artifactId>jboss-as-maven-plugin</artifactId>
+				<version>7.1.0.Final</version>
 				<executions>
 					<execution>
-						<id>jboss-redeploy</id>
+						<id>redeploy</id>
 						<phase>pre-integration-test</phase>
 						<goals>
-							<goal>redeploy</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>jboss-undeploy</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>undeploy</goal>
+							<goal>deploy</goal>
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<file>${project.build.directory}/${project.build.finalName}-jar-with-dependencies.${project.packaging}</file>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</reporting>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.jboss.as</groupId>
+				<artifactId>jboss-as-parent</artifactId>
+				<version>7.1.0.Final</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.jboss.narayana.blacktie</groupId>
 			<artifactId>jatmibroker-xatmi</artifactId>
 			<version>5.0.0.M2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.spec.javax.jms</groupId>
+			<artifactId>jboss-jms-api_1.1_spec</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.jboss.ejb3</groupId>
-			<artifactId>jboss-ejb3-ext-api</artifactId>
-			<version>1.0.0</version>
+			<groupId>org.jboss.spec.javax.ejb</groupId>
+			<artifactId>jboss-ejb-api_3.1_spec</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.spec.javax.transaction</groupId>
+			<artifactId>jboss-transaction-api_1.1_spec</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.jbossts</groupId>
+			<artifactId>jbossjts</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>jacorb</groupId>
+			<artifactId>jacorb</artifactId>
+			<version>2.3.1jboss.patch01-brew</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<!-- Test -->

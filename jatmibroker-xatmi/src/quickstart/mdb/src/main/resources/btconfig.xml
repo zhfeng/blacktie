@@ -28,7 +28,7 @@
 		</SERVER>
 	</SERVERS>
 	<ORB
-		OPT="-ORBInitRef NameService=corbaloc::127.0.0.1:3528/NameService"
+		OPT="-ORBInitRef NameService=corbaloc::127.0.0.1:3528/NameService -ORBListenEndpoints iiop://127.0.0.1:0"
 		TRANS_FACTORY_ID="TransactionManagerService.OTS" />
 	<MQ HOST="127.0.0.1" PORT="61613" USER="guest" PASSWORD="password"
 		 RECEIVE_TIMEOUT="10" TIME_TO_LIVE="10"

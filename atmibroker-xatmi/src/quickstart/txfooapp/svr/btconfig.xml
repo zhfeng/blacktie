@@ -122,7 +122,7 @@
 			<XA_LIB_NAME>${ORACLE_HOME}/BIN/oci.dll</XA_LIB_NAME>
 		</XA_RESOURCE>
 	</XA_RESOURCES>
-	<ORB OPT="-ORBInitRef NameService=corbaloc::${JBOSSAS_IP_ADDR}:3528/NameService"
+	<ORB OPT="-ORBInitRef NameService=corbaloc::${JBOSSAS_IP_ADDR}:3528/NameService -ORBListenEndpoints iiop://${JBOSSAS_IP_ADDR}:0"
 		TRANS_FACTORY_ID="TransactionManagerService.OTS" />
 	<!--
 		OPT="-ORBListenEndpoints iiop://${JBOSSAS_IP_ADDR}:9032/portspan=10 -ORBInitRef

@@ -32,8 +32,6 @@
 	<MQ HOST="localhost" PORT="61613" USER="guest" PASSWORD="password"
 		 RECEIVE_TIMEOUT="10" TIME_TO_LIVE="10"
 		NAMING_URL="jnp://localhost:1099" />
-	<JMX
-		url="service:jmx:remoting-jmx://localhost:9999" username="admin" password="password" />
 	<BUFFERS>
 		<BUFFER name="debit">
 			<ATTRIBUTE id="acct_no" type="long" />

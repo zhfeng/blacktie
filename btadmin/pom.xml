@@ -239,16 +239,25 @@
 			<artifactId>jatmibroker-xatmi</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.jboss.remoting3</groupId>
-			<artifactId>remoting-jmx</artifactId>
-		</dependency>		
+			<groupId>org.jboss.narayana.blacktie</groupId>
+			<artifactId>blacktie-admin-services</artifactId>
+		</dependency>
+        <dependency>
+            <groupId>org.jboss.jbossts</groupId>
+            <artifactId>jbossjts</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.spec.javax.transaction</groupId>
+            <artifactId>jboss-transaction-api_1.1_spec</artifactId>
+        </dependency>
 		<dependency>
-			<groupId>org.jboss.xnio</groupId>
-			<artifactId>xnio-nio</artifactId>
+			<groupId>jacorb</groupId>
+			<artifactId>jacorb</artifactId>
+            <version>2.3.1jboss.patch01-brew</version>
 		</dependency>
 		<dependency>
-			<groupId>org.jboss.marshalling</groupId>
-			<artifactId>jboss-marshalling-river</artifactId>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.narayana.blacktie</groupId>

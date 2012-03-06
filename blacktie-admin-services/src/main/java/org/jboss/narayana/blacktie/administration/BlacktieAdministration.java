@@ -25,6 +25,11 @@ package org.jboss.narayana.blacktie.administration;
 public interface BlacktieAdministration {
 
     /**
+     * Ensures we dont return zero length responses
+     */
+    public String LIST_TERMINATOR = "|";
+
+    /**
      * Retrieve the Domain Name
      */
     public String getDomainName();
@@ -100,14 +105,14 @@ public interface BlacktieAdministration {
     /**
      * Describe the status of the servers in the domain
      */
-    public org.w3c.dom.Element listServersStatus();
+    public String listServersStatus();
 
     /**
      * Describe the service status of server
      */
-    public org.w3c.dom.Element listServiceStatus(String serverName, String serviceName);
+    public String listServiceStatus(String serverName, String serviceName);
 
-    public org.w3c.dom.Element listServiceStatusById(String serverName, int id, String serviceName);
+    public String listServiceStatusById(String serverName, int id, String serviceName);
 
     /**
      * Advertise service
@@ -130,11 +135,6 @@ public interface BlacktieAdministration {
     public String getResponseTimeById(String serverName, int id, String serviceName);
 
     public String getResponseTime(String serverName, String serviceName);
-
-    /**
-     * Get message queue depth
-     */
-    public int getQueueDepth(String serverName, String serviceName);
 
     /**
      * Retrieves the error counter for a service from all servers

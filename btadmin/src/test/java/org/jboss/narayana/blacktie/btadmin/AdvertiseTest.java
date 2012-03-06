@@ -25,6 +25,7 @@ import junit.framework.TestCase;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 
 public class AdvertiseTest extends TestCase {
     private static final Logger log = LogManager.getLogger(AdvertiseTest.class);
@@ -47,8 +48,8 @@ public class AdvertiseTest extends TestCase {
         }
     }
 
-    public void testAdvertise() throws IOException, MalformedObjectNameException, NullPointerException, InstantiationException,
-            IllegalAccessException, ClassNotFoundException {
+    public void testAdvertise() throws InstantiationException, IllegalAccessException, ClassNotFoundException,
+            ConfigurationException {
         log.info("AdvertiseTest::testAdvertise");
         String command = "advertise testsui BAR";
         if (commandHandler.handleCommand(command.split(" ")) != 0) {
@@ -57,7 +58,7 @@ public class AdvertiseTest extends TestCase {
     }
 
     public void xtestAdvertiseWithoutService() throws IOException, MalformedObjectNameException, NullPointerException,
-            InstantiationException, IllegalAccessException, ClassNotFoundException {
+            InstantiationException, IllegalAccessException, ClassNotFoundException, ConfigurationException {
         log.info("AdvertiseTest::testAdvertiseWithoutService");
         String command = "advertise testsui";
         if (commandHandler.handleCommand(command.split(" ")) == 0) {
@@ -66,7 +67,7 @@ public class AdvertiseTest extends TestCase {
     }
 
     public void xtestAdvertiseWithoutServer() throws IOException, MalformedObjectNameException, NullPointerException,
-            InstantiationException, IllegalAccessException, ClassNotFoundException {
+            InstantiationException, IllegalAccessException, ClassNotFoundException, ConfigurationException {
         log.info("AdvertiseTest::testAdvertiseWithoutServer");
         String command = "advertise BAR";
         if (commandHandler.handleCommand(command.split(" ")) == 0) {
@@ -75,7 +76,7 @@ public class AdvertiseTest extends TestCase {
     }
 
     public void xtestAdvertiseNoArgs() throws IOException, MalformedObjectNameException, NullPointerException,
-            InstantiationException, IllegalAccessException, ClassNotFoundException {
+            InstantiationException, IllegalAccessException, ClassNotFoundException, ConfigurationException {
         log.info("AdvertiseTest::testAdvertiseNoArgs");
         String command = "advertise";
         if (commandHandler.handleCommand(command.split(" ")) == 0) {
@@ -84,7 +85,7 @@ public class AdvertiseTest extends TestCase {
     }
 
     public void xtestAdvertiseNoFunctionConfig() throws IOException, MalformedObjectNameException, NullPointerException,
-            InstantiationException, IllegalAccessException, ClassNotFoundException {
+            InstantiationException, IllegalAccessException, ClassNotFoundException, ConfigurationException {
         log.info("AdvertiseTest::testAdvertiseNoFunctionConfig");
         String command = "advertise testsui PBF";
         if (commandHandler.handleCommand(command.split(" ")) == 0) {

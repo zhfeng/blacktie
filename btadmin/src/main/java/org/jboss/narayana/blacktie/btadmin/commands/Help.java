@@ -29,11 +29,9 @@ import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.administration.BlacktieAdministration;
 import org.jboss.narayana.blacktie.btadmin.Command;
 import org.jboss.narayana.blacktie.btadmin.CommandFailedException;
 import org.jboss.narayana.blacktie.btadmin.CommandHandler;
@@ -53,10 +51,6 @@ public class Help implements Command {
      */
     private String command;
 
-    public boolean requiresAdminConnection() {
-        return false;
-    }
-
     public String getQuickstartUsage() {
         return "[command]";
     }
@@ -67,8 +61,7 @@ public class Help implements Command {
         }
     }
 
-    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration)
-            throws CommandFailedException {
+    public void invoke(BlacktieAdministration connection, Properties configuration) throws CommandFailedException {
 
         List<String> commands = new ArrayList<String>();
         try {

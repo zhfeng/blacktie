@@ -35,7 +35,7 @@ if [ "$?" != "0" ]; then
 fi
 
 # START JBOSS
-$WORKSPACE/jboss-as-7.1.0.Final/bin/standalone.sh -c standalone-full.xml -Djboss.bind.address=$JBOSSAS_IP_ADDR -Djboss.bind.address.management=0.0.0.0&
+$WORKSPACE/jboss-as-7.1.0.Final/bin/standalone.sh -c standalone-full.xml -Djboss.bind.address=$JBOSSAS_IP_ADDR&
 sleep 15
 
 # BUILD BLACKTIE

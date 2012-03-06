@@ -17,18 +17,12 @@
  */
 package org.jboss.narayana.blacktie.btadmin.commands;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanException;
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-import javax.management.ReflectionException;
-
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.administration.BlacktieAdministration;
 import org.jboss.narayana.blacktie.btadmin.Command;
 import org.jboss.narayana.blacktie.btadmin.CommandHandler;
 import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
@@ -48,13 +42,6 @@ public class ListRunningInstanceIds implements Command {
     private String serverName;
 
     /**
-     * Does the command require the admin connection.
-     */
-    public boolean requiresAdminConnection() {
-        return true;
-    }
-
-    /**
      * Get the usage of the command.
      */
     public String getQuickstartUsage() {
@@ -68,10 +55,8 @@ public class ListRunningInstanceIds implements Command {
         serverName = args[0];
     }
 
-    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration)
-            throws InstanceNotFoundException, MBeanException, ReflectionException, IOException {
-        List<Integer> ids = (List<Integer>) beanServerConnection.invoke(blacktieAdmin, "listRunningInstanceIds",
-                new Object[] { serverName }, new String[] { "java.lang.String" });
+    public void invoke(BlacktieAdministration connection, Properties configuration) {
+        List<Integer> ids = connection.listRunningInstanceIds(serverName);
         log.info(CommandHandler.convertList("listRunningInstanceIds", ids));
     }
 

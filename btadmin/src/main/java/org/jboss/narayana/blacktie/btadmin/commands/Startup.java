@@ -22,15 +22,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.administration.BlacktieAdministration;
 import org.jboss.narayana.blacktie.btadmin.Command;
 import org.jboss.narayana.blacktie.btadmin.CommandFailedException;
 import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
@@ -52,13 +51,6 @@ public class Startup implements Command {
     private String serverName;
 
     /**
-     * Does the command require the admin connection.
-     */
-    public boolean requiresAdminConnection() {
-        return false;
-    }
-
-    /**
      * Show the usage of the command
      */
     public String getQuickstartUsage() {
@@ -71,8 +63,7 @@ public class Startup implements Command {
         }
     }
 
-    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration)
-            throws CommandFailedException, IOException {
+    public void invoke(BlacktieAdministration connection, Properties configuration) throws CommandFailedException {
         List<Server> serverLaunchers = (List<Server>) configuration.get("blacktie.domain.serverLaunchers");
         boolean found = false;
         Iterator<Server> iterator = serverLaunchers.iterator();
@@ -84,7 +75,13 @@ public class Startup implements Command {
                 } else {
                     log.debug("Listing machines");
                 }
-                List<Machine> localMachinesList = next.getLocalMachine();
+                List<Machine> localMachinesList;
+                try {
+                    localMachinesList = next.getLocalMachine();
+                } catch (UnknownHostException e) {
+                    log.error("Could not get the local machine");
+                    throw new CommandFailedException(-1);
+                }
                 if (localMachinesList.size() != 0) {
                     Iterator<Machine> localMachines = localMachinesList.iterator();
                     while (localMachines.hasNext()) {
@@ -101,26 +98,31 @@ public class Startup implements Command {
                         System.arraycopy(split, 0, cmdarray, 1, split.length);
                         String[] envp = null;
                         File dir = new File(localMachine.getWorkingDirectory());
-                        Process exec = Runtime.getRuntime().exec(cmdarray, envp, dir);
-                        log.debug("Launched server: " + pathToExecutable);
-                        BufferedReader output = new BufferedReader(new InputStreamReader(exec.getInputStream()));
-                        BufferedReader error = new BufferedReader(new InputStreamReader(exec.getErrorStream()));
-                        while (true) {
-                            String readLine = output.readLine();
-                            if (readLine == null) {
-                                readLine = error.readLine();
+                        try {
+                            Process exec = Runtime.getRuntime().exec(cmdarray, envp, dir);
+                            log.debug("Launched server: " + pathToExecutable);
+                            BufferedReader output = new BufferedReader(new InputStreamReader(exec.getInputStream()));
+                            BufferedReader error = new BufferedReader(new InputStreamReader(exec.getErrorStream()));
+                            while (true) {
+                                String readLine = output.readLine();
+                                if (readLine == null) {
+                                    readLine = error.readLine();
+                                }
+                                log.info(readLine);
+                                if (readLine == null) {
+                                    throw new CommandFailedException(-3);
+                                } else if (readLine.endsWith("serverinit failed")) {
+                                    throw new CommandFailedException(-2);
+                                } else if (readLine.endsWith("Server waiting for requests...")) {
+                                    new Thread(new EatIO(exec.getInputStream())).start();
+                                    new Thread(new EatIO(exec.getErrorStream())).start();
+                                    found = true;
+                                    break;
+                                }
                             }
-                            log.info(readLine);
-                            if (readLine == null) {
-                                throw new CommandFailedException(-3);
-                            } else if (readLine.endsWith("serverinit failed")) {
-                                throw new CommandFailedException(-2);
-                            } else if (readLine.endsWith("Server waiting for requests...")) {
-                                new Thread(new EatIO(exec.getInputStream())).start();
-                                new Thread(new EatIO(exec.getErrorStream())).start();
-                                found = true;
-                                break;
-                            }
+                        } catch (IOException e) {
+                            log.error("Could not launch the server", e);
+                            throw new CommandFailedException(-1);
                         }
                     }
                 }

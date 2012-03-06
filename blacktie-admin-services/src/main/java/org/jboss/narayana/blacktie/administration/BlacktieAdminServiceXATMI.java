@@ -40,7 +40,6 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.TPSVCINFO;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.mdb.MDBBlacktieService;
-import org.w3c.dom.Element;
 
 @MessageDriven(activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
@@ -57,11 +56,10 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements jav
      * Create the proxy, it will forward all requests to the "core" proxy who is responsible for invoking the individual XATMI
      * services.
      * 
-     * @throws IOException In case a required JMX connection cannot be established.
      * @throws ConfigurationException In case the configuration is invalid.
      * @throws ConnectionException
      */
-    public BlacktieAdminServiceXATMI() throws IOException, ConfigurationException {
+    public BlacktieAdminServiceXATMI() throws ConfigurationException {
         super("BlacktieAdminServiceXATMI");
         administrationProxy = new AdministrationProxy();
     }
@@ -101,13 +99,13 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements jav
                 List<Integer> response = listRunningInstanceIds(serverName);
                 toReturn = convertListInt(response);
             } else if (operation.equals("listServersStatus")) {
-                Element response = listServersStatus();
-                toReturn = response.toString().getBytes();
+                String response = listServersStatus();
+                toReturn = response.getBytes();
             } else if (operation.equals("listServiceStatus")) {
                 String serverName = getString(parameters);
                 String serviceName = getString(parameters);
-                Element response = listServiceStatus(serverName, serviceName);
-                toReturn = response.toString().getBytes();
+                String response = listServiceStatus(serverName, serviceName);
+                toReturn = response.getBytes();
             } else if (operation.equals("advertise")) {
                 String serverName = getString(parameters);
                 String serviceName = getString(parameters);
@@ -121,9 +119,8 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements jav
             } else if (operation.equals("shutdown")) {
                 String serverName = getString(parameters);
                 int id = getInt(parameters);
-                shutdown(serverName, id);
-                toReturn = new byte[1];
-                toReturn[0] = 1;
+                Boolean shutdown = shutdown(serverName, id);
+                toReturn = convertBoolean(shutdown);
             } else if (operation.equals("getServiceCounterById")) {
                 String serverName = getString(parameters);
                 int id = getInt(parameters);
@@ -151,8 +148,8 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements jav
                 String serverName = getString(parameters);
                 int id = getInt(parameters);
                 String serviceName = getString(parameters);
-                Element response = listServiceStatusById(serverName, id, serviceName);
-                toReturn = response.toString().getBytes();
+                String response = listServiceStatusById(serverName, id, serviceName);
+                toReturn = response.getBytes();
             } else if (operation.equals("getDomainStatus")) {
                 boolean response = getDomainStatus();
                 toReturn = convertBoolean(response);
@@ -196,6 +193,7 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements jav
             toReturn.append(iterator.next());
             toReturn.append(',');
         }
+        toReturn.append(BlacktieAdministration.LIST_TERMINATOR);
         return toReturn.toString().getBytes();
     }
 
@@ -220,7 +218,7 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements jav
             toReturn.append(iterator.next());
             toReturn.append(',');
         }
-        toReturn.append("|");
+        toReturn.append(BlacktieAdministration.LIST_TERMINATOR);
         return toReturn.toString().getBytes();
     }
 
@@ -301,7 +299,7 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements jav
     /**
      * Get the servers status for the domain
      */
-    public Element listServersStatus() {
+    public String listServersStatus() {
         return administrationProxy.listServersStatus();
     }
 
@@ -311,7 +309,7 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements jav
      * @param serverName The name of the server
      * @param serviceName The name of the service
      */
-    public Element listServiceStatus(String serverName, String serviceName) {
+    public String listServiceStatus(String serverName, String serviceName) {
         return administrationProxy.listServiceStatus(serverName, serviceName);
     }
 
@@ -390,7 +388,7 @@ public class BlacktieAdminServiceXATMI extends MDBBlacktieService implements jav
      * @param id The id of the server
      * @param serviceName The name of the service
      */
-    public Element listServiceStatusById(String serverName, int id, String serviceName) {
+    public String listServiceStatusById(String serverName, int id, String serviceName) {
         return administrationProxy.listServiceStatusById(serverName, id, serviceName);
     }
 

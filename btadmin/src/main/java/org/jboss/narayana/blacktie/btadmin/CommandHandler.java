@@ -17,47 +17,58 @@
  */
 package org.jboss.narayana.blacktie.btadmin;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.Hashtable;
+import java.io.StringReader;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
-import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
-import javax.management.remote.JMXConnector;
-import javax.management.remote.JMXConnectorFactory;
-import javax.management.remote.JMXServiceURL;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.administration.BlacktieAdministration;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.XMLParser;
+import org.jboss.narayana.blacktie.jatmibroker.xatmi.Buffer;
+import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
+import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
+import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionFactory;
+import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
+import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * Handle the command
  */
-public class CommandHandler {
+public class CommandHandler implements java.lang.reflect.InvocationHandler {
     private static Logger log = LogManager.getLogger(CommandHandler.class);
-    private MBeanServerConnection beanServerConnection;
-    private ObjectName blacktieAdmin;
     private Properties prop = new Properties();
-    private String url;
-    private String username;
-    private String password;
+    private Connection connection;
+    private BlacktieAdministration administrationProxy;
 
     public CommandHandler() throws ConfigurationException, MalformedObjectNameException, NullPointerException {
         // Obtain the JMXURL from the btconfig.xml
         XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
-        url = (String) prop.get("JMXURL");
-        username = (String) prop.get("JMXUSERNAME");
-        password = (String) prop.get("JMXPASSWORD");
-        this.blacktieAdmin = new ObjectName("jboss.blacktie:service=Admin");
+
+        administrationProxy = (BlacktieAdministration) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
+                new Class[] { BlacktieAdministration.class }, this);
     }
 
-    public int handleCommand(String[] args) throws InstantiationException, IllegalAccessException, ClassNotFoundException,
-            NullPointerException, IOException {
+    public int handleCommand(String[] args) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         int exitStatus = -1;
         if (args.length < 1 || args[0] == null || args[0].trim().length() == 0) {
             log.error("No command was provided");
@@ -97,16 +108,13 @@ public class CommandHandler {
                 }
                 log.error(("Expected Usage: " + args[0] + " " + quickstartUsage).trim());
             } else {
-                if (command.requiresAdminConnection()) {
-                    initializeAdminConnection();
-                }
                 try {
                     // Try to initialize the arguments
                     command.initializeArgs(commandArgs);
                     log.trace("Arguments initialized");
                     try {
                         // Try to invoke the command
-                        command.invoke(beanServerConnection, blacktieAdmin, prop);
+                        command.invoke(administrationProxy, prop);
                         exitStatus = 0;
                         log.trace("Command invoked");
                     } catch (CommandFailedException e) {
@@ -137,20 +145,6 @@ public class CommandHandler {
         return command;
     }
 
-    public void initializeAdminConnection() throws IOException {
-        if (beanServerConnection == null) {
-            // Initialize the connection to the mbean server
-            JMXServiceURL u = new JMXServiceURL(url);
-            Hashtable h = new Hashtable();
-            String[] creds = new String[2];
-            creds[0] = username;
-            creds[1] = password;
-            h.put(JMXConnector.CREDENTIALS, creds);
-            JMXConnector c = JMXConnectorFactory.connect(u, h);
-            this.beanServerConnection = c.getMBeanServerConnection();
-        }
-    }
-
     /**
      * Utility function to output the list
      * 
@@ -167,5 +161,89 @@ public class CommandHandler {
             i++;
         }
         return buffer.toString();
+    }
+
+    public Object invoke(Object proxy, Method method, Object[] args) throws ConfigurationException, ConnectionException,
+            CommandFailedException, ParserConfigurationException, SAXException, IOException {
+        if (connection == null) {
+            ConnectionFactory cf = ConnectionFactory.getConnectionFactory();
+            connection = cf.getConnection();
+        }
+
+        StringBuffer command = new StringBuffer(method.getName());
+        command.append(',');
+        if (args != null) {
+            for (int i = 0; i < args.length; i++) {
+                if (args[i] == null) {
+                    args[i] = "";
+                }
+                command.append(args[i].toString());
+                command.append(',');
+            }
+        }
+        X_OCTET sendbuf = (X_OCTET) connection.tpalloc("X_OCTET", null, command.length());
+        sendbuf.setByteArray(command.toString().getBytes());
+
+        Response received = connection.tpcall("BTDomainAdmin", sendbuf, 0);
+        X_OCTET rcvbuf = (X_OCTET) received.getBuffer();
+
+        Class<?> returnType = method.getReturnType();
+        byte[] byteArray = rcvbuf.getByteArray();
+        ;
+        if (returnType == Boolean.class) {
+            if (byteArray[0] == 1) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (returnType == Long.class) {
+            return convertLong(byteArray);
+        } else if (returnType == String.class) {
+            return new String(byteArray);
+        } else if (returnType == java.util.List.class) {
+            String listTerminator = BlacktieAdministration.LIST_TERMINATOR;
+            String string = new String(byteArray);
+            StringTokenizer outParameters = new StringTokenizer(string, "," +
+            		"", false);
+            if (!method.getName().equals("listRunningInstanceIds")) {
+                List<String> toReturn = new ArrayList<String>();
+                while (outParameters.hasMoreTokens()) {
+                    String nextToken = outParameters.nextToken();
+                    if (!nextToken.equals(listTerminator)) {
+                        toReturn.add(nextToken);
+                    }
+                }
+                return toReturn;
+            } else {
+                List<Integer> toReturn = new ArrayList<Integer>();
+                while (outParameters.hasMoreTokens()) {
+                    String nextToken = outParameters.nextToken();
+                    if (!nextToken.equals(listTerminator)) {
+                        toReturn.add(Integer.parseInt(nextToken));
+                    }
+                }
+                return toReturn;
+            }
+        } else if (returnType == org.w3c.dom.Element.class) {
+            StringReader sreader = new StringReader(new String(byteArray));
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder parser = factory.newDocumentBuilder();
+            Document doc = parser.parse(new InputSource(sreader));
+            return doc.getDocumentElement();
+        } else {
+            log.error("Could not handle response type: " + returnType);
+            throw new CommandFailedException(-1);
+        }
+        // java.util.List<Integer>
+    }
+
+    private long convertLong(byte[] response) throws IOException {
+        ByteArrayInputStream baos = new ByteArrayInputStream(response);
+        DataInputStream dos = new DataInputStream(baos);
+        ByteBuffer bbuf = ByteBuffer.allocate(Buffer.LONG_SIZE);
+        bbuf.order(ByteOrder.BIG_ENDIAN);
+        bbuf.put(response);
+        bbuf.order(ByteOrder.LITTLE_ENDIAN);
+        return bbuf.getLong(0);
     }
 }

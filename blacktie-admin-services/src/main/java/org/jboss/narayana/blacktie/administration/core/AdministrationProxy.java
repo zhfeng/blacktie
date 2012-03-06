@@ -19,8 +19,6 @@
 package org.jboss.narayana.blacktie.administration.core;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -28,16 +26,10 @@ import java.util.Properties;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.administration.BlacktieAdministration;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.ConfigurationException;
 import org.jboss.narayana.blacktie.jatmibroker.core.conf.XMLParser;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Connection;
@@ -45,17 +37,13 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionException;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.ConnectionFactory;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
 
 /**
  * This is the core proxy to forward requests to the individual servers.
  */
-public class AdministrationProxy {
+public class AdministrationProxy implements BlacktieAdministration {
     private static final Logger log = LogManager.getLogger(AdministrationProxy.class);
     private Properties prop = new Properties();
-    // private JMXConnector c;
     private MBeanServerConnection beanServerConnection;
     private Connection connection;
     private List<String> servers;
@@ -71,28 +59,6 @@ public class AdministrationProxy {
 
         beanServerConnection = java.lang.management.ManagementFactory.getPlatformMBeanServer();
         log.debug("Created Administration Proxy");
-    }
-
-    private Element stringToElement(String s) throws Exception {
-        StringReader sreader = new StringReader(s.trim());
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder parser = factory.newDocumentBuilder();
-        Document doc = parser.parse(new InputSource(sreader));
-        return doc.getDocumentElement();
-    }
-
-    private String elementToString(Element element) throws Exception {
-        // Set up the output transformer
-        TransformerFactory transfac = TransformerFactory.newInstance();
-        Transformer trans = transfac.newTransformer();
-        trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-        trans.setOutputProperty(OutputKeys.INDENT, "yes");
-
-        StringWriter sw = new StringWriter();
-        StreamResult sr = new StreamResult(sw);
-        DOMSource source = new DOMSource(element);
-        trans.transform(source, sr);
-        return sw.toString();
     }
 
     private Response callAdminService(String serverName, int id, String command) throws ConnectionException,
@@ -290,63 +256,52 @@ public class AdministrationProxy {
         return ids;
     }
 
-    public Element listServersStatus() {
+    public String listServersStatus() {
         log.trace("listServersStatus");
-        try {
-            String status = "<servers>\n";
 
-            for (String server : servers) {
-                status += "\t<server>\n";
-                status += "\t\t<name>" + server + "</name>\n";
-                List<Integer> ids = listRunningInstanceIds(server);
-                if (ids.size() > 0) {
-                    status += "\t\t<instances>\n";
-                    for (int i = 0; i < ids.size(); i++) {
-                        status += "\t\t\t<instance>\n";
-                        status += "\t\t\t\t<id>" + ids.get(i) + "</id>\n";
-                        status += "\t\t\t\t<status>1</status>\n";
-                        status += "\t\t\t</instance>\n";
-                    }
-                    status += "\t\t</instances>\n";
+        String status = "<servers>\n";
+
+        for (String server : servers) {
+            status += "\t<server>\n";
+            status += "\t\t<name>" + server + "</name>\n";
+            List<Integer> ids = listRunningInstanceIds(server);
+            if (ids.size() > 0) {
+                status += "\t\t<instances>\n";
+                for (int i = 0; i < ids.size(); i++) {
+                    status += "\t\t\t<instance>\n";
+                    status += "\t\t\t\t<id>" + ids.get(i) + "</id>\n";
+                    status += "\t\t\t\t<status>1</status>\n";
+                    status += "\t\t\t</instance>\n";
                 }
-                status += "\t</server>\n";
+                status += "\t\t</instances>\n";
             }
-
-            status += "</servers>";
-            return stringToElement(status);
-        } catch (Exception e) {
-            log.error("Caught an exception: " + e.getMessage(), e);
-            return null;
+            status += "\t</server>\n";
         }
+
+        status += "</servers>";
+        return status;
     }
 
-    public Element listServiceStatus(String serverName, String serviceName) {
+    public String listServiceStatus(String serverName, String serviceName) {
         log.trace("listServiceStatus");
         String servers;
-        Element status = null;
         List<Integer> ids = listRunningInstanceIds(serverName);
 
         if (ids.size() == 0) {
             return null;
         }
 
-        try {
-            servers = "<servers>";
-            for (int i = 0; i < ids.size(); i++) {
-                Element result = listServiceStatusById(serverName, ids.get(i), serviceName);
-                if (result != null) {
-                    servers += "<instance><id>" + ids.get(i) + "</id>";
-                    servers += elementToString(result);
-                    servers += "</instance>";
-                }
+        servers = "<servers>";
+        for (int i = 0; i < ids.size(); i++) {
+            String result = listServiceStatusById(serverName, ids.get(i), serviceName);
+            if (result != null) {
+                servers += "<instance><id>" + ids.get(i) + "</id>";
+                servers += result;
+                servers += "</instance>";
             }
-            servers += "</servers>";
-            status = stringToElement(servers);
-        } catch (Exception e) {
-            log.error("Caught an exception: " + e.getMessage(), e);
         }
-
-        return status;
+        servers += "</servers>";
+        return servers;
     }
 
     public Boolean advertise(String serverName, String serviceName) {
@@ -609,7 +564,7 @@ public class AdministrationProxy {
 
     }
 
-    public Element listServiceStatusById(String serverName, int id, String serviceName) {
+    public String listServiceStatusById(String serverName, int id, String serviceName) {
         log.trace("listServiceStatusById");
         String command = "status";
         Response buf = null;
@@ -626,7 +581,7 @@ public class AdministrationProxy {
                 if (received[0] == '1') {
                     status = new String(received, 1, received.length - 1);
                     log.debug("status is " + status);
-                    return stringToElement(status);
+                    return status;
                 }
             }
         } catch (ConnectionException e) {

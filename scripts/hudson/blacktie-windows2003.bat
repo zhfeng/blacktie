@@ -17,7 +17,7 @@ IF %ERRORLEVEL% NEQ 0 exit -1
 
 rem START JBOSS
 cd %WORKSPACE%\jboss-as-7.1.0.Final\bin
-start /B standalone.bat -c standalone-full.xml -Djboss.bind.address=%JBOSSAS_IP_ADDR% -Djboss.bind.address.management=0.0.0.0
+start /B standalone.bat -c standalone-full.xml -Djboss.bind.address=%JBOSSAS_IP_ADDR%
 echo "Started server"
 @ping 127.0.0.1 -n 20 -w 1000 > nul
 

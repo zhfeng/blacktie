@@ -17,20 +17,15 @@
  */
 package org.jboss.narayana.blacktie.btadmin.commands;
 
-import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanException;
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-import javax.management.ReflectionException;
-
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.administration.BlacktieAdministration;
 import org.jboss.narayana.blacktie.btadmin.Command;
 import org.jboss.narayana.blacktie.btadmin.CommandFailedException;
 import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
@@ -58,13 +53,6 @@ public class Shutdown implements Command {
     private int id = 0;
 
     /**
-     * Does the command require the admin connection.
-     */
-    public boolean requiresAdminConnection() {
-        return true;
-    }
-
-    /**
      * Show the usage of the command
      */
     public String getQuickstartUsage() {
@@ -86,8 +74,7 @@ public class Shutdown implements Command {
         }
     }
 
-    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration)
-            throws InstanceNotFoundException, MBeanException, ReflectionException, IOException, CommandFailedException {
+    public void invoke(BlacktieAdministration connection, Properties configuration) throws CommandFailedException {
         List<ServerToStop> serversToStop = new ArrayList<ServerToStop>();
 
         List<Server> serverLaunchers = (List<Server>) configuration.get("blacktie.domain.serverLaunchers");
@@ -95,7 +82,13 @@ public class Shutdown implements Command {
             Iterator<Server> launchers = serverLaunchers.iterator();
             while (launchers.hasNext()) {
                 Server server = launchers.next();
-                Iterator<Machine> iterator2 = server.getLocalMachine().iterator();
+                Iterator<Machine> iterator2;
+                try {
+                    iterator2 = server.getLocalMachine().iterator();
+                } catch (UnknownHostException e) {
+                    log.error("Could not get the local machine");
+                    throw new CommandFailedException(-1);
+                }
                 while (iterator2.hasNext()) {
                     Machine machine = iterator2.next();
                     ServerToStop serverToStop = new ServerToStop();
@@ -114,8 +107,7 @@ public class Shutdown implements Command {
             Iterator<ServerToStop> iterator = serversToStop.iterator();
             while (iterator.hasNext()) {
                 ServerToStop next = iterator.next();
-                Boolean result = (Boolean) beanServerConnection.invoke(blacktieAdmin, "shutdown", new Object[] {
-                        next.getName(), next.getId() }, new String[] { "java.lang.String", "int" });
+                Boolean result = connection.shutdown(next.getName(), next.getId());
                 if (result) {
                     log.info("Server shutdown successfully: " + next.getName() + " with id: " + next.getId());
                 } else {

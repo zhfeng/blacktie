@@ -21,7 +21,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 
 import javax.management.MalformedObjectNameException;
 
@@ -69,18 +68,8 @@ public class BTAdmin {
                     if (args.length > 0 && args[0].equals("quit")) {
                         done = true;
                     }
-                } catch (MalformedURLException e) {
-                    log.error("JMXURL was incorrect: " + e.getMessage(), e);
-                } catch (IOException e) {
-                    log.error("No connect to mbean server: " + e.getMessage(), e);
-                } catch (NullPointerException e) {
-                    log.error("MBean name raised an NPE: " + e.getMessage(), e);
-                } catch (InstantiationException e) {
-                    log.error("Command could not be loaded: " + e.getMessage(), e);
-                } catch (IllegalAccessException e) {
-                    log.error("Command could not be loaded: " + e.getMessage(), e);
-                } catch (ClassNotFoundException e) {
-                    log.error("Command could not be loaded: " + e.getMessage(), e);
+                } catch (Exception e) {
+                    log.error("Could not invoke command: " + e.getMessage(), e);
                 }
             } while (interactive && !done);
         } catch (MalformedObjectNameException e) {

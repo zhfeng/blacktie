@@ -19,11 +19,9 @@ package org.jboss.narayana.blacktie.btadmin.commands;
 
 import java.util.Properties;
 
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.narayana.blacktie.administration.BlacktieAdministration;
 import org.jboss.narayana.blacktie.btadmin.Command;
 import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
 
@@ -36,10 +34,6 @@ public class Version implements Command {
      */
     private static Logger log = LogManager.getLogger(Version.class);
 
-    public boolean requiresAdminConnection() {
-        return false;
-    }
-
     public String getQuickstartUsage() {
         return "";
     }
@@ -48,7 +42,7 @@ public class Version implements Command {
         // NO-OP
     }
 
-    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration) {
+    public void invoke(BlacktieAdministration connection, Properties configuration) {
         log.info("JBoss BlackTie 5.0.0.M2-SNAPSHOT");
     }
 }

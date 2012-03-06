@@ -259,14 +259,6 @@
 							use="optional" />
 					</xsd:complexType>
 				</xsd:element>
-				<xsd:element name="JMX" minOccurs="1" maxOccurs="1">
-					<xsd:complexType>
-						<xsd:attribute name="url" type="xsd:string" use="required" />
-						<xsd:attribute name="username" type="xsd:string" use="required" />
-						<xsd:attribute name="password" type="xsd:string" use="required" />
-					</xsd:complexType>
-				</xsd:element>
-
 				<xsd:element name="ENV_VARIABLES" minOccurs="0"
 					maxOccurs="1">
 					<xsd:complexType>

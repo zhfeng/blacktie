@@ -113,7 +113,7 @@ public class BlacktieAdminService implements BlacktieAdminServiceMBean {
     /**
      * Get the servers status for the domain
      */
-    public Element listServersStatus() {
+    public String listServersStatus() {
         return administrationProxy.listServersStatus();
     }
 
@@ -123,7 +123,7 @@ public class BlacktieAdminService implements BlacktieAdminServiceMBean {
      * @param serverName The name of the server
      * @param serviceName The name of the service
      */
-    public Element listServiceStatus(String serverName, String serviceName) {
+    public String listServiceStatus(String serverName, String serviceName) {
         return administrationProxy.listServiceStatus(serverName, serviceName);
     }
 
@@ -202,7 +202,7 @@ public class BlacktieAdminService implements BlacktieAdminServiceMBean {
      * @param id The id of the server
      * @param serviceName The name of the service
      */
-    public Element listServiceStatusById(String serverName, int id, String serviceName) {
+    public String listServiceStatusById(String serverName, int id, String serviceName) {
         return administrationProxy.listServiceStatusById(serverName, id, serviceName);
     }
 

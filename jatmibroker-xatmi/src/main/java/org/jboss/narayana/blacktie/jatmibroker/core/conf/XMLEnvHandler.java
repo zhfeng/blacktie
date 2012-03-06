@@ -44,7 +44,6 @@ public class XMLEnvHandler extends DefaultHandler {
     private final String SERVICE_NAME = "SERVICE";
     private final String ORB = "ORB";
     private final String MQ = "MQ";
-    private final String JMX = "JMX";
     private final String MACHINE = "MACHINE";
     private final String MACHINE_REF = "MACHINE-REF";
 
@@ -121,7 +120,7 @@ public class XMLEnvHandler extends DefaultHandler {
 
                         if (env == null) {
                             if (val.equals("jboss.bind.address.management")) {
-                                env = "127.0.0.1";
+                                env = "localhost";
                             }
                             matches[i] = val;
                         } else {
@@ -386,19 +385,6 @@ public class XMLEnvHandler extends DefaultHandler {
                 }
             }
             machines.put(machine.getId(), machine);
-        } else if (JMX.equals(localName)) {
-            for (int i = 0; i < atts.getLength(); i++) {
-                avalue = getenv(atts.getValue(i));
-
-                if (atts.getLocalName(i).equals("url")) {
-                    avalue = avalue.replace("0.0.0.0", "127.0.0.1");
-                    prop.setProperty("JMXURL", avalue);
-                } else if (atts.getLocalName(i).equals("username")) {
-                    prop.setProperty("JMXUSERNAME", avalue);
-                } else if (atts.getLocalName(i).equals("password")) {
-                    prop.setProperty("JMXPASSWORD", avalue);
-                }
-            }
         } else if (SERVICE_NAME.equals(localName)) {
             for (int i = 0; i < atts.getLength(); i++) {
                 String attsLocalName = atts.getLocalName(i);

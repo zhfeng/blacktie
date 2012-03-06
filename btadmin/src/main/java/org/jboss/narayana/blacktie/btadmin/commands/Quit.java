@@ -19,9 +19,7 @@ package org.jboss.narayana.blacktie.btadmin.commands;
 
 import java.util.Properties;
 
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-
+import org.jboss.narayana.blacktie.administration.BlacktieAdministration;
 import org.jboss.narayana.blacktie.btadmin.Command;
 import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
 
@@ -29,10 +27,6 @@ import org.jboss.narayana.blacktie.btadmin.IncompatibleArgsException;
  * The shutdown command will quit the terminal
  */
 public class Quit implements Command {
-
-    public boolean requiresAdminConnection() {
-        return false;
-    }
 
     public String getQuickstartUsage() {
         return "";
@@ -42,7 +36,7 @@ public class Quit implements Command {
         // NO-OP
     }
 
-    public void invoke(MBeanServerConnection beanServerConnection, ObjectName blacktieAdmin, Properties configuration) {
+    public void invoke(BlacktieAdministration connection, Properties configuration) {
         // NO-OP
     }
 }

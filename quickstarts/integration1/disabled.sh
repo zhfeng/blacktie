@@ -57,7 +57,7 @@ cd $BLACKTIE_HOME/quickstarts/integration1/client/
 sleep 5
 ./client 
 if [ "$?" != "0" ]; then
-	echo exit -1
+	exit -1
 fi
 (cd $BLACKTIE_HOME/quickstarts/integration1/xatmi_adapter/ear/ && mvn jboss-as:undeploy)
 if [ "$?" != "0" ]; then

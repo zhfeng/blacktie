@@ -19,3 +19,4 @@ chmod u+x $WORKSPACE/jboss-as-7.1.0.Final/bin/add-user.sh
 
 (cd $WORKSPACE/jboss-as-7.1.0.Final/bin/ && JBOSS_HOME= ./add-user.sh admin password)
 (cd $WORKSPACE/jboss-as-7.1.0.Final/bin/ && JBOSS_HOME= ./add-user.sh guest password -a)
+(cd $WORKSPACE/jboss-as-7.1.0.Final/bin/ && JBOSS_HOME= ./add-user.sh dynsub password -a)

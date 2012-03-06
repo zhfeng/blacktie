@@ -7,6 +7,9 @@ call add-user admin password --silent=true
 IF %ERRORLEVEL% NEQ 0 exit -1
 call add-user guest password -a --silent=true
 IF %ERRORLEVEL% NEQ 0 exit -1
+call add-user dynsub password -a --silent=true
+IF %ERRORLEVEL% NEQ 0 exit -1
+
 cd %WORKSPACE%
 
 rem INITIALZE JBOSSESB

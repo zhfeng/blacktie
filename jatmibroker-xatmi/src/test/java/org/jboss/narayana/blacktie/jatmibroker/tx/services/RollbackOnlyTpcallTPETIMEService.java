@@ -14,11 +14,12 @@ public class RollbackOnlyTpcallTPETIMEService implements Service {
     private static final Logger log = LogManager.getLogger(RollbackOnlyTpcallTPETIMEService.class);
 
     public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
+        log.info("RollbackOnlyTpcallTPETIMEService");
         try {
-            int timeout = 21;
-            log.info("test_tpcall_TPETIME_service, sleeping for " + timeout + " seconds");
+            int timeout = 60;
+            log.info("RollbackOnlyTpcallTPETIMEService, sleeping for " + timeout + " seconds");
             Thread.sleep(timeout * 1000);
-            log.info("test_tpcall_TPETIME_service, slept for " + timeout + " seconds");
+            log.info("RollbackOnlyTpcallTPETIMEService, slept for " + timeout + " seconds");
 
             int len = 60;
             X_OCTET toReturn = (X_OCTET) svcinfo.getConnection().tpalloc("X_OCTET", null, len);

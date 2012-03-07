@@ -24,7 +24,7 @@
 #include "Sleeper.h"
 
 extern void test_tpcall_TPETIME_service(TPSVCINFO *svcinfo) {
-	int timeout = 21;
+	int timeout = 60;
 	::sleeper(timeout);
 
 	int len = 60;

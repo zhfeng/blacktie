@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 void test_TTL_service(TPSVCINFO *svcinfo) {
-	long timeout = 45;
+	long timeout = 60;
 
 	::sleeper(timeout);
 	btlogger((char*) "TTL sleep timeout %d seconds", timeout);
@@ -68,10 +68,9 @@ void TestTimeToLive::testTTL() {
 	BT_ASSERT(tperrno == TPETIME);
 	btlogger((char*)"send second message");
 
-	::sleeper(30);
 	long n = getTTLCounter();	
 	btlogger((char*)"TTL get message counter is %d", n);
-	//BT_ASSERT(n == 1);
+	BT_ASSERT(n == 1);
 }
 
 int TestTimeToLive::callTTL() {

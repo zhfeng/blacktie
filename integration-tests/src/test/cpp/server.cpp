@@ -400,7 +400,7 @@ void testtpunadvertise_service(TPSVCINFO *svcinfo) {
 int n = 0;
 
 void test_TTL_service(TPSVCINFO *svcinfo) {
-	long timeout = 45;
+	long timeout = 60;
 	int len = 60;
 	char *toReturn = ::tpalloc((char*) "X_OCTET", NULL, len);
 

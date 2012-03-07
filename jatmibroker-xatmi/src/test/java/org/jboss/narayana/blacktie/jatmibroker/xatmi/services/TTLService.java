@@ -15,9 +15,8 @@ public class TTLService implements Service {
     private static int n = 0;
 
     public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
-        log.info("test_ttl_service");
+        log.info("TTLService");
 
-        int timeout = 35;
         X_OCTET dptr = (X_OCTET) svcinfo.getBuffer();
         String data = new String(dptr.getByteArray());
         log.info("test_ttl_service get data: " + data);
@@ -32,9 +31,10 @@ public class TTLService implements Service {
             len = counter.length();
         } else {
             try {
-                log.info("test_ttl_service sleep for " + timeout + " seconds");
+                int timeout = 60;
+                log.info("TTLService sleep for " + timeout + " seconds");
                 Thread.sleep(timeout * 1000);
-                log.info("test_ttl_service slept for " + timeout + " seconds");
+                log.info("TTLService slept for " + timeout + " seconds");
                 toReturn.setByteArray("test_ttl_service".getBytes());
             } catch (Exception e) {
                 log.error("sleep failed with " + e);

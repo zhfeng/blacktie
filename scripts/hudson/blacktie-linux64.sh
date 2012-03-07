@@ -91,13 +91,6 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DB2_LIB
 
 export PATH=$PATH:$WORKSPACE/tools/maven/bin
 
-#cp $WORKSPACE/dist/blacktie-5.0.0.M2-SNAPSHOT/quickstarts/xatmi/security/hornetq-*.properties $WORKSPACE/jboss-5.1.0.GA/server/all-with-hornetq/conf/props
-#sed -i 's?</security-settings>?      <security-setting match="jms.queue.BTR_SECURE">\
-#         <permission type="send" roles="blacktie"/>\
-#         <permission type="consume" roles="blacktie"/>\
-#      </security-setting>\
-#</security-settings>?g' $WORKSPACE/jboss-5.1.0.GA/server/all-with-hornetq/deploy/hornetq.sar/hornetq-configuration.xml
-
 ./run_all_quickstarts.sh tx
 if [ "$?" != "0" ]; then
 	ps -f

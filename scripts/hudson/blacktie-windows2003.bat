@@ -34,8 +34,6 @@ IF %ERRORLEVEL% NEQ 0 echo "Failing build 3" & tasklist & call %WORKSPACE%\jboss
 rem tasklist & call %WORKSPACE%\jboss-as-7.1.0.Final\bin\shutdown.bat -s %JBOSSAS_IP_ADDR%:1099 -S & echo "Failed build" & 
 
 rem RUN THE SAMPLES
-cd %WORKSPACE%
-call ant initializeBlackTieQuickstartSecurity
 cd %WORKSPACE%\dist\blacktie-5.0.0.M2-SNAPSHOT
 IF %ERRORLEVEL% NEQ 0 echo "Failing build 4" & tasklist & call %WORKSPACE%\jboss-as-7.1.0.Final\bin\jboss-cli.bat --connect command=:shutdown & exit -1
 
@@ -49,8 +47,6 @@ echo calling generated setenv - error %ERRORLEVEL%
 dir setenv.bat
 call setenv.bat
 IF %ERRORLEVEL% NEQ 0 echo "Failing build 5 with error %ERRORLEVEL%" & tasklist & call %WORKSPACE%\jboss-as-7.1.0.Final\bin\jboss-cli.bat --connect command=:shutdown & exit -1
-copy /Y %WORKSPACE%\dist\blacktie-5.0.0.M2-SNAPSHOT\quickstarts\xatmi\security\hornetq-*.properties %WORKSPACE%\jboss-as-7.1.0.Final\server\all-with-hornetq\conf\props
-IF %ERRORLEVEL% NEQ 0 echo "Failing build 6 with error %ERRORLEVEL%" & tasklist & call %WORKSPACE%\jboss-as-7.1.0.Final\bin\jboss-cli.bat --connect command=:shutdown & exit -1
 call run_all_quickstarts.bat tx
 IF %ERRORLEVEL% NEQ 0 echo "Failing build 7 with error %ERRORLEVEL%" & tasklist & call %WORKSPACE%\jboss-as-7.1.0.Final\bin\jboss-cli.bat --connect command=:shutdown & exit -1
 

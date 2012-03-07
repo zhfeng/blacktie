@@ -287,10 +287,6 @@ public class AdministrationProxy implements BlacktieAdministration {
         String servers;
         List<Integer> ids = listRunningInstanceIds(serverName);
 
-        if (ids.size() == 0) {
-            return null;
-        }
-
         servers = "<servers>";
         for (int i = 0; i < ids.size(); i++) {
             String result = listServiceStatusById(serverName, ids.get(i), serviceName);

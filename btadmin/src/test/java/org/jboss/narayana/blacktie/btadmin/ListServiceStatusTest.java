@@ -76,7 +76,7 @@ public class ListServiceStatusTest extends TestCase {
             NullPointerException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         log.info("ListServiceStatusTest::testListServiceStatusWithNonRunningServer");
         String command = "listServiceStatus foo BAR";
-        if (commandHandler.handleCommand(command.split(" ")) == 0) {
+        if (commandHandler.handleCommand(command.split(" ")) != 0) {
             fail("Command was not successful");
         }
     }

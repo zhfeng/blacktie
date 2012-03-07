@@ -28,10 +28,9 @@
 extern "C" {
 #endif
 void test_TTL_service(TPSVCINFO *svcinfo) {
-	long timeout = 60;
+	btlogger((char*) "test_TTL_service");
 
-	::sleeper(timeout);
-	btlogger((char*) "TTL sleep timeout %d seconds", timeout);
+	::sleeper(60);
 
 	int len = 60;
 	char *toReturn = ::tpalloc((char*) "X_OCTET", NULL, len);

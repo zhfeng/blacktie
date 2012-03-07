@@ -40,7 +40,7 @@ sleep 15
 
 # BUILD BLACKTIE
 cd $WORKSPACE
-JBOSS_HOME=$WORKSPACE/jboss-as-7.1.0.Final ./build.sh clean install -Duse.valgrind=false -Djbossas.ip.addr=$JBOSSAS_IP_ADDR
+./build.sh clean install -Duse.valgrind=true -Djbossas.ip.addr=$JBOSSAS_IP_ADDR
 if [ "$?" != "0" ]; then
 	ps -f
 	for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
@@ -53,8 +53,7 @@ if [ "$?" != "0" ]; then
 fi
 
 # INITIALIZE THE BLACKTIE DISTRIBUTION
-cd $WORKSPACE/scripts/test
-ant dist -DBT_HOME=$WORKSPACE/dist/ -DVERSION=blacktie-5.0.0.M2-SNAPSHOT -DMACHINE_ADDR=`hostname` -DJBOSSAS_IP_ADDR=$JBOSSAS_IP_ADDR -Dbpa=centos55x32
+ant -f $WORKSPACE/scripts/test/build.xml dist -DBT_HOME=$WORKSPACE/dist/ -DVERSION=blacktie-5.0.0.M2-SNAPSHOT -DMACHINE_ADDR=`hostname` -DJBOSSAS_IP_ADDR=$JBOSSAS_IP_ADDR -Dbpa=centos55x32
 if [ "$?" != "0" ]; then
 	ps -f
 	for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
@@ -68,7 +67,7 @@ fi
 
 # RUN ALL THE SAMPLES
 cd $WORKSPACE/dist/blacktie-5.0.0.M2-SNAPSHOT/
-chmod 775 setenv.sh
+chmod u+x setenv.sh
 . setenv.sh
 if [ "$?" != "0" ]; then
 	ps -f

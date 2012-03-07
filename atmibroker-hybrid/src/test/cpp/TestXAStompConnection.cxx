@@ -135,7 +135,7 @@ void TestXAStompConnection::test() {
 		message.xid = txx_serialize(&discardTxTTL);
 		BT_ASSERT(client->send((char*) "JAVA_Converse", message));
 		BT_ASSERT(message.received);
-		BT_ASSERT(strncmp(message.data, "hello", 6) == 0);
+		BT_ASSERT(strncmp(message.data, "hello", 5) == 0);
 		free(message.data);
 		btlogger("TestXAStompConnection::test received message");
 	}
@@ -170,7 +170,7 @@ void TestXAStompConnection::test() {
 		message.control = NULL;
 		BT_ASSERT(client->send((char*) "JAVA_Converse", message));
 		BT_ASSERT(message.received);
-		BT_ASSERT(strncmp(message.data, "hello", 6) == 0);
+		BT_ASSERT(strncmp(message.data, "hello", 5) == 0);
 		free(message.data);
 		btlogger("TestXAStompConnection::test received message");
 	}

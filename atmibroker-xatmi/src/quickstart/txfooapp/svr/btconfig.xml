@@ -137,7 +137,7 @@
 	-->
 
 	<MQ HOST="${JBOSSAS_IP_ADDR}" PORT="61613" USER="guest" PASSWORD="password"
-		 RECEIVE_TIMEOUT="10" TIME_TO_LIVE="10" />
+		 RECEIVE_TIMEOUT="10" TIME_TO_LIVE="40" />
 
 	<BUFFERS>
 		<BUFFER name="test_req">

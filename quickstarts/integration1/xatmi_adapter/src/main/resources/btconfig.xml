@@ -30,8 +30,8 @@
 		OPT="-ORBInitRef NameService=corbaloc::127.0.0.1:3528/NameService -ORBListenEndpoints iiop://${JBOSSAS_IP_ADDR}:0"
 		TRANS_FACTORY_ID="TransactionManagerService.OTS" />
 	<MQ HOST="127.0.0.1" PORT="61613" USER="guest" PASSWORD="password"
-		 RECEIVE_TIMEOUT="10" TIME_TO_LIVE="10"
-		NAMING_URL="jnp://127.0.0.1:1099" />
+		 RECEIVE_TIMEOUT="10" TIME_TO_LIVE="40"
+		 />
 	<BUFFERS>
 		<BUFFER name="debit">
 			<ATTRIBUTE id="acct_no" type="long" />

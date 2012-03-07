@@ -189,7 +189,7 @@
             </dependency>
             <dependency>
                 <groupId>org.jboss.narayana.blacktie</groupId>
-                <artifactId>blacktie-admin-services</artifactId>
+                <artifactId>blacktie-admin-services-ear</artifactId>
                 <type>ear</type>
                 <version>${project.version}</version>
             </dependency>

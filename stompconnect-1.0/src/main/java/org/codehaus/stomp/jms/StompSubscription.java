@@ -49,10 +49,11 @@ public class StompSubscription implements Runnable {
     private Map<String, Object> headers;
 
     public StompSubscription(StompSession session, String subscriptionId, StompFrame frame) throws JMSException,
-            ProtocolException {
+            ProtocolException, NamingException {
         this.subscriptionId = subscriptionId;
         this.session = session;
         this.headers = frame.getHeaders();
+        this.consumer = session.createConsumer(headers);
 
         thread = new Thread(this, "StompSubscription: " + Thread.currentThread().getName());
         thread.start();
@@ -73,7 +74,6 @@ public class StompSubscription implements Runnable {
 
     public void run() {
         try {
-            consumer = session.createConsumer(headers);
             while (!closed) {
                 String destinationName = (String) headers.get(Stomp.Headers.Subscribe.DESTINATION);
                 Message message = consumer.receive();
@@ -89,10 +89,6 @@ public class StompSubscription implements Runnable {
             }
         } catch (JMSException e) {
             log.debug("Caught a JMS exception: " + e.getMessage());
-        } catch (ProtocolException e) {
-            log.debug("Caught a Protocol exception: " + e.getMessage());
-        } catch (NamingException e) {
-            log.debug("Caught a Naming exception: " + e.getMessage());
         }
 
     }

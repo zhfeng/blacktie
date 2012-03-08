@@ -355,7 +355,8 @@ public class StompSession {
         connection.start();
     }
 
-    public StompSubscription subscribe(String subscriptionId, StompFrame command) throws ProtocolException, JMSException {
+    public StompSubscription subscribe(String subscriptionId, StompFrame command) throws ProtocolException, JMSException,
+            NamingException {
         if (subscriptions.size() > 0) {
             throw new ProtocolException("This connection already has a subscription");
         }

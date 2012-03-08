@@ -32,7 +32,6 @@ void test_TTL_service(TPSVCINFO *svcinfo) {
     btlogger((char*) "test_TTL_service");
 	char *toReturn = ::tpalloc((char*) "X_OCTET", NULL, 1);
 
-	btlogger("Data was %s", svcinfo->data);
 	if (strncmp(svcinfo->data, "counter", 7) != 0) {
 		::sleeper(60);
 		ttlCounter++;

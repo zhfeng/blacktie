@@ -75,14 +75,8 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
 
     private static ModelControllerClient client;
 
-    public BlacktieStompAdministrationService() throws ConfigurationException, UnknownHostException {
+    public BlacktieStompAdministrationService() throws ConfigurationException {
         super("BlacktieStompAdministrationService");
-        beanServerConnection = java.lang.management.ManagementFactory.getPlatformMBeanServer();
-        String managementAddress = System.getProperty("jboss.bind.address.management", "localhost");
-        if (managementAddress.equals("0.0.0.0")) {
-            managementAddress = "localhost";
-        }
-        client = ModelControllerClient.Factory.create(InetAddress.getByName(managementAddress), 9999, getCallbackHandler());
     }
 
     static void applyUpdate(ModelNode update, final ModelControllerClient client) throws IOException {
@@ -114,7 +108,7 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
         }
         ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-" + type + "=" + prefix
                 + "*");
-        ObjectInstance[] dests = beanServerConnection.queryMBeans(objName, null).toArray(new ObjectInstance[] {});
+        ObjectInstance[] dests = getMBeanServerConnection().queryMBeans(objName, null).toArray(new ObjectInstance[] {});
         for (int i = 0; i < dests.length; i++) {
             String serviceComponentOfObjectName = dests[i].getObjectName().getCanonicalName();
             serviceComponentOfObjectName = serviceComponentOfObjectName.substring(
@@ -131,13 +125,34 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
         return false;
     }
 
-    private static Object getProperty(String string) throws ConfigurationException {
+    private static MBeanServerConnection getMBeanServerConnection() throws ConfigurationException, UnknownHostException {
+        initStatic();
+        return beanServerConnection;
+    }
+
+    private static Object getProperty(String string) throws ConfigurationException, UnknownHostException {
+        initStatic();
+        return prop.get(string);
+    }
+
+    private static ModelControllerClient getClient() throws ConfigurationException, UnknownHostException {
+        initStatic();
+        return client;
+    }
+
+    private static void initStatic() throws ConfigurationException, UnknownHostException {
         synchronized (prop) {
             if (prop.isEmpty()) {
                 XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
+                beanServerConnection = java.lang.management.ManagementFactory.getPlatformMBeanServer();
+                String managementAddress = System.getProperty("jboss.bind.address.management", "localhost");
+                if (managementAddress.equals("0.0.0.0")) {
+                    managementAddress = "localhost";
+                }
+                client = ModelControllerClient.Factory.create(InetAddress.getByName(managementAddress), 9999,
+                        getCallbackHandler());
             }
         }
-        return prop.get(string);
     }
 
     int consumerCount(String serviceName) throws Exception {
@@ -160,9 +175,9 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
         ObjectName objName = new ObjectName("jboss.as:subsystem=messaging,hornetq-server=default,jms-" + type + "=" + prefix
                 + serviceName);
         if (type.toLowerCase().equals("queue")) {
-            count = (Integer) beanServerConnection.getAttribute(objName, "consumerCount");
+            count = (Integer) getMBeanServerConnection().getAttribute(objName, "consumerCount");
         } else {
-            count = (Integer) beanServerConnection.getAttribute(objName, "subscriptionCount");
+            count = (Integer) getMBeanServerConnection().getAttribute(objName, "subscriptionCount");
         }
         log.debug("consCount" + serviceName + " " + count.intValue());
         return count.intValue();
@@ -217,7 +232,7 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
         }
     }
 
-    public int deployQueue(String serviceName, String version) throws ConfigurationException {
+    public int deployQueue(String serviceName, String version) throws ConfigurationException, UnknownHostException {
         log.trace("deployQueue: " + serviceName + " version: " + version);
 
         if (version == null || !version.equals(getProperty("blacktie.domain.version"))) {
@@ -261,7 +276,7 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
                     op.get("address").add("jms-" + type, prefix + serviceName);
                     op.get("entries").add("/" + type + "/" + prefix + serviceName);
                     // op.get("jms-" + type + "-address").set("jms." + type + "." + prefix + serviceName);
-                    applyUpdate(op, client);
+                    applyUpdate(op, getClient());
                     log.debug("Invoked hornetq to deploy queue");
                 }
                 log.debug("Created: " + serviceName);
@@ -313,7 +328,7 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
                 op.get("address").add("subsystem", "messaging");
                 op.get("address").add("hornetq-server", "default");
                 op.get("address").add("jms-" + type, prefix + serviceName);
-                applyUpdate(op, client);
+                applyUpdate(op, getClient());
             }
             result = 1;
         } catch (Throwable t) {
@@ -398,6 +413,8 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
         } catch (ConnectionException e) {
             return new Response(Connection.TPFAIL, 0, null, 0);
         } catch (ConfigurationException e) {
+            return new Response(Connection.TPFAIL, 0, null, 0);
+        } catch (UnknownHostException e) {
             return new Response(Connection.TPFAIL, 0, null, 0);
         }
     }

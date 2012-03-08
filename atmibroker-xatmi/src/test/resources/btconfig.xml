@@ -59,6 +59,7 @@
 				<SERVICE name='TestRbkOnly2' conversational='true' />
 				<SERVICE name='TestOne' externally-managed-destination='true' size='1'/>
 				<SERVICE name='TestTopic' type='topic' />
+				<SERVICE name="TTL" size="2" />
 			</SERVICE_NAMES>
 		</SERVER>
 	</SERVERS>

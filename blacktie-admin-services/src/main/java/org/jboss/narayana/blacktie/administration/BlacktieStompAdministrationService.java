@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
@@ -74,9 +75,8 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
 
     private static ModelControllerClient client;
 
-    public BlacktieStompAdministrationService() throws Exception {
+    public BlacktieStompAdministrationService() throws ConfigurationException, UnknownHostException {
         super("BlacktieStompAdministrationService");
-        XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
         beanServerConnection = java.lang.management.ManagementFactory.getPlatformMBeanServer();
         String managementAddress = System.getProperty("jboss.bind.address.management", "localhost");
         if (managementAddress.equals("0.0.0.0")) {
@@ -103,8 +103,8 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
         boolean conversational = false;
         String type = "queue";
         if (!serviceName.startsWith(".")) {
-            conversational = (Boolean) prop.get("blacktie." + serviceName + ".conversational");
-            type = (String) prop.getProperty("blacktie." + serviceName + ".type");
+            conversational = (Boolean) getProperty("blacktie." + serviceName + ".conversational");
+            type = (String) getProperty("blacktie." + serviceName + ".type");
         }
         String prefix = null;
         if (conversational) {
@@ -131,14 +131,23 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
         return false;
     }
 
+    private static Object getProperty(String string) throws ConfigurationException {
+        synchronized (prop) {
+            if (prop.isEmpty()) {
+                XMLParser.loadProperties("btconfig.xsd", "btconfig.xml", prop);
+            }
+        }
+        return prop.get(string);
+    }
+
     int consumerCount(String serviceName) throws Exception {
         log.trace("consCount" + serviceName);
         boolean conversational = false;
         String type = "queue";
 
         if (!serviceName.startsWith(".")) {
-            conversational = (Boolean) prop.get("blacktie." + serviceName + ".conversational");
-            type = (String) prop.getProperty("blacktie." + serviceName + ".type");
+            conversational = (Boolean) getProperty("blacktie." + serviceName + ".conversational");
+            type = (String) getProperty("blacktie." + serviceName + ".type");
         }
         String prefix = null;
         if (conversational) {
@@ -208,11 +217,11 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
         }
     }
 
-    public int deployQueue(String serviceName, String version) {
+    public int deployQueue(String serviceName, String version) throws ConfigurationException {
         log.trace("deployQueue: " + serviceName + " version: " + version);
 
-        if (version == null || !version.equals(prop.getProperty("blacktie.domain.version"))) {
-            log.warn("Blacktie Domain version " + prop.getProperty("blacktie.domain.version") + " not match server " + version);
+        if (version == null || !version.equals(getProperty("blacktie.domain.version"))) {
+            log.warn("Blacktie Domain version " + getProperty("blacktie.domain.version") + " not match server " + version);
             return 4;
         }
 
@@ -232,8 +241,8 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
                     boolean conversational = false;
                     String type = "queue";
                     if (!serviceName.startsWith(".")) {
-                        conversational = (Boolean) prop.get("blacktie." + serviceName + ".conversational");
-                        type = (String) prop.get("blacktie." + serviceName + ".type");
+                        conversational = (Boolean) getProperty("blacktie." + serviceName + ".conversational");
+                        type = (String) getProperty("blacktie." + serviceName + ".type");
                     }
                     String prefix = null;
                     if (conversational) {
@@ -289,8 +298,8 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
                 boolean conversational = false;
                 String type = "queue";
                 if (!serviceName.startsWith(".")) {
-                    conversational = (Boolean) prop.get("blacktie." + serviceName + ".conversational");
-                    type = (String) prop.get("blacktie." + serviceName + ".type");
+                    conversational = (Boolean) getProperty("blacktie." + serviceName + ".conversational");
+                    type = (String) getProperty("blacktie." + serviceName + ".type");
                 }
                 String prefix = null;
                 if (conversational) {
@@ -351,7 +360,7 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
             if (serviceName.indexOf(".") > -1) {
                 server = serviceName.substring(1);
                 server = server.replaceAll("[0-9]", "");
-                List<String> servers = (List<String>) prop.get("blacktie.domain.servers");
+                List<String> servers = (List<String>) getProperty("blacktie.domain.servers");
                 if (servers.contains(server) == false) {
                     log.warn("Could not find the server to advertise for: " + server);
                     server = null;
@@ -359,7 +368,7 @@ public class BlacktieStompAdministrationService extends MDBBlacktieService imple
                     log.trace("Located server: " + server);
                 }
             } else {
-                server = (String) prop.get("blacktie." + serviceName + ".server");
+                server = (String) getProperty("blacktie." + serviceName + ".server");
             }
 
             if (server != null && server.equals(serverName)) {

@@ -5,7 +5,12 @@ echo "Running MDB quickstart"
 
 # RUN THE MDB EXAMPLE
 cd $BLACKTIE_HOME/quickstarts/mdb
-mvn clean install jboss-as:deploy -DskipTests
+mvn clean install -DskipTests
+if [ "$?" != "0" ]; then
+	exit -1
+fi
+cd $BLACKTIE_HOME/quickstarts/mdb/ear
+mvn clean install jboss-as:deploy
 if [ "$?" != "0" ]; then
 	exit -1
 fi
@@ -14,3 +19,9 @@ mvn surefire:test
 if [ "$?" != "0" ]; then
 	exit -1
 fi
+cd $BLACKTIE_HOME/quickstarts/mdb/ear
+mvn jboss-as:undeploy
+if [ "$?" != "0" ]; then
+	exit -1
+fi
+

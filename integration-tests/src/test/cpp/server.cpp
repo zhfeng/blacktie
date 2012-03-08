@@ -407,8 +407,8 @@ void test_TTL_service(TPSVCINFO *svcinfo) {
 	if (strncmp(svcinfo->data, "counter", 7) == 0) {
 		sprintf(toReturn, "%d", n);
 	} else {
-		n++;
 		::sleeper(60);
+		n++;
 
 		strcpy(toReturn, "test_tpcall_TTL_service");
 	}

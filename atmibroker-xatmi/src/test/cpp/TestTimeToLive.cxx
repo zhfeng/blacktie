@@ -27,15 +27,26 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
+int ttlCounter = 0;
 void test_TTL_service(TPSVCINFO *svcinfo) {
-	btlogger((char*) "test_TTL_service");
+    btlogger((char*) "test_TTL_service");
+	char *toReturn = ::tpalloc((char*) "X_OCTET", NULL, 1);
 
-	::sleeper(60);
-
-	int len = 60;
-	char *toReturn = ::tpalloc((char*) "X_OCTET", NULL, len);
-	strcpy(toReturn, "test_tpcall_TTL_service");
-	tpreturn(TPSUCCESS, 0, toReturn, len, 0);
+	btlogger("Data was %s", svcinfo->data);
+	if (strncmp(svcinfo->data, "counter", 7) != 0) {
+		::sleeper(60);
+		ttlCounter++;
+	}
+	btlogger("Counter was %d", ttlCounter);
+    if (ttlCounter == 1) {
+        (void) strncpy(toReturn, "1", 1);
+    } else if (ttlCounter == 2) {
+        (void) strncpy(toReturn, "2", 1);
+    } else {
+        (void) strncpy(toReturn, "0", 1);
+    }
+	
+	tpreturn(TPSUCCESS, 0, toReturn, 1, 0);
 }
 #if defined(__cplusplus)
 }
@@ -44,10 +55,14 @@ void test_TTL_service(TPSVCINFO *svcinfo) {
 void TestTimeToLive::setUp() {
 	btlogger((char*) "TestTimeToLive::setUp");
 	BaseServerTest::setUp();
+	sendbuf = tpalloc((char*) "X_OCTET", NULL, 7);
+	rcvbuf = tpalloc((char*) "X_OCTET", NULL, 1);
 }
 
 void TestTimeToLive::tearDown() {
 	btlogger((char*) "TestTimeToLive::tearDown");
+	::tpfree( sendbuf);
+	::tpfree( rcvbuf);
 	BaseServerTest::tearDown();
 }
 
@@ -56,46 +71,26 @@ void TestTimeToLive::testTTL() {
 	BT_ASSERT(tperrno == 0);
 	BT_ASSERT(rc != -1);
 
-	int cd;
-	cd = callTTL();
-	BT_ASSERT(cd == -1);
-	BT_ASSERT(tperrno == TPETIME);
+    int cd = -1;
 	btlogger((char*)"send first message");
-
+	(void) strncpy(sendbuf, "1234567", 7);
 	cd = callTTL();
 	BT_ASSERT(cd == -1);
 	BT_ASSERT(tperrno == TPETIME);
-	btlogger((char*)"send second message");
 
-	long n = getTTLCounter();	
-	btlogger((char*)"TTL get message counter is %d", n);
-	BT_ASSERT(n == 1);
+	btlogger((char*)"send second message");
+	cd = callTTL();
+	BT_ASSERT(cd == -1);
+	BT_ASSERT(tperrno == TPETIME);
+
+	btlogger((char*)"send third message");
+	(void) strncpy(sendbuf, "counter", 7);
+	cd = callTTL();	
+	btlogger((char*)"TTL get message counter is %s", rcvbuf);
+	BT_ASSERT(strncmp(rcvbuf, "1", 1) == 0);
 }
 
 int TestTimeToLive::callTTL() {
-	long  sendlen = strlen((char*)"test") + 1;
-	char* sendbuf = tpalloc((char*) "X_OCTET", NULL, sendlen);
-	strcpy(sendbuf, (char*) "test");
-
-	char* recvbuf = tpalloc((char*) "X_OCTET", NULL, 1);
-	long  recvlen = 1;
-
-	int cd = ::tpcall((char*) "TTL", (char *) sendbuf, sendlen, (char**)&recvbuf, &recvlen, 0);
+	int cd = ::tpcall((char*) "TTL", (char *) sendbuf, 7, (char**)&rcvbuf, &rcvlen, 0);
 	return cd;
-}
-
-long TestTimeToLive::getTTLCounter() {
-	long sendlen = strlen("counter,TTL,") + 1;
-	char* sendbuf = tpalloc((char*) "X_OCTET", NULL, sendlen);
-	strcpy(sendbuf, "counter,TTL,");
-
-	char* recvbuf = tpalloc((char*) "X_OCTET", NULL, 1);
-	long  recvlen = 1;
-
-	int cd = ::tpcall((char*) ".testsui1", (char *) sendbuf, sendlen, (char**)&recvbuf, &recvlen, 0);
-	BT_ASSERT(cd == 0);
-	BT_ASSERT(tperrno == 0);
-	BT_ASSERT(recvbuf[0] == '1');
-
-	return (atol(&recvbuf[1]));
 }

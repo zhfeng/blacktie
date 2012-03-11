@@ -19,9 +19,7 @@ package org.jboss.narayana.blacktie.quickstart.mdb;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
+import javax.inject.Inject;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -35,54 +33,47 @@ import org.jboss.narayana.blacktie.jatmibroker.xatmi.Response;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.TPSVCINFO;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.X_OCTET;
 import org.jboss.narayana.blacktie.jatmibroker.xatmi.mdb.MDBBlacktieService;
-import org.jboss.narayana.blacktie.quickstart.ejb.eg1.BTTestRemote;
+import org.jboss.narayana.blacktie.quickstart.ejb.eg1.BTBean;
 
-@javax.ejb.TransactionAttribute(javax.ejb.TransactionAttributeType.NOT_SUPPORTED)
 @MessageDriven(activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/BTR_TxEchoService") })
 public class TxEchoServiceTestService extends MDBBlacktieService implements javax.jms.MessageListener {
 
     private static final Logger log = LogManager.getLogger(TxEchoServiceTestService.class);
-    private static final String[] names = { "FirstBTBean/remote", "SecondBTBean/remote" };
+
+    @Inject
+    private BTBean firstBTBean;
 
     public TxEchoServiceTestService() throws ConfigurationException {
-        super("TxCreateServiceTestService");
+        super("TxEchoServiceTestService");
     }
 
-    public static String serviceRequest(Connection connection, String args) throws NamingException {
-        Context ctx = new InitialContext();
-        Object[] objs = new Object[names.length];
-        BTTestRemote[] beans = new BTTestRemote[names.length];
-        String[] results = new String[names.length];
-
-        for (int i = 0; i < names.length; i++) {
-            objs[i] = ctx.lookup(names[i]);
-            beans[i] = (BTTestRemote) objs[i];
-            // results[i] = beans[i].echo("bean=" + names[(i + 1) %
-            // names.length]);
-            // log.info(names[i] + " result: " + results[i]);
-        }
+    public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
+        X_OCTET rcv = (X_OCTET) svcinfo.getBuffer();
+        Connection connection = svcinfo.getConnection();
+        String args = new String(rcv.getByteArray());
+        String resp;
 
         log.info(args + " hasTransaction: " + JtsTransactionImple.hasTransaction());
 
         if (args.contains("tx=true")) {
             try {
-                String s = beans[0].txNever("bean=" + names[1]);
+                firstBTBean.txNever();
                 log.info("Error should have got a Not Supported Exception");
-                return "Error should have got a Not Supported Exception";
+                resp = "Error should have got a Not Supported Exception";
             } catch (javax.ejb.EJBException e) {
                 log.info("Success got Exception calling txNever: " + e);
-                return args;
+                resp = args;
             }
         } else if (args.contains("tx=false")) {
             try {
-                String s = beans[0].txMandatory("bean=" + names[1]);
+                firstBTBean.txMandatory();
                 log.info("Error should have got an EJBTransactionRequiredException exception");
-                return "Error should have got an EJBTransactionRequiredException exception";
+                resp = "Error should have got an EJBTransactionRequiredException exception";
             } catch (javax.ejb.EJBTransactionRequiredException e) {
                 log.info("Success got EJBTransactionRequiredException");
-                return args;
+                resp = args;
             }
         } else if (args.contains("tx=create")) {
             try {
@@ -109,33 +100,16 @@ public class TxEchoServiceTestService extends MDBBlacktieService implements java
                     args = "Service should have propagated a new transaction back to caller";
                 }
 
-                return responseData; // should be the same as args
+                resp = responseData; // should be the same as args
             } catch (ConnectionException e) {
                 log.error("Caught a connection exception: " + e.getMessage(), e);
-                return e.getMessage();
+                resp = e.getMessage();
             } catch (ConfigurationException e) {
                 log.error("Caught a configuration exception: " + e.getMessage(), e);
-                return e.getMessage();
+                resp = e.getMessage();
             }
         } else {
-            try {
-                return beans[0].echo("bean=" + names[1]);
-            } catch (javax.ejb.EJBException e) {
-                log.warn("Failure got Exception calling method with default transaction attribute", e);
-                return "Failure got Exception calling method with default transaction attribute: " + e;
-            }
-        }
-    }
-
-    public Response tpservice(TPSVCINFO svcinfo) throws ConnectionException, ConfigurationException {
-        X_OCTET rcv = (X_OCTET) svcinfo.getBuffer();
-        String rcvd = new String(rcv.getByteArray());
-        String resp;
-        try {
-            resp = serviceRequest(svcinfo.getConnection(), new String(rcvd));
-        } catch (javax.naming.NamingException e) {
-            log.warn("error: " + e, e);
-            resp = e.getMessage();
+            resp = "unknown operation";
         }
         X_OCTET buffer = (X_OCTET) svcinfo.getConnection().tpalloc("X_OCTET", null, resp.length());
         buffer.setByteArray(resp.getBytes());

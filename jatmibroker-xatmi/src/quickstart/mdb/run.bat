@@ -4,7 +4,7 @@ echo "Running MDB quickstart"
 
 rem RUN THE MDB EXAMPLE
 cd %BLACKTIE_HOME%\quickstarts\mdb
-call mvn package -DskipTests
+call mvn clean install -DskipTests
 IF %ERRORLEVEL% NEQ 0 exit -1
 cd %BLACKTIE_HOME%\quickstarts\mdb\ear
 call mvn clean install jboss-as:deploy

@@ -12,7 +12,7 @@ fi
 #' | unzip jbossesb-4.9.zip
 #
 
-ant -f scripts/hudson/initializeDependencies.xml -Dbasedir=. initializeJBoss -debug
+ant -f scripts/hudson/initializeJBoss.xml -Dbasedir=. initializeJBoss -debug
 
 chmod u+x $WORKSPACE/jboss-as-7.1.0.Final/bin/standalone.sh
 chmod u+x $WORKSPACE/jboss-as-7.1.0.Final/bin/add-user.sh

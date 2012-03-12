@@ -37,8 +37,8 @@ rem RUN THE SAMPLES
 cd %WORKSPACE%\dist\blacktie-5.0.0.M2-SNAPSHOT
 IF %ERRORLEVEL% NEQ 0 echo "Failing build 4" & tasklist & call %WORKSPACE%\jboss-as-7.1.0.Final\bin\jboss-cli.bat --connect command=:shutdown & exit -1
 
-set ORACLE_HOME=C:\hudson\workspace\blacktie-windows2003\instantclient_11_2
-set TNS_ADMIN=C:\hudson\workspace\blacktie-windows2003\instantclient_11_2\network\admin
+set ORACLE_HOME=C:\hudson\workspace\blacktie-vc9x32\instantclient_11_2
+set TNS_ADMIN=C:\hudson\workspace\blacktie-vc9x32\instantclient_11_2\network\admin
 set PATH=%PATH%;%ORACLE_HOME%\bin;%ORACLE_HOME%\vc9
 
 set PATH=%PATH%;%WORKSPACE%\tools\maven\bin

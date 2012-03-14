@@ -18,6 +18,7 @@
 package org.codehaus.stomp.tcp;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -30,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.jms.JMSException;
+import javax.naming.NamingException;
 import javax.net.ServerSocketFactory;
 
 import org.apache.commons.logging.Log;
@@ -92,9 +95,34 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
                 }
             } catch (SocketTimeoutException ste) {
                 // expect this to happen
-            } catch (Exception e) {
+            } catch (IOException e) {
                 if (!isStopping() && !isStopped()) {
-                    e.printStackTrace();
+                    log.error("Got a IOException", e);
+                    onAcceptError(e);
+                }
+            } catch (NamingException e) {
+                if (!isStopping() && !isStopped()) {
+                    log.error("Got a NamingException", e);
+                    onAcceptError(e);
+                }
+            } catch (URISyntaxException e) {
+                if (!isStopping() && !isStopped()) {
+                    log.error("Got a URISyntaxException", e);
+                    onAcceptError(e);
+                }
+            } catch (IllegalArgumentException e) {
+                if (!isStopping() && !isStopped()) {
+                    log.error("Got a IllegalArgumentException", e);
+                    onAcceptError(e);
+                }
+            } catch (IllegalAccessException e) {
+                if (!isStopping() && !isStopped()) {
+                    log.error("Got a IllegalAccessException", e);
+                    onAcceptError(e);
+                }
+            } catch (InvocationTargetException e) {
+                if (!isStopping() && !isStopped()) {
+                    log.error("Got a InvocationTargetException", e);
                     onAcceptError(e);
                 }
             }
@@ -172,7 +200,7 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
 
     // Implementation methods
     // -------------------------------------------------------------------------
-    protected void doStart() throws Exception {
+    protected void doStart() throws IOException {
         bind();
         log.info("Listening for connections at: " + getConnectURI());
         runner = new Thread(this, "StompConnect Server Thread: " + toString());
@@ -180,7 +208,7 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
         runner.start();
     }
 
-    protected void doStop() throws Exception {
+    protected void doStop() throws InterruptedException, IOException, JMSException, URISyntaxException {
         // lets stop accepting new connections first
         if (serverSocket != null) {
             serverSocket.close();
@@ -223,7 +251,7 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
         }
     }
 
-    protected void connectHandlers(TcpTransport transport) throws Exception {
+    protected void connectHandlers(TcpTransport transport) throws NamingException {
         StompHandler inputHandler = stompHandlerFactory.createStompHandler(transport);
         transport.setInputHandler(inputHandler);
     }

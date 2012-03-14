@@ -18,6 +18,7 @@
 package org.codehaus.stomp.jms;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ import javax.jms.XAConnection;
 import javax.jms.XAConnectionFactory;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
 import org.apache.commons.logging.Log;
@@ -116,7 +118,7 @@ public class ProtocolConverter implements StompHandler {
         return new ControlWrapper(control);
     }
 
-    public synchronized void close() throws JMSException {
+    public synchronized void close() {
         if (!closed) {
             try {
                 // First close the XA sessions
@@ -125,18 +127,19 @@ public class ProtocolConverter implements StompHandler {
                     StompSession xaSession = iterator.next();
                     try {
                         xaSession.close();
-                    } catch (Throwable t) {
-                        t.printStackTrace();
+                    } catch (JMSException e) {
+                        log.error("Could not close XASession: " + e);
                     }
                 }
                 xaSessions.clear();
                 xaSessions = null;
             } finally {
-                try {
-                    if (noneXaSession != null) {
+                if (noneXaSession != null) {
+                    try {
                         noneXaSession.close();
+                    } catch (JMSException e) {
+                        log.error("Could not close none XASession: " + e);
                     }
-                } finally {
                     noneXaSession = null;
                 }
             }
@@ -146,8 +149,10 @@ public class ProtocolConverter implements StompHandler {
 
     /**
      * Process a Stomp Frame
+     * 
+     * @throws IOException
      */
-    public void onStompFrame(StompFrame command) throws Exception {
+    public void onStompFrame(StompFrame command) throws IOException {
         try {
             if (log.isDebugEnabled()) {
                 log.debug(">>>> " + command.getAction() + " headers: " + command.getHeaders());
@@ -209,7 +214,7 @@ public class ProtocolConverter implements StompHandler {
 
     // Implemenation methods
     // -------------------------------------------------------------------------
-    protected void onStompConnect(StompFrame command) throws Exception {
+    protected void onStompConnect(StompFrame command) throws IOException, JMSException {
         if (noneXaSession != null) {
             throw new ProtocolException("Already connected.");
         }
@@ -257,12 +262,13 @@ public class ProtocolConverter implements StompHandler {
         sendToStomp(sc);
     }
 
-    protected void onStompDisconnect(StompFrame command) throws Exception {
+    protected void onStompDisconnect(StompFrame command) throws ProtocolException, JMSException {
         checkConnected();
         close();
     }
 
-    protected void onStompSend(StompFrame command) throws Exception {
+    protected void onStompSend(StompFrame command) throws IllegalStateException, SystemException, JMSException,
+            NamingException, IOException {
         checkConnected();
 
         Map<String, Object> headers = command.getHeaders();
@@ -290,7 +296,8 @@ public class ProtocolConverter implements StompHandler {
         log.trace("Sent Response");
     }
 
-    protected void onStompReceive(StompFrame command) throws Exception {
+    protected void onStompReceive(StompFrame command) throws IllegalStateException, SystemException, JMSException,
+            NamingException, IOException {
         checkConnected();
 
         Map<String, Object> headers = command.getHeaders();
@@ -342,7 +349,7 @@ public class ProtocolConverter implements StompHandler {
         sendToStomp(sf);
     }
 
-    protected void onStompSubscribe(StompFrame command) throws Exception {
+    protected void onStompSubscribe(StompFrame command) throws JMSException, NamingException, IOException {
         checkConnected();
 
         Map<String, Object> headers = command.getHeaders();
@@ -357,7 +364,7 @@ public class ProtocolConverter implements StompHandler {
         sendResponse(command);
     }
 
-    protected void onStompUnsubscribe(StompFrame command) throws Exception {
+    protected void onStompUnsubscribe(StompFrame command) throws JMSException, IOException {
         checkConnected();
         Map<String, Object> headers = command.getHeaders();
 
@@ -375,7 +382,7 @@ public class ProtocolConverter implements StompHandler {
         sendResponse(command);
     }
 
-    protected void onStompAck(StompFrame command) throws Exception {
+    protected void onStompAck(StompFrame command) throws JMSException, IOException {
         checkConnected();
 
         Map<String, Object> headers = command.getHeaders();
@@ -434,7 +441,7 @@ public class ProtocolConverter implements StompHandler {
         return xaSession;
     }
 
-    protected void sendResponse(StompFrame command) throws Exception {
+    protected void sendResponse(StompFrame command) throws IOException {
         final String receiptId = (String) command.getHeaders().get(Stomp.Headers.RECEIPT_REQUESTED);
         // A response may not be needed.
         if (receiptId != null) {
@@ -446,7 +453,7 @@ public class ProtocolConverter implements StompHandler {
         }
     }
 
-    protected synchronized void sendToStomp(StompFrame frame) throws Exception {
+    protected synchronized void sendToStomp(StompFrame frame) throws IOException {
         if (log.isDebugEnabled()) {
             log.debug("<<<< " + frame.getAction() + " headers: " + frame.getHeaders());
         }

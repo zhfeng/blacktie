@@ -17,6 +17,8 @@
  */
 package org.codehaus.stomp;
 
+import javax.naming.NamingException;
+
 /**
  * A factory of input handlers of the STOMP frames
  * 
@@ -25,6 +27,8 @@ package org.codehaus.stomp;
 public interface StompHandlerFactory {
     /**
      * Creates a STOMP input handler from the given output channel
+     * 
+     * @throws NamingException
      */
-    public StompHandler createStompHandler(StompHandler outputHandler) throws Exception;
+    public StompHandler createStompHandler(StompHandler outputHandler) throws NamingException;
 }

@@ -17,6 +17,13 @@
  */
 package org.jboss.narayana.blacktie.stompconnect;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
+
+import javax.jms.JMSException;
+import javax.naming.NamingException;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.codehaus.stomp.jms.StompConnect;
@@ -27,7 +34,8 @@ public class StompConnectService implements StompConnectServiceMBean {
     private int port = 61613;
     private String connectionFactoryName = "java:/JmsXA";
 
-    public void start() throws Exception {
+    public void start() throws NamingException, IOException, URISyntaxException, IllegalArgumentException,
+            IllegalAccessException, InvocationTargetException {
         String bindAddress = System.getProperty("jboss.bind.address", "127.0.0.1");
         if (bindAddress.equals("") || bindAddress.equals("0.0.0.0")) {
             bindAddress = "127.0.0.1";
@@ -41,7 +49,7 @@ public class StompConnectService implements StompConnectServiceMBean {
         log.info("Started StompConnectMBeanImpl: " + connect.getUri());
     }
 
-    public void stop() throws Exception {
+    public void stop() throws InterruptedException, IOException, JMSException, URISyntaxException {
         connect.stop();
     }
 

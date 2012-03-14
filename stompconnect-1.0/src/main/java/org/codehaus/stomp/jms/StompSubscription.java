@@ -17,12 +17,13 @@
  */
 package org.codehaus.stomp.jms;
 
+import java.io.IOException;
 import java.util.Map;
 
-import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
 import javax.naming.NamingException;
 
 import org.apache.commons.logging.Log;
@@ -36,16 +37,13 @@ import org.codehaus.stomp.StompFrame;
  * 
  * @version $Revision: 50 $
  */
-public class StompSubscription implements Runnable {
+public class StompSubscription implements MessageListener {
     public static final String AUTO_ACK = Stomp.Headers.Subscribe.AckModeValues.AUTO;
     public static final String CLIENT_ACK = Stomp.Headers.Subscribe.AckModeValues.CLIENT;
     private static final transient Log log = LogFactory.getLog(StompSubscription.class);
     private final StompSession session;
     private final String subscriptionId;
-    private Destination destination;
     private MessageConsumer consumer;
-    private boolean closed;
-    private Thread thread;
     private Map<String, Object> headers;
 
     public StompSubscription(StompSession session, String subscriptionId, StompFrame frame) throws JMSException,
@@ -54,52 +52,58 @@ public class StompSubscription implements Runnable {
         this.session = session;
         this.headers = frame.getHeaders();
         this.consumer = session.createConsumer(headers);
-
-        thread = new Thread(this, "StompSubscription: " + Thread.currentThread().getName());
-        thread.start();
+        this.consumer.setMessageListener(this);
     }
 
-    public void close() throws JMSException {
-        closed = true;
+    public synchronized void close() throws JMSException {
         consumer.close();
     }
 
-    public String getSubscriptionId() {
-        return subscriptionId;
-    }
-
-    public Destination getDestination() {
-        return destination;
-    }
-
-    public void run() {
+    public synchronized void onMessage(Message message) {
+        String destinationName = (String) headers.get(Stomp.Headers.Subscribe.DESTINATION);
         try {
-            while (!closed) {
-                String destinationName = (String) headers.get(Stomp.Headers.Subscribe.DESTINATION);
-                Message message = consumer.receive();
-                log.debug("received: " + destinationName + " for: " + message.getObjectProperty("messagereplyto"));
-                if (message != null) {
+            log.debug("received: " + destinationName + " for: " + message.getObjectProperty("messagereplyto"));
+        } catch (JMSException e) {
+            log.warn("received: " + destinationName + " with trouble getting the messagereplyto");
+        }
+        if (message != null) {
+            // Lock the session so that the connection cannot be started before the acknowledge is done
+            synchronized (session) {
+                // Stop the session before sending the message
+                log.debug("Stopping session: " + session);
+                try {
+                    session.stop();
+                } catch (JMSException e) {
+                    log.fatal("Could not stop the connection: " + e, e);
+                }
+                // Send the message to the server
+                log.debug("Sending message: " + session);
+                try {
+                    session.sendToStomp(message, subscriptionId);
+                    // Acknowledge the message for this connection as we know the server has received it now
                     try {
-                        // Lock the session so that the connection cannot be started before the acknowledge is done
-                        synchronized (session) {
-                            // Stop the session before sending the message
-                            log.debug("Stopping session: " + session);
-                            session.stop();
-                            // Send the message to the server
-                            log.debug("Sending message: " + session);
-                            session.sendToStomp(message, this);
-                            // Acknowledge the message for this connection as we know the server has received it now
-                            log.debug("Acking message: " + session);
-                            message.acknowledge();
-                        }
-                    } catch (Exception e) {
-                        log.error("Failed to process message due to: " + e + ". Message: " + message, e);
+                        log.debug("Acking message: " + session);
+                        message.acknowledge();
+                    } catch (JMSException e) {
+                        log.fatal("Could not acknowledge the message: " + e, e);
+                    }
+
+                } catch (IOException e) {
+                    log.fatal("Could not send to stomp: " + e, e);
+                    try {
+                        session.recover();
+                    } catch (JMSException e1) {
+                        log.fatal("Could not recover the session: " + e, e);
+                    }
+                } catch (JMSException e) {
+                    log.fatal("Could not convert message to send to stomp: " + e, e);
+                    try {
+                        session.recover();
+                    } catch (JMSException e1) {
+                        log.fatal("Could not recover the session: " + e, e);
                     }
                 }
             }
-        } catch (JMSException e) {
-            log.debug("Caught a JMS exception: " + e.getMessage());
         }
-
     }
 }

@@ -24,6 +24,7 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -62,7 +63,7 @@ public class StompMarshaller {
         return unmarshal(dis);
     }
 
-    public void marshal(StompFrame stomp, DataOutput os) throws IOException {
+    public void marshal(StompFrame stomp, DataOutput os) throws UnsupportedEncodingException, IOException {
         StringBuffer buffer = new StringBuffer();
         buffer.append(stomp.getAction());
         buffer.append(Stomp.NEWLINE);

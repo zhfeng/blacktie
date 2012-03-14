@@ -22,20 +22,25 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.jms.JMSException;
 import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.codehaus.stomp.ProtocolException;
 import org.codehaus.stomp.StompFrame;
 import org.codehaus.stomp.StompHandler;
 import org.codehaus.stomp.StompMarshaller;
@@ -100,10 +105,13 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
 
     /**
      * A one way asynchronous send
+     * 
+     * @throws UnsupportedEncodingException
+     * @throws IOException
      */
     // PATCHED BY TOM - THIS CAN BE INVOKED BY THE RECEIPT FOR A SUBSCRIPTION AT THE SAME
     // TIME AS THE FIRST MESSAGE IS RECEIVED
-    public synchronized void onStompFrame(StompFrame command) throws Exception {
+    public synchronized void onStompFrame(StompFrame command) throws IOException {
         checkStarted();
         marshaller.marshal(command, dataOut);
         dataOut.flush();
@@ -113,7 +121,7 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
         log.error("Caught: " + e, e);
     }
 
-    public void close() throws Exception {
+    public void close() throws InterruptedException, IOException, JMSException, URISyntaxException {
         stop();
     }
 
@@ -135,7 +143,7 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
                 inputHandler.onStompFrame(frame);
             } catch (SocketTimeoutException e) {
             } catch (InterruptedIOException e) {
-            } catch (Exception e) {
+            } catch (IOException e) {
                 log.debug("Caught an exception: " + e.getMessage());
                 try {
                     stop();
@@ -286,8 +294,13 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
      * 
      * @param sock
      * @throws SocketException
+     * @throws URISyntaxException
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     * @throws IllegalArgumentException
      */
-    protected void initialiseSocket(Socket sock) throws SocketException {
+    protected void initialiseSocket(Socket sock) throws SocketException, IllegalArgumentException, IllegalAccessException,
+            InvocationTargetException, URISyntaxException {
         if (socketOptions != null) {
             IntrospectionSupport.setProperties(socket, socketOptions);
         }
@@ -309,7 +322,8 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
         }
     }
 
-    protected void doStart() throws Exception {
+    protected void doStart() throws IOException, IllegalArgumentException, IllegalAccessException, InvocationTargetException,
+            URISyntaxException {
         connect();
 
         runner = new Thread(this, "StompConnect Transport: " + toString());
@@ -317,7 +331,8 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
         runner.start();
     }
 
-    protected void connect() throws Exception {
+    protected void connect() throws IOException, IllegalArgumentException, IllegalAccessException, InvocationTargetException,
+            URISyntaxException {
 
         if (socket == null && socketFactory == null) {
             throw new IllegalStateException("Cannot connect if the socket or socketFactory have not been set");
@@ -365,7 +380,7 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
         initializeStreams();
     }
 
-    protected void doStop() throws Exception {
+    protected void doStop() throws InterruptedException, IOException, JMSException, URISyntaxException {
         if (log.isDebugEnabled()) {
             log.debug("Stopping transport " + this);
         }
@@ -381,13 +396,13 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
         }
     }
 
-    protected void checkStarted() throws IOException {
+    protected void checkStarted() throws ProtocolException {
         if (!isStarted()) {
-            throw new IOException("The transport is not running.");
+            throw new ProtocolException("The transport is not running.");
         }
     }
 
-    protected void initializeStreams() throws Exception {
+    protected void initializeStreams() throws IOException {
         // TcpBufferedInputStream buffIn = new TcpBufferedInputStream(socket.getInputStream(), ioBufferSize);
         this.dataIn = new DataInputStream(socket.getInputStream());// new DataInputStream(buffIn);
         // TcpBufferedOutputStream buffOut = new TcpBufferedOutputStream(socket.getOutputStream(), ioBufferSize);

@@ -18,6 +18,7 @@
 package org.codehaus.stomp.jms;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -85,11 +86,19 @@ public class StompSession {
                 temporaryDestinations.remove(i.next());
             }
         }
-        subscriptions.clear();
-        connection.close();
+        Iterator<StompSubscription> iterator = subscriptions.values().iterator();
+        try {
+            while (iterator.hasNext()) {
+                iterator.next().close();
+            }
+        } finally {
+            subscriptions.clear();
+            connection.close();
+        }
     }
 
-    public void sendToJms(StompFrame command) throws JMSException, ProtocolException, NamingException {
+    public void sendToJms(StompFrame command) throws JMSException, ProtocolException, NamingException,
+            UnsupportedEncodingException {
         Map headers = command.getHeaders();
         String destinationName = (String) headers.remove(Stomp.Headers.Send.DESTINATION);
         Message message = convertFrame(command);
@@ -103,10 +112,10 @@ public class StompSession {
         log.debug("Sent message: " + message.getJMSMessageID());
     }
 
-    public void sendToStomp(Message message, StompSubscription subscription) throws Exception {
+    public void sendToStomp(Message message, String subscriptionID) throws JMSException, IOException {
         log.debug("Sending to stomp");
         StompFrame frame = convertMessage(message);
-        frame.getHeaders().put(Stomp.Headers.Message.SUBSCRIPTION, subscription.getSubscriptionId());
+        frame.getHeaders().put(Stomp.Headers.Message.SUBSCRIPTION, subscriptionID);
         protocolConverter.sendToStomp(frame);
     }
 
@@ -201,7 +210,7 @@ public class StompSession {
         }
     }
 
-    protected void copyStandardHeadersFromMessageToFrame(Message message, StompFrame command) throws IOException, JMSException {
+    protected void copyStandardHeadersFromMessageToFrame(Message message, StompFrame command) throws JMSException {
         final Map headers = command.getHeaders();
         headers.put(Stomp.Headers.Message.DESTINATION, convertDestination(message.getJMSDestination()));
         headers.put(Stomp.Headers.Message.MESSAGE_ID, message.getJMSMessageID());
@@ -260,7 +269,8 @@ public class StompSession {
         }
     }
 
-    protected Message convertFrame(StompFrame command) throws JMSException, ProtocolException, NamingException {
+    protected Message convertFrame(StompFrame command) throws JMSException, UnsupportedEncodingException, ProtocolException,
+            NamingException {
         final Map headers = command.getHeaders();
         final Message msg;
         if (headers.containsKey(Stomp.Headers.CONTENT_LENGTH)) {
@@ -269,19 +279,14 @@ public class StompSession {
             bm.writeBytes(command.getContent());
             msg = bm;
         } else {
-            String text;
-            try {
-                text = new String(command.getContent(), "UTF-8");
-            } catch (Throwable e) {
-                throw new ProtocolException("Text could not bet set: " + e, false, e);
-            }
+            String text = new String(command.getContent(), "UTF-8");
             msg = session.createTextMessage(text);
         }
         copyStandardHeadersFromFrameToMessage(command, msg);
         return msg;
     }
 
-    protected StompFrame convertMessage(Message message) throws IOException, JMSException {
+    protected StompFrame convertMessage(Message message) throws JMSException, UnsupportedEncodingException {
         StompFrame command = new StompFrame();
         command.setAction(Stomp.Responses.MESSAGE);
         Map headers = new HashMap(25);
@@ -380,5 +385,9 @@ public class StompSession {
 
     public void stop() throws JMSException {
         connection.stop();
+    }
+
+    public void recover() throws JMSException {
+        session.recover();
     }
 }

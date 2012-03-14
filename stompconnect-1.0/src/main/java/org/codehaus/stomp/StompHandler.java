@@ -17,18 +17,28 @@
  */
 package org.codehaus.stomp;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+
+import javax.jms.JMSException;
+
 /**
  * Represents a handler of Stomp frames
  * 
  * @version $Revision: 65 $
  */
 public interface StompHandler {
-    void onStompFrame(StompFrame frame) throws Exception;
+    void onStompFrame(StompFrame frame) throws IOException;
 
     void onException(Exception e);
 
     /**
      * Called to close the handler
+     * 
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws JMSException
+     * @throws URISyntaxException
      */
-    void close() throws Exception;
+    void close() throws InterruptedException, IOException, JMSException, URISyntaxException;
 }

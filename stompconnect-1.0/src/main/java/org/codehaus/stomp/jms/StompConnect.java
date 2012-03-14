@@ -18,10 +18,12 @@
 package org.codehaus.stomp.jms;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
 import javax.jms.XAConnectionFactory;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -184,11 +186,12 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
 
     // Implementation methods
     // -------------------------------------------------------------------------
-    protected void doStart() throws Exception {
+    protected void doStart() throws IOException, URISyntaxException, IllegalArgumentException, IllegalAccessException,
+            InvocationTargetException {
         getTcpServer().start();
     }
 
-    protected void doStop() throws Exception {
+    protected void doStop() throws InterruptedException, IOException, JMSException, URISyntaxException {
         getTcpServer().stop();
     }
 

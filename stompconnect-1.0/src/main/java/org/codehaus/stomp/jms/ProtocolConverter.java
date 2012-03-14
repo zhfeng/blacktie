@@ -44,7 +44,7 @@ import org.codehaus.stomp.ProtocolException;
 import org.codehaus.stomp.Stomp;
 import org.codehaus.stomp.StompFrame;
 import org.codehaus.stomp.StompFrameError;
-import org.codehaus.stomp.StompHandler;
+import org.codehaus.stomp.tcp.TcpTransport;
 import org.omg.CosTransactions.Control;
 
 import com.arjuna.ats.internal.jta.transaction.jts.AtomicTransaction;
@@ -58,9 +58,9 @@ import com.arjuna.ats.internal.jts.ORBManager;
  * @author <a href="http://people.apache.org/~jstrachan/">James Strachan</a>
  * @author <a href="http://hiramchirino.com">chirino</a>
  */
-public class ProtocolConverter implements StompHandler {
+public class ProtocolConverter {
     private static final transient Log log = LogFactory.getLog(ProtocolConverter.class);
-    private final StompHandler outputHandler;
+    private final TcpTransport outputHandler;
     private ConnectionFactory noneXAConnectionFactory;
     private XAConnectionFactory xaConnectionFactory;
     private StompSession noneXaSession;
@@ -74,16 +74,13 @@ public class ProtocolConverter implements StompHandler {
     private boolean closed;
 
     public ProtocolConverter(InitialContext initialContext, ConnectionFactory connectionFactory,
-            XAConnectionFactory xaConnectionFactory, StompHandler outputHandler) throws NamingException {
+            XAConnectionFactory xaConnectionFactory, TcpTransport outputHandler) throws NamingException {
         this.noneXAConnectionFactory = connectionFactory;
         this.xaConnectionFactory = xaConnectionFactory;
         this.outputHandler = outputHandler;
         this.initialContext = initialContext;
         tm = (TransactionManager) initialContext.lookup("java:/TransactionManager");
-    }
-
-    public StompHandler getOutputHandler() {
-        return outputHandler;
+        outputHandler.setProtocolConverter(this);
     }
 
     /**
@@ -118,7 +115,7 @@ public class ProtocolConverter implements StompHandler {
         return new ControlWrapper(control);
     }
 
-    public synchronized void close() {
+    public void close() {
         if (!closed) {
             try {
                 // First close the XA sessions
@@ -184,6 +181,10 @@ public class ProtocolConverter implements StompHandler {
                 onStompDisconnect(command);
             } else {
                 throw new ProtocolException("Unknown STOMP action: " + action);
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug(">>>> " + command.getAction() + " headers: " + command.getHeaders() + " >> done");
             }
         } catch (Exception e) {
             log.debug("Caught an exception: ", e);
@@ -393,12 +394,14 @@ public class ProtocolConverter implements StompHandler {
             throw new ProtocolException("None XA session was not stopped");
         }
 
+        log.debug("Locking session to restart it");
+        // Dont allow the session to deliver any more messages until after we have acked the clients ack
         synchronized (session) {
             // Allow another message to be consumed
-            log.debug("Starting session: " + session);
             session.start();
             sendResponse(command);
         }
+        log.debug("Session started");
     }
 
     protected void checkConnected() throws ProtocolException {
@@ -450,14 +453,22 @@ public class ProtocolConverter implements StompHandler {
             sc.setHeaders(new HashMap<String, Object>(1));
             sc.getHeaders().put(Stomp.Headers.Response.RECEIPT_ID, receiptId);
             sendToStomp(sc);
+        } else {
+            log.trace("No receipt required");
         }
     }
 
-    protected synchronized void sendToStomp(StompFrame frame) throws IOException {
+    protected void sendToStomp(StompFrame frame) throws IOException {
         if (log.isDebugEnabled()) {
             log.debug("<<<< " + frame.getAction() + " headers: " + frame.getHeaders());
         }
-        outputHandler.onStompFrame(frame);
+        log.debug("Locking output handler to ensure that we don't mux signals");
+        synchronized (outputHandler) {
+            outputHandler.onStompFrame(frame);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("<<<< " + frame.getAction() + " headers: " + frame.getHeaders() + " << done");
+        }
     }
 
     private static class JtsTransactionImple extends TransactionImple {

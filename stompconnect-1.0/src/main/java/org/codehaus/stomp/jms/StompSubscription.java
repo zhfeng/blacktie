@@ -55,11 +55,11 @@ public class StompSubscription implements MessageListener {
         this.consumer.setMessageListener(this);
     }
 
-    public synchronized void close() throws JMSException {
+    public void close() throws JMSException {
         consumer.close();
     }
 
-    public synchronized void onMessage(Message message) {
+    public void onMessage(Message message) {
         String destinationName = (String) headers.get(Stomp.Headers.Subscribe.DESTINATION);
         try {
             log.debug("received: " + destinationName + " for: " + message.getObjectProperty("messagereplyto"));
@@ -67,10 +67,10 @@ public class StompSubscription implements MessageListener {
             log.warn("received: " + destinationName + " with trouble getting the messagereplyto");
         }
         if (message != null) {
+            log.debug("Locking session to send a message");
             // Lock the session so that the connection cannot be started before the acknowledge is done
             synchronized (session) {
                 // Stop the session before sending the message
-                log.debug("Stopping session: " + session);
                 try {
                     session.stop();
                 } catch (JMSException e) {
@@ -84,10 +84,10 @@ public class StompSubscription implements MessageListener {
                     try {
                         log.debug("Acking message: " + session);
                         message.acknowledge();
+                        log.debug("Acked message: " + session);
                     } catch (JMSException e) {
                         log.error("Could not acknowledge the message: " + e, e);
                     }
-
                 } catch (IOException e) {
                     log.warn("Could not send to stomp: " + e, e);
                     try {

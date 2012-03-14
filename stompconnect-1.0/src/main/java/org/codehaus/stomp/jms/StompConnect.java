@@ -31,8 +31,7 @@ import javax.net.ServerSocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.stomp.StompHandler;
-import org.codehaus.stomp.StompHandlerFactory;
+import org.codehaus.stomp.tcp.TcpTransport;
 import org.codehaus.stomp.tcp.TcpTransportServer;
 import org.codehaus.stomp.util.ServiceSupport;
 
@@ -41,7 +40,7 @@ import org.codehaus.stomp.util.ServiceSupport;
  * 
  * @version $Revision: 53 $
  */
-public class StompConnect extends ServiceSupport implements StompHandlerFactory {
+public class StompConnect extends ServiceSupport {
     private static final transient Log log = LogFactory.getLog(StompConnect.class);
 
     private ConnectionFactory connectionFactory;
@@ -58,7 +57,7 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
         initialContext = new InitialContext();
     }
 
-    public StompHandler createStompHandler(StompHandler outputHandler) throws NamingException {
+    public void assignProtocolConverter(TcpTransport transport) throws NamingException {
         ConnectionFactory factory = getConnectionFactory();
         if (factory == null) {
             throw new IllegalArgumentException("No ConnectionFactory is configured!");
@@ -67,14 +66,7 @@ public class StompConnect extends ServiceSupport implements StompHandlerFactory 
         if (xaFactory == null) {
             throw new IllegalArgumentException("No XAConnectionFactory is configured!");
         }
-        return new ProtocolConverter(initialContext, factory, xaFactory, outputHandler);
-    }
-
-    /**
-     * Joins with the background thread until the transport is stopped
-     */
-    public void join() throws IOException, URISyntaxException, InterruptedException {
-        getTcpServer().join();
+        new ProtocolConverter(initialContext, factory, xaFactory, transport);
     }
 
     // Properties

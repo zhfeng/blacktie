@@ -37,8 +37,7 @@ import javax.net.ServerSocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.stomp.StompHandler;
-import org.codehaus.stomp.StompHandlerFactory;
+import org.codehaus.stomp.jms.StompConnect;
 import org.codehaus.stomp.util.IOExceptionSupport;
 import org.codehaus.stomp.util.ServiceSupport;
 
@@ -47,20 +46,19 @@ import org.codehaus.stomp.util.ServiceSupport;
  */
 public class TcpTransportServer extends ServiceSupport implements Runnable {
     private static final Log log = LogFactory.getLog(TcpTransportServer.class);
-    private StompHandlerFactory stompHandlerFactory;
+    private StompConnect stompHandlerFactory;
     private ServerSocket serverSocket;
     private int backlog = 5000;
     private boolean trace;
     private Map transportOptions;
     private ServerSocketFactory serverSocketFactory;
     private boolean daemon = true;
-    private boolean joinOnStop = true;
     private Thread runner;
     private URI connectURI;
     private URI bindLocation;
     private List<TcpTransport> connections = new CopyOnWriteArrayList<TcpTransport>();
 
-    public TcpTransportServer(StompHandlerFactory stompHandlerFactory, URI location, ServerSocketFactory serverSocketFactory)
+    public TcpTransportServer(StompConnect stompHandlerFactory, URI location, ServerSocketFactory serverSocketFactory)
             throws IOException, URISyntaxException {
         this.stompHandlerFactory = stompHandlerFactory;
         this.connectURI = location;
@@ -88,7 +86,7 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
                         socket.close();
                     } else {
                         TcpTransport transport = createTransport(socket);
-                        connectHandlers(transport);
+                        stompHandlerFactory.assignProtocolConverter(transport);
                         transport.start();
                         connections.add(transport);
                     }
@@ -129,13 +127,6 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
         }
     }
 
-    /**
-     * Joins with the background thread until the transport is stopped
-     */
-    public void join() throws InterruptedException {
-        runner.join();
-    }
-
     // Properties
     // -------------------------------------------------------------------------
     public boolean isDaemon() {
@@ -147,17 +138,6 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
      */
     public void setDaemon(boolean daemon) {
         this.daemon = daemon;
-    }
-
-    public boolean isJoinOnStop() {
-        return joinOnStop;
-    }
-
-    /**
-     * Sets whether the background read thread is joined with (waited for) on a stop
-     */
-    public void setJoinOnStop(boolean joinOnStop) {
-        this.joinOnStop = joinOnStop;
     }
 
     /**
@@ -224,8 +204,10 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
         }
 
         // lets join the server thread in case its blocked a little while
-        if (runner != null && joinOnStop) {
-            join();
+        if (runner != null) {
+            log.debug("Attempting to join with runner");
+            runner.join();
+            log.debug("Joined with runner");
             runner = null;
         }
     }
@@ -249,11 +231,6 @@ public class TcpTransportServer extends ServiceSupport implements Runnable {
         } catch (URISyntaxException e) {
             throw IOExceptionSupport.create(e);
         }
-    }
-
-    protected void connectHandlers(TcpTransport transport) throws NamingException {
-        StompHandler inputHandler = stompHandlerFactory.createStompHandler(transport);
-        transport.setInputHandler(inputHandler);
     }
 
     protected void onAcceptError(Exception e) {

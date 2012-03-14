@@ -37,8 +37,6 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
-import javax.jms.TemporaryQueue;
-import javax.jms.TemporaryTopic;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
 import javax.naming.InitialContext;
@@ -80,12 +78,6 @@ public class StompSession {
     }
 
     public void close() throws JMSException {
-        synchronized (temporaryDestinations) {
-            Iterator<String> i = created.iterator();
-            while (i.hasNext()) {
-                temporaryDestinations.remove(i.next());
-            }
-        }
         Iterator<StompSubscription> iterator = subscriptions.values().iterator();
         try {
             while (iterator.hasNext()) {
@@ -125,23 +117,23 @@ public class StompSession {
             throw new ProtocolException("No destination is specified!");
         } else if (name.startsWith("/queue/") || name.startsWith("/topic/")) {
             return (Destination) initialContext.lookup("java:" + name);
-        } else if (name.startsWith("/temp-queue/")) {
-            String tempName = name.substring("/temp-queue/".length(), name.length());
-            Destination answer = temporaryDestinations.get(tempName);
-
-            if (forceNew || answer == null) {
-                return temporaryDestination(tempName, session.createTemporaryQueue());
-            } else {
-                return answer;
-            }
-        } else if (name.startsWith("/temp-topic/")) {
-            String tempName = name.substring("/temp-topic/".length(), name.length());
-            Destination answer = temporaryDestinations.get(tempName);
-            if (forceNew || answer == null) {
-                return temporaryDestination(tempName, session.createTemporaryTopic());
-            } else {
-                return answer;
-            }
+            // } else if (name.startsWith("/temp-queue/")) {
+            // String tempName = name.substring("/temp-queue/".length(), name.length());
+            // Destination answer = temporaryDestinations.get(tempName);
+            //
+            // if (forceNew || answer == null) {
+            // return temporaryDestination(tempName, session.createTemporaryQueue());
+            // } else {
+            // return answer;
+            // }
+            // } else if (name.startsWith("/temp-topic/")) {
+            // String tempName = name.substring("/temp-topic/".length(), name.length());
+            // Destination answer = temporaryDestinations.get(tempName);
+            // if (forceNew || answer == null) {
+            // return temporaryDestination(tempName, session.createTemporaryTopic());
+            // } else {
+            // return answer;
+            // }
         } else {
             throw new ProtocolException("Illegal destination name: [" + name + "] -- StompConnect destinations "
                     + "must begine with one of: /queue/ /topic/ /temp-queue/ /temp-topic/");
@@ -155,32 +147,24 @@ public class StompSession {
         StringBuffer buffer = new StringBuffer();
         if (d instanceof Topic) {
             Topic topic = (Topic) d;
-            if (d instanceof TemporaryTopic) {
-                buffer.append("/temp-topic/");
-                temporaryDestination(topic.getTopicName(), d);
-            } else {
-                buffer.append("/topic/");
-            }
+            // if (d instanceof TemporaryTopic) {
+            // buffer.append("/temp-topic/");
+            // temporaryDestination(topic.getTopicName(), d);
+            // } else {
+            buffer.append("/topic/");
+            // }
             buffer.append(topic.getTopicName());
         } else {
             Queue queue = (Queue) d;
-            if (d instanceof TemporaryQueue) {
-                buffer.append("/temp-queue/");
-                temporaryDestination(queue.getQueueName(), d);
-            } else {
-                buffer.append("/queue/");
-            }
+            // if (d instanceof TemporaryQueue) {
+            // buffer.append("/temp-queue/");
+            // temporaryDestination(queue.getQueueName(), d);
+            // } else {
+            buffer.append("/queue/");
+            // }
             buffer.append(queue.getQueueName());
         }
         return buffer.toString();
-    }
-
-    protected synchronized Destination temporaryDestination(String tempName, Destination temporaryDestination) {
-        synchronized (temporaryDestinations) {
-            temporaryDestinations.put(tempName, temporaryDestination);
-            created.add(tempName);
-        }
-        return temporaryDestination;
     }
 
     protected int getDeliveryMode(Map headers) throws JMSException {
@@ -380,14 +364,17 @@ public class StompSession {
     }
 
     public void start() throws JMSException {
+        log.debug("Starting session: " + session);
         connection.start();
     }
 
     public void stop() throws JMSException {
+        log.debug("Stopping session: " + session);
         connection.stop();
     }
 
     public void recover() throws JMSException {
+        log.debug("Recovering session: " + session);
         session.recover();
     }
 }

@@ -42,18 +42,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.stomp.ProtocolException;
 import org.codehaus.stomp.StompFrame;
-import org.codehaus.stomp.StompHandler;
 import org.codehaus.stomp.StompMarshaller;
+import org.codehaus.stomp.jms.ProtocolConverter;
 import org.codehaus.stomp.util.IntrospectionSupport;
 import org.codehaus.stomp.util.ServiceSupport;
 
 /**
  * @version $Revision: 65 $
  */
-public class TcpTransport extends ServiceSupport implements Runnable, StompHandler {
+public class TcpTransport extends ServiceSupport implements Runnable {
     private static final Log log = LogFactory.getLog(TcpTransport.class);
     private StompMarshaller marshaller = new StompMarshaller();
-    private StompHandler inputHandler;
+    private ProtocolConverter inputHandler;
     private final URI remoteLocation;
     private final URI localLocation;
     private int connectionTimeout = 30000;
@@ -84,45 +84,15 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
     }
 
     /**
-     * Connect to a remote Node - e.g. a Broker
-     * 
-     * @param localLocation e.g. local InetAddress and local port
-     */
-    public TcpTransport(StompHandler stompHandler, SocketFactory socketFactory, URI remoteLocation, URI localLocation)
-            throws IOException {
-        this.inputHandler = stompHandler;
-        this.socketFactory = socketFactory;
-        try {
-            this.socket = socketFactory.createSocket();
-        } catch (SocketException e) {
-            e.printStackTrace();
-            this.socket = null;
-        }
-        this.remoteLocation = remoteLocation;
-        this.localLocation = localLocation;
-        setDaemon(false);
-    }
-
-    /**
      * A one way asynchronous send
      * 
      * @throws UnsupportedEncodingException
      * @throws IOException
      */
-    // PATCHED BY TOM - THIS CAN BE INVOKED BY THE RECEIPT FOR A SUBSCRIPTION AT THE SAME
-    // TIME AS THE FIRST MESSAGE IS RECEIVED
-    public synchronized void onStompFrame(StompFrame command) throws IOException {
+    public void onStompFrame(StompFrame command) throws IOException {
         checkStarted();
         marshaller.marshal(command, dataOut);
         dataOut.flush();
-    }
-
-    public void onException(Exception e) {
-        log.error("Caught: " + e, e);
-    }
-
-    public void close() throws InterruptedException, IOException, JMSException, URISyntaxException {
-        stop();
     }
 
     /**
@@ -140,11 +110,12 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
         while (!isStopped()) {
             try {
                 StompFrame frame = marshaller.unmarshal(dataIn);
+                log.debug("Sending stomp frame");
                 inputHandler.onStompFrame(frame);
             } catch (SocketTimeoutException e) {
             } catch (InterruptedIOException e) {
             } catch (IOException e) {
-                log.debug("Caught an exception: " + e.getMessage());
+                log.fatal("Caught an exception: " + e.getMessage(), e);
                 try {
                     stop();
                 } catch (Exception e2) {
@@ -159,15 +130,12 @@ public class TcpTransport extends ServiceSupport implements Runnable, StompHandl
         }
     }
 
-    // Properties
-    // -------------------------------------------------------------------------
-    public StompHandler getInputHandler() {
-        return inputHandler;
+    public void setProtocolConverter(ProtocolConverter protocolConverter) {
+        this.inputHandler = protocolConverter;
     }
 
-    public void setInputHandler(StompHandler inputHandler) {
-        this.inputHandler = inputHandler;
-    }
+    // Properties
+    // -------------------------------------------------------------------------
 
     public boolean isDaemon() {
         return daemon;

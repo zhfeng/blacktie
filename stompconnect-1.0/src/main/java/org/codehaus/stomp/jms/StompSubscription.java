@@ -85,22 +85,22 @@ public class StompSubscription implements MessageListener {
                         log.debug("Acking message: " + session);
                         message.acknowledge();
                     } catch (JMSException e) {
-                        log.fatal("Could not acknowledge the message: " + e, e);
+                        log.error("Could not acknowledge the message: " + e, e);
                     }
 
                 } catch (IOException e) {
-                    log.fatal("Could not send to stomp: " + e, e);
+                    log.warn("Could not send to stomp: " + e, e);
                     try {
                         session.recover();
                     } catch (JMSException e1) {
-                        log.fatal("Could not recover the session: " + e, e);
+                        log.fatal("Could not recover the session, possible lost message: " + e, e);
                     }
                 } catch (JMSException e) {
-                    log.fatal("Could not convert message to send to stomp: " + e, e);
+                    log.warn("Could not convert message to send to stomp: " + e, e);
                     try {
                         session.recover();
                     } catch (JMSException e1) {
-                        log.fatal("Could not recover the session: " + e, e);
+                        log.fatal("Could not recover the session, possible lost message: " + e, e);
                     }
                 }
             }

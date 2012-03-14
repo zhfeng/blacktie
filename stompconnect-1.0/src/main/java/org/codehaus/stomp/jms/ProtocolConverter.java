@@ -69,6 +69,7 @@ public class ProtocolConverter implements StompHandler {
     private String passcode;
     private String clientId;
     private InitialContext initialContext;
+    private boolean closed;
 
     public ProtocolConverter(InitialContext initialContext, ConnectionFactory connectionFactory,
             XAConnectionFactory xaConnectionFactory, StompHandler outputHandler) throws NamingException {
@@ -116,27 +117,30 @@ public class ProtocolConverter implements StompHandler {
     }
 
     public synchronized void close() throws JMSException {
-        try {
-            // First close the XA sessions
-            Iterator<StompSession> iterator = xaSessions.values().iterator();
-            while (iterator.hasNext()) {
-                StompSession xaSession = iterator.next();
-                try {
-                    xaSession.close();
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
-            }
-        } finally {
+        if (!closed) {
             try {
-                if (noneXaSession != null) {
-                    noneXaSession.close();
+                // First close the XA sessions
+                Iterator<StompSession> iterator = xaSessions.values().iterator();
+                while (iterator.hasNext()) {
+                    StompSession xaSession = iterator.next();
+                    try {
+                        xaSession.close();
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                    }
                 }
-            } finally {
                 xaSessions.clear();
                 xaSessions = null;
-                noneXaSession = null;
+            } finally {
+                try {
+                    if (noneXaSession != null) {
+                        noneXaSession.close();
+                    }
+                } finally {
+                    noneXaSession = null;
+                }
             }
+            closed = true;
         }
     }
 
@@ -151,6 +155,11 @@ public class ProtocolConverter implements StompHandler {
 
             if (command.getClass() == StompFrameError.class) {
                 throw ((StompFrameError) command).getException();
+            }
+
+            if (closed) {
+                log.error("Connection is closed: " + this);
+                throw new ProtocolException("Connection is closed: " + this);
             }
 
             String action = command.getAction();
@@ -172,8 +181,7 @@ public class ProtocolConverter implements StompHandler {
                 throw new ProtocolException("Unknown STOMP action: " + action);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-
+            log.debug("Caught an exception: ", e);
             // Let the stomp client know about any protocol errors.
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter stream = new PrintWriter(new OutputStreamWriter(baos, "UTF-8"));

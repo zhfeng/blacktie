@@ -26,33 +26,28 @@ if [ "$?" != "0" ]; then
 fi
 
 #rem "Build Converted XATMI service"
-cd $BLACKTIE_HOME/quickstarts/integration1/ejb
-mvn install
+(cd $BLACKTIE_HOME/quickstarts/integration1/ejb && mvn install)
 if [ "$?" != "0" ]; then
 	exit -1
 fi
-cd $BLACKTIE_HOME/quickstarts/integration1/ejb/ear/
-mvn install
+(cd $BLACKTIE_HOME/quickstarts/integration1/ejb/ear/ && mvn install jboss-as:deploy)
 if [ "$?" != "0" ]; then
 	exit -1
 fi
-cd $BLACKTIE_HOME/quickstarts/integration1/xatmi_adapter/
-mvn install
+(cd $BLACKTIE_HOME/quickstarts/integration1/xatmi_adapter/ && mvn install)
 if [ "$?" != "0" ]; then
 	exit -1
 fi
-cd $BLACKTIE_HOME/quickstarts/integration1/xatmi_adapter/ear/
-mvn install
-if [ "$?" != "0" ]; then
-	exit -1
-fi
-cd $BLACKTIE_HOME/quickstarts/integration1/client/
-generate_client -Dclient.includes=client.c
+(cd $BLACKTIE_HOME/quickstarts/integration1/xatmi_adapter/ear/ && mvn install jboss-as:deploy)
 if [ "$?" != "0" ]; then
 	exit -1
 fi
 
 #rem "Run Converted XATMI service"
+(cd $BLACKTIE_HOME/quickstarts/integration1/client/ && generate_client -Dclient.includes=client.c)
+if [ "$?" != "0" ]; then
+	exit -1
+fi
 cd $BLACKTIE_HOME/quickstarts/integration1/client/
 sleep 5
 ./client 

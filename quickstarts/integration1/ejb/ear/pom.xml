@@ -90,20 +90,11 @@
                     </modules>
                 </configuration>
             </plugin>
-					<plugin>
-						<groupId>org.jboss.as.plugins</groupId>
-						<artifactId>jboss-as-maven-plugin</artifactId>
-						<version>7.1.0.Final</version>
-						<executions>
-							<execution>
-								<id>redeploy</id>
-								<phase>pre-integration-test</phase>
-								<goals>
-									<goal>deploy</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
+            <plugin>
+                <groupId>org.jboss.as.plugins</groupId>
+                <artifactId>jboss-as-maven-plugin</artifactId>
+                <version>7.1.0.Final</version>
+            </plugin>
         </plugins>
     </build>
     <dependencies>

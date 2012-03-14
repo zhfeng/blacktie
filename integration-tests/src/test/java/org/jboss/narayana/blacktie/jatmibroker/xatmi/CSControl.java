@@ -20,6 +20,8 @@ package org.jboss.narayana.blacktie.jatmibroker.xatmi;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import junit.framework.TestCase;
 
@@ -146,8 +148,9 @@ public abstract class CSControl extends TestCase {
     }
 
     private TestProcess startClient(String testname, ProcessBuilder builder) throws IOException, InterruptedException {
-        FileOutputStream ostream = new FileOutputStream(REPORT_DIR + "/test-" + testname + "-out.txt");
-        FileOutputStream estream = new FileOutputStream(REPORT_DIR + "/test-" + testname + "-err.txt");
+        String runTime = new SimpleDateFormat("yyMMddHHmmss").format(new Date());
+        FileOutputStream ostream = new FileOutputStream(REPORT_DIR + "/test-" + testname + "-" + runTime + "-out.txt");
+        FileOutputStream estream = new FileOutputStream(REPORT_DIR + "/test-" + testname + "-" + runTime + "-err.txt");
         TestProcess client = new TestProcess(ostream, estream, "client", builder);
         Thread thread = new Thread(client);
 
@@ -162,8 +165,9 @@ public abstract class CSControl extends TestCase {
     }
 
     private TestProcess startServer(String testname, ProcessBuilder builder) throws IOException, InterruptedException {
-        FileOutputStream ostream = new FileOutputStream(REPORT_DIR + "/server-" + testname + "-out.txt");
-        FileOutputStream estream = new FileOutputStream(REPORT_DIR + "/server-" + testname + "-err.txt");
+        String runTime = new SimpleDateFormat("yyMMddHHmmss").format(new Date());
+        FileOutputStream ostream = new FileOutputStream(REPORT_DIR + "/server-" + testname + "-" + runTime + "-out.txt");
+        FileOutputStream estream = new FileOutputStream(REPORT_DIR + "/server-" + testname + "-" + runTime + "-err.txt");
         TestProcess server = new TestProcess(ostream, estream, "server", builder);
         Thread thread = new Thread(server);
 

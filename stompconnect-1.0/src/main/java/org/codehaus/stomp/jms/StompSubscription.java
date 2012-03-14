@@ -77,7 +77,7 @@ public class StompSubscription implements Runnable {
             while (!closed) {
                 String destinationName = (String) headers.get(Stomp.Headers.Subscribe.DESTINATION);
                 Message message = consumer.receive();
-                log.debug("received:" + destinationName);
+                log.debug("received: " + destinationName + " for: " + message.getObjectProperty("messagereplyto"));
                 if (message != null) {
                     try {
                         // Lock the session so that the connection cannot be started before the acknowledge is done

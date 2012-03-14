@@ -63,7 +63,6 @@ public class ProtocolConverter implements StompHandler {
     private XAConnectionFactory xaConnectionFactory;
     private StompSession noneXaSession;
     private Map<TransactionImple, StompSession> xaSessions = new ConcurrentHashMap<TransactionImple, StompSession>();
-    private final Map<String, StompSession> stoppedStompSessions = new ConcurrentHashMap<String, StompSession>();
 
     private TransactionManager tm;
     private String login;
@@ -134,9 +133,9 @@ public class ProtocolConverter implements StompHandler {
                     noneXaSession.close();
                 }
             } finally {
-                noneXaSession = null;
                 xaSessions.clear();
-                stoppedStompSessions.clear();
+                xaSessions = null;
+                noneXaSession = null;
             }
         }
     }
@@ -198,11 +197,6 @@ public class ProtocolConverter implements StompHandler {
 
     public void onException(Exception e) {
         log.error("Caught: " + e, e);
-    }
-
-    public void stopStompSession(String messageId, StompSession session) throws JMSException {
-        stoppedStompSessions.put(messageId, session);
-        log.debug("Stopped connection: " + session);
     }
 
     // Implemenation methods
@@ -376,26 +370,20 @@ public class ProtocolConverter implements StompHandler {
     protected void onStompAck(StompFrame command) throws Exception {
         checkConnected();
 
-        // TODO: acking with just a message id is very bogus
-        // since the same message id could have been sent to 2 different subscriptions
-        // on the same stomp connection. For example, when 2 subs are created on the same topic.
-
         Map<String, Object> headers = command.getHeaders();
-        String messageId = (String) headers.get(Stomp.Headers.Ack.MESSAGE_ID);
-        if (messageId == null) {
-            throw new ProtocolException("ACK received without a message-id!");
-        }
 
-        StompSession session = stoppedStompSessions.remove(messageId);
+        // We know this is none XA
+        StompSession session = noneXaSession;
         if (session == null) {
-            log.warn("Could not start StompSession for message: " + messageId);
-            throw new ProtocolException("No such message for message-id: " + messageId);
+            throw new ProtocolException("None XA session was not stopped");
         }
 
-        // PATCHED BY TOM FOR SINGLE MESSAGE DELIVERY
-        session.acknowledge();
-        log.debug("Started StompSession: " + session);
-        sendResponse(command);
+        synchronized (session) {
+            // Allow another message to be consumed
+            log.debug("Starting session: " + session);
+            session.start();
+            sendResponse(command);
+        }
     }
 
     protected void checkConnected() throws ProtocolException {
@@ -450,7 +438,7 @@ public class ProtocolConverter implements StompHandler {
         }
     }
 
-    protected void sendToStomp(StompFrame frame) throws Exception {
+    protected synchronized void sendToStomp(StompFrame frame) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("<<<< " + frame.getAction() + " headers: " + frame.getHeaders());
         }

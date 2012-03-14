@@ -80,8 +80,18 @@ public class StompSubscription implements Runnable {
                 log.debug("received:" + destinationName);
                 if (message != null) {
                     try {
-                        session.expectAck(message);
-                        session.sendToStomp(message, this);
+                        // Lock the session so that the connection cannot be started before the acknowledge is done
+                        synchronized (session) {
+                            // Stop the session before sending the message
+                            log.debug("Stopping session: " + session);
+                            session.stop();
+                            // Send the message to the server
+                            log.debug("Sending message: " + session);
+                            session.sendToStomp(message, this);
+                            // Acknowledge the message for this connection as we know the server has received it now
+                            log.debug("Acking message: " + session);
+                            message.acknowledge();
+                        }
                     } catch (Exception e) {
                         log.error("Failed to process message due to: " + e + ". Message: " + message, e);
                     }

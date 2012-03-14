@@ -63,7 +63,6 @@ public class StompSession {
     private List<String> created = new ArrayList<String>();
     private Connection connection;
     private InitialContext initialContext;
-    private Message unackedMessage;
     private static final Log log = LogFactory.getLog(StompSession.class);
 
     public StompSession(InitialContext initialContext, ProtocolConverter protocolConverter, Session session,
@@ -350,11 +349,6 @@ public class StompSession {
         return consumer;
     }
 
-    public void acknowledge() throws JMSException {
-        unackedMessage.acknowledge();
-        connection.start();
-    }
-
     public StompSubscription subscribe(String subscriptionId, StompFrame command) throws ProtocolException, JMSException,
             NamingException {
         if (subscriptions.size() > 0) {
@@ -380,9 +374,11 @@ public class StompSession {
         subscription.close();
     }
 
-    public void expectAck(Message message) throws JMSException {
-        this.unackedMessage = message;
+    public void start() throws JMSException {
+        connection.start();
+    }
+
+    public void stop() throws JMSException {
         connection.stop();
-        protocolConverter.stopStompSession(message.getJMSMessageID(), this);
     }
 }

@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -60,7 +61,7 @@ import com.arjuna.ats.internal.jts.ORBManager;
  */
 public class ProtocolConverter {
     private static final transient Log log = LogFactory.getLog(ProtocolConverter.class);
-    private final TcpTransport outputHandler;
+    private final TcpTransport tcpTransport;
     private ConnectionFactory noneXAConnectionFactory;
     private XAConnectionFactory xaConnectionFactory;
     private StompSession noneXaSession;
@@ -77,7 +78,7 @@ public class ProtocolConverter {
             XAConnectionFactory xaConnectionFactory, TcpTransport outputHandler) throws NamingException {
         this.noneXAConnectionFactory = connectionFactory;
         this.xaConnectionFactory = xaConnectionFactory;
-        this.outputHandler = outputHandler;
+        this.tcpTransport = outputHandler;
         this.initialContext = initialContext;
         tm = (TransactionManager) initialContext.lookup("java:/TransactionManager");
         outputHandler.setProtocolConverter(this);
@@ -263,9 +264,11 @@ public class ProtocolConverter {
         sendToStomp(sc);
     }
 
-    protected void onStompDisconnect(StompFrame command) throws ProtocolException, JMSException {
+    protected void onStompDisconnect(StompFrame command) throws JMSException, InterruptedException, IOException,
+            URISyntaxException {
         checkConnected();
         close();
+        tcpTransport.stop();
     }
 
     protected void onStompSend(StompFrame command) throws IllegalStateException, SystemException, JMSException,
@@ -386,8 +389,6 @@ public class ProtocolConverter {
     protected void onStompAck(StompFrame command) throws JMSException, IOException {
         checkConnected();
 
-        Map<String, Object> headers = command.getHeaders();
-
         // We know this is none XA
         StompSession session = noneXaSession;
         if (session == null) {
@@ -463,8 +464,8 @@ public class ProtocolConverter {
             log.debug("<<<< " + frame.getAction() + " headers: " + frame.getHeaders());
         }
         log.debug("Locking output handler to ensure that we don't mux signals");
-        synchronized (outputHandler) {
-            outputHandler.onStompFrame(frame);
+        synchronized (tcpTransport) {
+            tcpTransport.onStompFrame(frame);
         }
         if (log.isDebugEnabled()) {
             log.debug("<<<< " + frame.getAction() + " headers: " + frame.getHeaders() + " << done");

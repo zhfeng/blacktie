@@ -33,7 +33,7 @@ if [ "$?" != "0" ]; then
 fi
 
 # START JBOSS
-$WORKSPACE/jboss-as-7.1.0.Final/bin/standalone.sh -c standalone-full.xml -Djboss.bind.address=$JBOSSAS_IP_ADDR&
+$WORKSPACE/jboss-as-7.1.1.Final/bin/standalone.sh -c standalone-full.xml -Djboss.bind.address=$JBOSSAS_IP_ADDR -Djboss.bind.address.unsecure=$JBOSSAS_IP_ADDR&
 sleep 5
 
 # BUILD BLACKTIE

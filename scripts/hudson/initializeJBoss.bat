@@ -2,7 +2,7 @@ cd %WORKSPACE%
 call ant -f scripts/hudson/initializeJBoss.xml -Dbasedir=. initializeDatabase initializeJBoss -debug
 IF %ERRORLEVEL% NEQ 0 exit -1
 
-cd %WORKSPACE%\jboss-as-7.1.0.Final\bin\
+cd %WORKSPACE%\jboss-as-7.1.1.Final\bin\
 call add-user admin password --silent=true
 IF %ERRORLEVEL% NEQ 0 exit -1
 call add-user guest password -a --silent=true

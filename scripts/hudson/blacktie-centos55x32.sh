@@ -66,7 +66,7 @@ fi
 # RUN ALL THE SAMPLES
 cd $WORKSPACE/dist/blacktie-5.0.0.M2-SNAPSHOT/
 chmod u+x setenv.sh
-. setenv.sh
+. ./setenv.sh
 if [ "$?" != "0" ]; then
 	ps -f
 	for i in `ps -eaf | grep java | grep "standalone-full.xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done

@@ -39,18 +39,19 @@ public class ServiceDispatcher extends BlackTieService implements Runnable {
     private Service callback;
     private Receiver receiver;
     private Thread thread;
-    private volatile boolean closed;
+    private volatile boolean closing;
     private String serviceName;
-    private int index;
     private Object closeLock = new Object();
+    private String threadName;
+    private boolean closed;
 
     ServiceDispatcher(String serviceName, Service callback, Receiver receiver, int index) throws ConfigurationException {
         super(serviceName);
-        this.index = index;
         this.serviceName = serviceName;
         this.callback = callback;
         this.receiver = receiver;
-        thread = new Thread(this, serviceName + "-Dispatcher-" + index);
+        this.threadName = serviceName + "-Dispatcher-" + index;
+        thread = new Thread(this, threadName);
         thread.start();
         log.debug("Created: " + thread.getName());
     }
@@ -58,13 +59,32 @@ public class ServiceDispatcher extends BlackTieService implements Runnable {
     public void run() {
         log.debug("Running");
 
-        while (!closed) {
+        while (!closing) {
             Message message = null;
             try {
                 message = receiver.receive(0);
                 log.trace("Received");
+
+                if (message != null && !closing) {
+                    // Process the consumed message
+                    try {
+                        this.processMessage(serviceName, message);
+                        log.trace("Processed");
+                    } catch (Throwable t) {
+                        log.error("Can't process the message", t);
+                    }
+
+                    try {
+                        // Assumes the message was received from stomp -
+                        // fair
+                        // assumption outside of an MDB
+                        message.ack();
+                    } catch (IOException t) {
+                        log.error("Can't ack the message", t);
+                    }
+                }
             } catch (ConnectionException e) {
-                if (closed) {
+                if (closing) {
                     log.trace("Got an exception during close: " + e.getMessage(), e);
                     break;
                 }
@@ -74,55 +94,41 @@ public class ServiceDispatcher extends BlackTieService implements Runnable {
                     log.error("Could not receive the message: " + e.getMessage(), e);
                     break;
                 }
+            } catch (Throwable t) {
+                log.warn("Got throwable trying to receive: " + t.getMessage(), t);
             }
+        }
 
-            synchronized (closeLock) {
-                if (message != null) {
-                    if (closed) {
-                        log.warn("Message will be ignored as closing");
-                    } else {
-                        try {
-
-                            this.processMessage(serviceName, message);
-                            log.trace("Processed");
-                        } catch (Throwable t) {
-                            log.error("Can't process the message", t);
-                        }
-
-                        try {
-                            // Assumes the message was received from stomp -
-                            // fair
-                            // assumption outside of an MDB
-                            message.ack();
-                        } catch (IOException t) {
-                            log.error("Can't ack the message", t);
-                        }
-                    }
-                }
-            }
+        synchronized (closeLock) {
+            log.warn("Close the thread");
+            closed = true;
+            closeLock.notify();
         }
     }
 
     public void startClose() {
-        synchronized (closeLock) {
-            closed = true;
-            log.trace("Closed set");
-        }
+        log.trace("Attempting to close: " + threadName);
+        closing = true;
+        log.trace("Closed set: " + threadName);
     }
 
     public void close() throws ConnectionException {
-        log.trace("closing");
+        log.trace("closing: " + threadName);
 
         log.trace("Closing receiver");
         receiver.close();
         log.trace("Closing receiver");
 
-        try {
-            log.trace("Joining");
-            thread.join();
-            log.trace("Joined");
-        } catch (InterruptedException e) {
-            log.error("Could not join the dispatcher", e);
+        synchronized (closeLock) {
+            try {
+                log.trace("Joining");
+                if (!closed) {
+                    closeLock.wait();
+                }
+                log.trace("Joined");
+            } catch (InterruptedException e) {
+                log.error("Could not join the dispatcher", e);
+            }
         }
         log.trace("closed");
     }

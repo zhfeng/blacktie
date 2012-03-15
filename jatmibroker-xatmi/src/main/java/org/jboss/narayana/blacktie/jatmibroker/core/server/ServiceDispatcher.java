@@ -100,7 +100,7 @@ public class ServiceDispatcher extends BlackTieService implements Runnable {
         }
 
         synchronized (closeLock) {
-            log.warn("Close the thread");
+            log.debug("Close the thread");
             closed = true;
             closeLock.notify();
         }

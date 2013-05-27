@@ -86,7 +86,7 @@ sleep 5
 
 # BUILD BLACKTIE
 cd $WORKSPACE
-./build.sh clean install -Djbossas.ip.addr=$JBOSSAS_IP_ADDR "$@"
+./build.sh clean install -Djbossas.ip.addr=$JBOSSAS_IP_ADDR -DskipTests "$@"
 if [ "$?" != "0" ]; then
 	ps -f
 	for i in `ps -eaf | grep java | grep "standalone.*xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
@@ -96,6 +96,19 @@ if [ "$?" != "0" ]; then
 	killall -9 cs
     ps -f
 	fatal "Some tests failed"
+fi
+
+# Test TX
+./build.sh -f tx/pom.xml clean test 
+if [ "$?" != "0" ]; then
+	ps -f
+	for i in `ps -eaf | grep java | grep "standalone.*xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
+	killall -9 testsuite
+	killall -9 server
+	killall -9 client
+	killall -9 cs
+    ps -f
+	fatal "TX tests failed"
 fi
 
 # KILL ANY BUILD REMNANTS
